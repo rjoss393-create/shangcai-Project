@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(python -c \"import fastapi, pydantic; print\\(''fastapi'', fastapi.__version__, ''| pydantic'', pydantic.__version__\\)\")",
+      "Bash(pip install:*)",
+      "Bash(python -m pip --version)",
+      "Bash(pip --version)",
+      "Bash(where python:*)",
+      "Bash(python -m pip install fastapi \"pydantic>=2\")",
+      "Bash(PYTHONIOENCODING=utf-8 python _smoke_controller.py)",
+      "Bash(PYTHONIOENCODING=utf-8 python -c \":*)",
+      "Bash(python -m pip install httpx)",
+      "Bash(ls -R \"E:\\\\上财项目\\(控制层\\)\\\\backend\")"
+    ]
+  }
+}

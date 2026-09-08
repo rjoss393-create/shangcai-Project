@@ -1,0 +1,44 @@
+职责：
+1意图解析与智能路由（C4）：识别用户请求是“简单查询”还是“复杂推理”，决定走 Service（快通道）还是 Agent（慢通道）。
+
+2流程编排与上下文管理（C2）：维护用户当前浏览的图谱上下文（如当前聚焦节点、历史路径），协调多步骤调用（如先调 Agent 获取推理结果，再调 Service 补全图数据）。
+
+3动画指令生成（C3）：将数据操作（如高亮、展开、聚焦）转化为前端渲染引擎能识别的原子动画动作序列。
+
+4统一响应封装：返回 { data: 图谱子集, actions: [动画指令] } 给前端，实现“数据+表现”的闭环。
+
+5容错与降级：当 Agent（LLM）超时或不可用时，平滑降级至基础关键词检索，保证系统基本可用。
+
+模块划分：
+backend/controller/                                                                                                                                                                                      
+  ├── __init__.py         # 包入口，导出全部公共类                                                                                                                                                           
+  ├── router.py           # FastAPI 路由工厂 create_router(service, intent_agent, reason_agent)                                                                                                              
+  ├── orchestrator.py     # 核心编排器：三个场景入口 + 上下文更新                                                                                                                                            
+  ├── dispatcher.py       # C4 路由决策 + 3s 超时 + 熔断器 + 关键词兜底                                                                                                                                      
+  ├── context_manager.py  # C2 会话上下文（内存存储，接口预留 Redis 替换）                                                                                                                                   
+  ├── assembler.py        # C3 动画指令组装（focus/highlight/fade_in/out/zoom/text_popup）
+  ├── schemas.py          # 统一响应模型 {data, actions} 等契约
+  └── interfaces.py       # Service/Agent 接口契约（Protocol，给其他同学实现用）
+
+关键流程与时序设计：
+场景 1：用户点击节点（常规查询）
+触发 orchestrator.handle_node_click(node_id, session_id)
+
+流程：Router -> Dispatcher(识别为常规) -> Service.get_sub_graph(node_id) -> Assembler(生成“聚焦+淡入淡出”指令) -> 返回前端。
+
+场景 2：用户输入自然语言（如“解释一下并购协同效应并展示相关节点”）
+流程：Router -> Dispatcher(识别为复杂/非结构化) -> 并行/串行调用 Agent.intent_agent(提取实体) + Agent.reason_agent(生成摘要) -> 根据实体 ID 调 Service 获取局部图 -> Assembler(生成“高亮+文本弹窗+缩放”指令) -> 返回前端。
+
+场景 3：超时/熔断降级（Agent 响应慢）
+在 Dispatcher 中设置 asyncio.timeout（如 3s）。若超时，捕获异常并启用 Fallback：提取用户输入中的关键词，直接调用 Service 的模糊搜索接口，返回基础的子图数据和提示“已切换到基础检索模式”。
+
+给队友的接口契约（写在 interfaces.py，实现方无需继承，满足方法签名即可）：
+
+  - GraphService: get_full_graph() / get_sub_graph(node_id, depth) / search_keywords(keywords, limit)
+  - IntentAgent.parse(text) -> IntentResult：必须返回图谱节点 ID 列表（不是名称）
+  - ReasonAgent.reason(text, entities) -> ReasonResult
+
+  两点说明：
+
+  1. 本机已装 fastapi、pydantic、httpx（测试用），队友环境需 pip install fastapi "pydantic>=2"；main.py 由写入口的同学实现，装配方式在 router.py 顶部 docstring 有示例。
+  2. 兜底分词是零依赖的标点切分，后续可换 jieba；会话目前是内存存储，单进程可用，多人联调时再换 Redis（接口已留好）。
