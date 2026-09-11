@@ -6,11 +6,11 @@
 import asyncio
 
 from controller.schemas import (
+    AnswerResult,
     GraphData,
     GraphEdge,
     GraphNode,
-    IntentResult,
-    ReasonResult,
+    RelatedNode,
 )
 
 TEST_NODES = {
@@ -100,42 +100,43 @@ class FakeGraphService:
         )
 
 
-class FakeIntentAgent:
-    """可配置的假意图识别"""
+class FakeQaAgent:
+    """可配置的假智能问答（preload + answer）"""
 
     def __init__(
         self,
-        entities: list[str] | None = None,
+        related_ids: list[str] | None = None,
         *,
         delay: float = 0.0,
+        preload_delay: float = 0.0,
         raise_error: bool = False,
+        raise_preload: bool = False,
     ):
-        self.entities = entities if entities is not None else ["n1"]
+        self.related_ids = related_ids if related_ids is not None else ["n1"]
         self.delay = delay
+        self.preload_delay = preload_delay
         self.raise_error = raise_error
+        self.raise_preload = raise_preload
         self.calls = 0
+        self.preload_calls: list[str] = []
 
-    async def parse(self, text: str) -> IntentResult:
+    async def preload(self, graph_id: str, graph: GraphData) -> None:
+        self.preload_calls.append(graph_id)
+        await asyncio.sleep(self.preload_delay)
+        if self.raise_preload:
+            raise RuntimeError("preload down")
+
+    async def answer(self, graph_id: str, question: str) -> AnswerResult:
         self.calls += 1
         await asyncio.sleep(self.delay)
         if self.raise_error:
             raise RuntimeError("llm down")
-        return IntentResult(intent="query", entities=self.entities)
-
-
-class FakeReasonAgent:
-    """可配置的假摘要生成"""
-
-    def __init__(self, summary: str = "测试摘要", *, delay: float = 0.0,
-                 raise_error: bool = False):
-        self.summary = summary
-        self.delay = delay
-        self.raise_error = raise_error
-        self.calls = 0
-
-    async def reason(self, text: str, entities) -> ReasonResult:
-        self.calls += 1
-        await asyncio.sleep(self.delay)
-        if self.raise_error:
-            raise RuntimeError("llm down")
-        return ReasonResult(summary=self.summary, related_nodes=list(entities))
+        nodes = [RelatedNode(id=i, name=i) for i in self.related_ids]
+        return AnswerResult(
+            prediction_llm="测试答案",
+            prediction_html='测试答案<sup><a href="/knowledge/n1" '
+                           'data-node-id="n1" class="kg-node-link">1</a></sup>',
+            related_nodes=nodes,
+            retrieval_count=5,
+            used_count=len(nodes),
+        )

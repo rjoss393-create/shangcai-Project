@@ -5,7 +5,9 @@
 - 非结构化/自然语言（含疑问词、解释类词等）    -> COMPLEX：Agent 慢通道
 
 容错：
-- 每次 Agent 调用套 asyncio.wait_for 超时（默认 3s，见 AGENT_TIMEOUT_SECONDS）；
+- 每次 Agent 问答调用套 asyncio.wait_for 超时（默认 20s，见 QA_TIMEOUT_SECONDS）；
+  Agent 层缓存命中平均 2.7s，放宽避免首次加载图谱时被误杀；
+  页面打开时的预加载（preload）走后台任务，不占用本次问答超时。
 - 连续失败达到阈值触发熔断（CircuitBreaker），冷却期内直接短路走兜底；
 - 兜底：extract_keywords 提取关键词 -> Service.search_keywords 基础检索。
 """
@@ -15,7 +17,7 @@ import time
 from enum import Enum
 from typing import Awaitable, Callable, TypeVar
 
-AGENT_TIMEOUT_SECONDS = 3.0  # Agent 调用超时（controller.txt 场景3）
+QA_TIMEOUT_SECONDS = 20.0  # 智能问答超时（Agent 层缓存命中平均 2.7s，首次加载图谱较慢）
 
 T = TypeVar("T")
 
@@ -89,7 +91,7 @@ class CircuitBreaker:
 class Dispatcher:
     def __init__(
         self,
-        agent_timeout: float = AGENT_TIMEOUT_SECONDS,
+        agent_timeout: float = QA_TIMEOUT_SECONDS,
         breaker: CircuitBreaker | None = None,
     ):
         self.agent_timeout = agent_timeout

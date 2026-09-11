@@ -1,12 +1,15 @@
 """控制层对外依赖的接口契约（Protocol）
 
-Service 层（data_service.py）与 Agent 层（intent_agent / reason_agent）
+Service 层（data_service.py）与 Agent 层（qa_agent.py）
 由其他同学实现。控制层只依赖这里的抽象接口：
 实现方满足协议即可（鸭子类型），无需继承任何基类。
+
+注意：GraphService 契约暂未与 service 层同学最终对齐，请勿改动；
+QaAgent 为与 Agent 层新协议（检索 + 回答都由 Agent 完成）。
 """
 from typing import Protocol, Sequence
 
-from .schemas import GraphData, IntentResult, ReasonResult
+from .schemas import AnswerResult, GraphData
 
 
 class GraphService(Protocol):
@@ -25,17 +28,19 @@ class GraphService(Protocol):
         ...
 
 
-class IntentAgent(Protocol):
-    """意图识别器（对应 agent/intent_agent.py）"""
+class QaAgent(Protocol):
+    """智能问答 Agent（对应 agent/qa_agent.py，检索 + 回答都在内部完成）"""
 
-    async def parse(self, text: str) -> IntentResult:
-        """从自然语言中提取意图与实体节点 ID"""
+    async def preload(self, graph_id: str, graph: GraphData) -> None:
+        """预热：页面打开时由控制层调用，加载图谱并建立检索索引。
+
+        - graph_id 标识用户当前停留的哪本书，graph 为控制层从
+          Service.get_full_graph() 拿到的归一化全图数据；
+        - 实现应可缓存、幂等（同一 graph_id 重复调用应快速返回）；
+        - 失败不应抛异常导致页面加载失败（控制层在后台调用并吞掉异常）。
+        """
         ...
 
-
-class ReasonAgent(Protocol):
-    """关系推理/摘要生成器（对应 agent/reason_agent.py）"""
-
-    async def reason(self, text: str, entities: Sequence[str]) -> ReasonResult:
-        """基于实体生成摘要与关联节点"""
+    async def answer(self, graph_id: str, question: str) -> AnswerResult:
+        """基于 graph_id 对应图谱回答自然语言问题（检索 + 生成回答）。"""
         ...

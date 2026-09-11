@@ -3,13 +3,13 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from controller.router import create_router
-from fakes import FakeGraphService, FakeIntentAgent, FakeReasonAgent
+from fakes import FakeGraphService, FakeQaAgent
 
 
 def make_client():
     app = FastAPI()
     app.include_router(create_router(
-        FakeGraphService(), FakeIntentAgent(), FakeReasonAgent(),
+        FakeGraphService(), FakeQaAgent(),
     ))
     return TestClient(app)
 
@@ -17,13 +17,20 @@ def make_client():
 class TestRouter:
     def test_load(self):
         client = make_client()
-        r = client.post("/api/graph/load", json={})
+        r = client.post("/api/graph/load", json={"graph_id": "gsjr"})
         assert r.status_code == 200
         body = r.json()
         assert body["code"] == 0
         assert body["session_id"]
         assert {n["id"] for n in body["data"]["nodes"]} == {"n1", "n2", "n3"}
         assert [a["type"] for a in body["actions"]] == ["fade_in", "zoom"]
+        assert body["answer"] is None
+
+    def test_load_without_graph_id_ok(self):
+        client = make_client()
+        r = client.post("/api/graph/load", json={})
+        assert r.status_code == 200
+        assert r.json()["code"] == 0
 
     def test_click(self):
         client = make_client()
@@ -43,13 +50,27 @@ class TestRouter:
 
     def test_query_nl_with_session_flow(self):
         client = make_client()
-        sid = client.post("/api/graph/load", json={}).json()["session_id"]
+        sid = client.post("/api/graph/load",
+                          json={"graph_id": "gsjr"}).json()["session_id"]
         r = client.post("/api/graph/query",
-                        json={"text": "解释一下并购协同效应", "session_id": sid})
+                        json={"text": "解释一下并购协同效应",
+                              "session_id": sid, "graph_id": "gsjr"})
         body = r.json()
         assert body["session_id"] == sid
         assert body["degraded"] is False
-        assert any(a["type"] == "text_popup" for a in body["actions"])
+        assert body["answer"] is not None
+        assert body["answer"]["prediction_html"]
+        assert [n["id"] for n in body["answer"]["related_nodes"]] == ["n1"]
+        assert [a["type"] for a in body["actions"]] == ["focus", "highlight", "zoom"]
+
+    def test_query_nl_without_graph_id_degraded(self):
+        client = make_client()
+        r = client.post("/api/graph/query",
+                        json={"text": "解释一下并购协同效应"})
+        body = r.json()
+        assert body["code"] == 0
+        assert body["degraded"] is True
+        assert body["answer"] is None
 
     def test_invalid_request_422(self):
         client = make_client()

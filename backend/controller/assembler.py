@@ -5,10 +5,10 @@
 
 动作序列约定（与 controller.txt 场景对齐）：
 - 场景1 节点点击：focus -> fade_in(新节点) -> fade_out(离开视野的旧节点)
-- 场景2 自然语言：highlight(命中实体) -> text_popup(摘要) -> zoom(fit)
+- 场景2 智能问答：focus(首个引用节点) -> highlight(全部引用节点) -> zoom(fit)
 - 场景3 降级兜底：highlight(关键词命中) -> zoom(fit)
 """
-from .schemas import ActionType, AnimationAction, GraphData, ReasonResult
+from .schemas import ActionType, AnimationAction, GraphData
 
 DEFAULT_DURATION_MS = 400
 
@@ -41,23 +41,22 @@ class AnimationAssembler:
             actions.append(self._act(ActionType.FADE_OUT, gone_nodes, duration=DEFAULT_DURATION_MS))
         return actions
 
-    def assemble_nl_query(
+    def assemble_qa(
         self,
-        entity_ids: list[str],
+        related_ids: list[str],
         subgraph: GraphData,
-        summary: ReasonResult | None,
-        previous_visible: set[str],
     ) -> list[AnimationAction]:
-        """场景2：高亮命中实体 + 文本弹窗（摘要）+ 缩放适配"""
-        entity_set = set(entity_ids)
-        matched = [n.id for n in subgraph.nodes if n.id in entity_set]
-        if not matched:
-            matched = [n.id for n in subgraph.nodes]
-        actions = [self._act(ActionType.HIGHLIGHT, matched, duration=500)]
-        if summary and summary.summary:
-            actions.append(
-                self._act(ActionType.TEXT_POPUP, matched[:1], title="摘要", text=summary.summary)
-            )
+        """场景2：智能问答——定位并高亮答案引用的节点 + 缩放适配
+
+        答案正文由前端渲染 prediction_html，这里只负责图谱画布：
+        聚焦第一个引用节点、高亮所有在子图中出现的引用节点。
+        """
+        related_set = set(related_ids)
+        matched = [n.id for n in subgraph.nodes if n.id in related_set]
+        actions = []
+        if matched:
+            actions.append(self._act(ActionType.FOCUS, matched[:1], duration=300))
+            actions.append(self._act(ActionType.HIGHLIGHT, matched, duration=500))
         actions.append(self._act(ActionType.ZOOM, mode="fit", duration=600))
         return actions
 

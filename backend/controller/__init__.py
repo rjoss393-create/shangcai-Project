@@ -19,17 +19,17 @@
 from .assembler import AnimationAssembler
 from .context_manager import SessionContextManager
 from .dispatcher import Dispatcher, RouteKind, extract_keywords
-from .interfaces import GraphService, IntentAgent, ReasonAgent
+from .interfaces import GraphService, QaAgent
 from .orchestrator import Orchestrator
 from .router import create_router
 from .schemas import (
     ActionType,
     AnimationAction,
+    AnswerResult,
     GraphData,
     GraphEdge,
     GraphNode,
-    IntentResult,
-    ReasonResult,
+    RelatedNode,
     UnifiedResponse,
 )
 
@@ -37,16 +37,15 @@ __all__ = [
     "ActionType",
     "AnimationAction",
     "AnimationAssembler",
+    "AnswerResult",
     "Dispatcher",
     "GraphData",
     "GraphEdge",
     "GraphNode",
     "GraphService",
-    "IntentAgent",
-    "IntentResult",
     "Orchestrator",
-    "ReasonAgent",
-    "ReasonResult",
+    "QaAgent",
+    "RelatedNode",
     "RouteKind",
     "SessionContextManager",
     "UnifiedResponse",

@@ -5,7 +5,7 @@ import time
 import pytest
 
 from controller.dispatcher import (
-    AGENT_TIMEOUT_SECONDS,
+    QA_TIMEOUT_SECONDS,
     CircuitBreaker,
     Dispatcher,
     RouteKind,
@@ -112,4 +112,5 @@ class TestCallAgent:
         assert called == []  # 熔断期间根本不调用
 
     def test_default_timeout_constant(self):
-        assert AGENT_TIMEOUT_SECONDS == 3.0
+        # Agent 层缓存命中平均 2.7s，放宽避免首次加载图谱被误杀
+        assert QA_TIMEOUT_SECONDS == 20.0

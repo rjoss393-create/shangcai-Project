@@ -15,9 +15,9 @@ import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from controller.interfaces import GraphService, IntentAgent, ReasonAgent
+from controller.interfaces import GraphService, QaAgent
 from controller.router import create_router
-from controller.schemas import GraphData, GraphEdge, GraphNode, IntentResult, ReasonResult
+from controller.schemas import AnswerResult, GraphData, GraphEdge, GraphNode, RelatedNode
 
 # 模拟 Agent 延迟（秒）：让前端能观察到"慢通道"的加载效果；调 0 可关闭
 MOCK_AGENT_DELAY = 0.5
@@ -104,44 +104,57 @@ class MockGraphService:
         )
 
 
-class MockIntentAgent:
-    """假意图识别：抽取文本中出现过的节点名 -> 节点 ID；无命中则给默认实体"""
+class MockQaAgent:
+    """假智能问答：匹配文本中出现过的节点名，按 Agent 层 AnswerResult 格式输出。
 
-    async def parse(self, text: str) -> IntentResult:
+    输出格式与根目录《llm返回输出示例.md》一致：
+    prediction_html 带 <sup><a class="kg-node-link" data-node-id=...> 上标。
+    """
+
+    def __init__(self):
+        self.preloaded: list[str] = []
+
+    async def preload(self, graph_id: str, graph: GraphData) -> None:
+        await asyncio.sleep(MOCK_AGENT_DELAY / 2)  # 模拟建索引耗时
+        if graph_id not in self.preloaded:
+            self.preloaded.append(graph_id)
+
+    async def answer(self, graph_id: str, question: str) -> AnswerResult:
         await asyncio.sleep(MOCK_AGENT_DELAY)
-        entities = [n.id for n in _MOCK_NODES if n.name in text]
-        if not entities:
-            entities = ["n1"]  # 默认命中"并购协同效应"，保证场景2有图可看
-        return IntentResult(intent="query", entities=entities)
-
-
-class MockReasonAgent:
-    """假摘要生成：返回一段固定格式摘要"""
-
-    async def reason(self, text: str, entities) -> ReasonResult:
-        await asyncio.sleep(MOCK_AGENT_DELAY)
-        names = [self._id2name(e) for e in entities if e in self._id2name_map]
-        return ReasonResult(
-            summary=f"[Mock 摘要] 关于「{'、'.join(names)}」：这是假摘要占位，"
-                    f"真实推理结果待 reason_agent 就绪后替换。",
-            related_nodes=entities,
+        matched = [n for n in _MOCK_NODES if n.name in question]
+        if not matched:
+            matched = [_MOCK_NODES[0]]  # 默认命中"并购协同效应"，保证场景2有图可看
+        nodes = [self._to_related(n, i) for i, n in enumerate(matched, start=1)]
+        plain = "，".join(f"{n.name}：{n.media.get('text', '')}" for n in matched)
+        html = "根据知识图谱，" + "，".join(self._sup(n, i) for i, n in enumerate(matched, start=1)) + "。"
+        return AnswerResult(
+            prediction_llm=plain,
+            prediction_html=html,
+            related_nodes=nodes,
+            retrieval_count=len(matched),
+            used_count=len(matched),
         )
 
-    _id2name_map = {n.id: n.name for n in _MOCK_NODES}
+    @staticmethod
+    def _to_related(node: GraphNode, index: int) -> RelatedNode:
+        return RelatedNode(id=node.id, name=node.name, type="concept", page=None)
 
-    @classmethod
-    def _id2name(cls, entity_id: str) -> str:
-        return cls._id2name_map.get(entity_id, entity_id)
+    @staticmethod
+    def _sup(node: GraphNode, index: int) -> str:
+        return (
+            f"{node.name}"
+            f'<sup><a href="/knowledge/{node.id}" data-node-id="{node.id}" '
+            f'data-node-name="{node.name}" class="kg-node-link">{index}</a></sup>'
+        )
 
 
 # ---------- 装配（与 router.py docstring 中的正式装配方式一致） ----------
 
 service = MockGraphService()
-intent_agent = MockIntentAgent()
-reason_agent = MockReasonAgent()
+qa_agent = MockQaAgent()
 
 app = FastAPI(title="投资学知识图谱 - Mock 联调服务", version="0.1.0")
-app.include_router(create_router(service, intent_agent, reason_agent))
+app.include_router(create_router(service, qa_agent))
 
 # 联调期间放开跨域，方便前端 dev server（如 Vite :5173）直接调用
 app.add_middleware(

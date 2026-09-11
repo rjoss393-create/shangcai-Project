@@ -1,6 +1,6 @@
 # Service 与 Agent 层接口协议
 
-> 给 Service 层（数据访问）和 Agent 层（LLM 意图/推理）同学。
+> 给 Service 层（数据访问）和 Agent 层（智能问答）同学。
 > 控制层（controller）只依赖这份契约，**你们按此实现即可，无需了解控制层内部逻辑**。
 
 ## 0. 总览
@@ -13,10 +13,15 @@
 | 层 | 文件 | 实现类 | 实现接口 |
 |----|------|--------|----------|
 | Service | `backend/service/data_service.py` | 任意类名 | `GraphService` |
-| Agent | `backend/agent/intent_agent.py` | 任意类名 | `IntentAgent` |
-| Agent | `backend/agent/reason_agent.py` | 任意类名 | `ReasonAgent` |
+| Agent | `backend/agent/qa_agent.py` | 任意类名 | `QaAgent` |
 
-- 参考实现：`backend/mock_main.py` 里的 `MockGraphService` / `MockIntentAgent` / `MockReasonAgent`，可直接照着写
+- 参考实现：`backend/mock_main.py` 里的 `MockGraphService` / `MockQaAgent`，可直接照着写
+
+> **2026-09-11 更新说明（与 Agent 层新协议对齐）**：
+> - 原 `IntentAgent` / `ReasonAgent` 两段式接口**已删除**，检索 + 回答统一由 `QaAgent` 完成；
+> - 请求新增 `graph_id` 字段（用户停留在哪本书），页面打开时控制层会调用 `preload` 预热；
+> - 问答超时放宽为 **20 秒**（缓存命中平均 2.7s，放宽是为了首次加载图谱不被误杀）；
+> - `GraphService` 契约**暂未改动**（待与 service 层对接后再动，见第 9 节待办）。
 
 ---
 
@@ -24,16 +29,16 @@
 
 ```python
 from controller.schemas import (
-    GraphData, GraphNode, GraphEdge, IntentResult, ReasonResult
+    GraphData, GraphNode, GraphEdge, AnswerResult, RelatedNode
 )
 ```
 
-### GraphNode（图谱节点）
+### GraphNode（图谱节点）—— 暂未改动
 
 ```python
 class GraphNode(BaseModel):
-    id: str                    # 节点唯一 ID（如 "n1"，与 graph.json 一致）
-    name: str                  # 显示名称（如 "并购协同效应"）
+    id: str                    # 节点唯一 ID（与 graph.json 一致）
+    name: str                  # 显示名称
     category: str = ""         # 类别（如 "概念" / "课程"）
     media: dict = {}           # 富媒体：{"text": str, "images": [...], "videos": [...]}
 ```
@@ -47,7 +52,7 @@ class GraphEdge(BaseModel):
     relation: str = ""         # 关系名（如 "包含" / "相关"）
 ```
 
-### GraphData（图谱子集，三个 Service 方法的返回类型）
+### GraphData（图谱子集）
 
 ```python
 class GraphData(BaseModel):
@@ -55,25 +60,36 @@ class GraphData(BaseModel):
     edges: list[GraphEdge] = []
 ```
 
-### IntentResult（intent_agent 必须返回的结构）
+### AnswerResult（QaAgent.answer 必须返回的结构，Agent 层必读）
+
+格式与根目录《llm返回输出示例.md》一致：
 
 ```python
-class IntentResult(BaseModel):
-    intent: str = "query"             # 意图类型，如 query / explain / reason（预留）
-    entities: list[str] = []          # ⚠ 图谱节点 ID 列表（不是名称！）
+class RelatedNode(BaseModel):
+    id: str                    # 节点唯一 ID，与图谱一致
+    name: str                  # 节点显示名
+    type: str = ""             # concept / formula / chapter / section
+    page: int | None = None    # 页码，没有则省略或为 null
+
+class AnswerResult(BaseModel):
+    prediction_llm: str = ""                   # 纯文本答案（无上标，用于评估/复制/存档）
+    prediction_html: str = ""                  # 带 <sup> 超链接的 HTML 答案
+    related_nodes: list[RelatedNode] = []      # 答案中引用的节点清单
+    retrieval_count: int = 0                   # 检索命中的候选节点数
+    used_count: int = 0                        # 实际使用并标记上标的节点数
 ```
 
-### ReasonResult（reason_agent 必须返回的结构）
+**硬性约定**：
 
-```python
-class ReasonResult(BaseModel):
-    summary: str = ""                 # 生成的自然语言摘要
-    related_nodes: list[str] = []     # 关联节点 ID 列表（预留）
-```
+- `related_nodes[].id` 与 `prediction_html` 中 `data-node-id` **完全一致**；
+- 上标序号从 1 开始，对应 `related_nodes[0]`、`related_nodes[1]`…同一节点复用同一序号；
+- 答案中未出现的节点不得出现在 `related_nodes`；
+- 超链接固定结构：`<sup><a href="/knowledge/{node_id}" data-node-id="{node_id}" data-node-name="{name}" class="kg-node-link">{序号}</a></sup>`；
+- **跳转行为由控制层决定**：前端点击上标 → 控制层定位并高亮对应节点，`href` 只是兜底路径，真正读取的是 `data-node-id`。
 
 ---
 
-## 2. GraphService —— Service 层实现（3 个方法）
+## 2. GraphService —— Service 层实现（3 个方法，未改动）
 
 ```python
 class GraphService:
@@ -107,37 +123,66 @@ class GraphService:
 
 ---
 
-## 3. IntentAgent —— Agent 层实现（意图识别）
+## 3. QaAgent —— Agent 层实现（2 个方法）
 
 ```python
-class IntentAgent:
-    async def parse(self, text: str) -> IntentResult:
-        """从自然语言中提取意图与实体节点 ID"""
+class QaAgent:
+    async def preload(self, graph_id: str, graph: GraphData) -> None:
+        """页面打开时由控制层调用：加载图谱、建立检索索引（预热）"""
+
+    async def answer(self, graph_id: str, question: str) -> AnswerResult:
+        """基于 graph_id 对应图谱回答自然语言问题（检索 + 生成）"""
 ```
 
-### 硬性要求（最重要的一条）
+### preload(graph_id, graph)
 
-**`entities` 里必须是图谱中真实存在的节点 ID**（与 graph.json 的 id 一致），**不是节点名称**。
+- 触发时机：页面打开 `/api/graph/load` 时，控制层在**后台**调用（不阻塞页面加载）；
+- `graph`：控制层从 `GraphService.get_full_graph()` 拿到的**归一化全图数据**（`GraphData`），agent 层不需要知道数据文件路径；
+- 实现要求：
+  - 幂等：同一 `graph_id` 可能被重复调用（页面刷新），已有缓存时应快速返回，不必重建；
+  - 缓存：建议把索引/向量缓存下来，让后续 `answer` 走热路径（你本地"缓存不删"的做法就很好，正式环境靠 preload 消除冷启动）；
+  - **失败不要抛异常**（控制层在后台调用，异常只会记日志，不影响页面加载）；你内部应捕获可恢复异常。
 
-- 控制层拿到 entities 后会逐个调 `Service.get_sub_graph(entity_id)` 取图。如果返回的是名称或幻觉出来的 ID，取到的就是空图，前端一片空白。
-- 建议 prompt 中把图谱节点清单（id + name）作为候选集给 LLM，要求它只从候选集中选 id。
-- 识别不出实体时：返回 `IntentResult(intent="query", entities=[])`（空列表），控制层会自动降级到关键词检索，**不要乱猜**。
-- 一个句子多个实体时全部返回，控制层会取并集合并子图。
+### answer(graph_id, question)
+
+- `graph_id`：用户当前停留的哪本书（控制层保证非空才调用）；
+- `question`：用户输入的自然语言问题（长句、疑问句才会走到这里，短关键词走 Service 快通道）；
+- 检索 + 回答全部在 agent 内部完成，返回 `AnswerResult`；
+- 若 `graph_id` 尚未 preload 过（理论上不会发生，控制层保证先预热），你可以现场加载，也可以返回错误——控制层超时/异常时会自动降级到关键词检索。
+
+### 超时与容错（Agent 层必读）
+
+控制层内置容错机制，你们只需知道后果：
+
+| 参数 | 值 | 说明 |
+|------|----|------|
+| 问答超时 | **20 秒** | `dispatcher.QA_TIMEOUT_SECONDS`，超时即放弃本次调用并降级 |
+| 熔断阈值 | **连续失败 3 次** | 之后熔断器打开，**所有问答调用被短路**，直接走降级 |
+| 冷却时间 | **10 秒** | 熔断后 10 秒内不调用 Agent；冷却结束后自动恢复 |
+| 预加载 | 无超时 | preload 走后台任务，不算问答超时，也不计入熔断 |
+
+其他约束：
+
+- **Agent 禁止操作视图/前端**：只返回结构化 JSON（`AnswerResult`），动画和渲染由控制层负责；
+- **Agent 内部抛出的任何异常都计入熔断失败次数**（视为服务不可用），请捕获你们内部可恢复的异常（如 LLM API 偶发错误），不要让异常冒泡；
+- `related_nodes` 数量建议限制在 1~5 个，控制层会逐个取子图用于图谱定位，太多会拖慢响应。
 
 ---
 
-## 4. ReasonAgent —— Agent 层实现（关系推理/摘要）
+## 4. graph_id 约定
 
-```python
-class ReasonAgent:
-    async def reason(self, text: str, entities: Sequence[str]) -> ReasonResult:
-        """基于实体生成摘要与关联节点"""
-```
+- 控制层每个请求都会带 `graph_id`（前端根据用户停留在哪本书传入），转发给 agent 的 `preload` / `answer`；
+- **统一编码表**（定义在 `backend/controller/graph_ids.py`，四方共享）：
 
-- `entities` 是 IntentAgent 识别出的节点 ID 列表
-- `summary`：给用户看的一段解释文字（会以"摘要"弹窗展示在前端），用中文
-- `related_nodes`：可返回延伸的关联节点 ID（当前为预留字段，控制层暂只消费 summary）
-- 该方法是**可选增强**：实现没就绪时控制层传 `None` 跳过；失败也不影响主流程（不会触发降级）
+| graph_id | 图谱 | 数据文件 |
+|----------|------|----------|
+| `ma` | 并购与重组 | 并购与重组_知识图谱.json |
+| `corp_fin` | 公司金融 | 公司金融_知识图谱.json |
+| `intl_inv` | 国际投资学 | 国际投资学_知识图谱.json |
+| `econ` | 经济综合（跨课程聚合） | 经济综合_知识图谱.json |
+
+- 编码规则：小写英文短码（只含 `[a-z0-9_]`）、与书名措辞解耦（再版改名 ID 不变）、版本不进 ID、**新增只加行不改旧值**；
+- agent 层按 `graph_id` 维护自己的缓存字典即可，**只做字典键使用，不要做任何解析**。
 
 ---
 
@@ -145,42 +190,36 @@ class ReasonAgent:
 
 ```
 POST /api/graph/load    → Service.get_full_graph()
+                        → 后台任务：QaAgent.preload(graph_id, full_graph)   ← 预热，不阻塞
 POST /api/graph/click   → Service.get_sub_graph(node_id, depth=1)
 POST /api/graph/query   → 短关键词        → Service.search_keywords()          （快通道）
-                        → 自然语言长句     → IntentAgent.parse(text)
-                                          → 对每个实体 ID 调 Service.get_sub_graph()
-                                          → ReasonAgent.reason(text, entities)（可选）
+                        → 自然语言长句     → QaAgent.answer(graph_id, text)
+                                          → 按 related_nodes 的 ID 调 Service.get_sub_graph()（图谱定位）
                         → Agent 超时/熔断  → Service.search_keywords()          （降级兜底）
 ```
 
 ---
 
-## 6. 硬性约束（Agent 层必读）
+## 6. 硬性约束汇总（实现前必读）
 
-控制层内置容错机制，你们只需知道后果：
-
-| 参数 | 值 | 说明 |
-|------|----|------|
-| 单次调用超时 | **3 秒** | `dispatcher.AGENT_TIMEOUT_SECONDS`，超时即放弃本次调用 |
-| 熔断阈值 | **连续失败 3 次** | 之后熔断器打开，**所有 Agent 调用被短路**，直接走降级 |
-| 冷却时间 | **10 秒** | 熔断后 10 秒内不调用 Agent；冷却结束后自动恢复 |
-
-其他约束：
-
-- **Agent 禁止操作视图/前端**：只返回结构化 JSON（IntentResult / ReasonResult），动画和渲染由控制层负责
-- **Agent 内部抛出的任何异常都计入熔断失败次数**（视为服务不可用），所以请捕获你们内部可恢复的异常（如 LLM API 偶发错误），不要让异常冒泡
-- 返回的 `entities` 数量建议限制在 1~5 个，控制层会逐个取子图，太多会拖慢响应
-- Service 层方法没有超时限制，但也别太慢（它们是快通道和兜底，直接决定前端响应速度）
+- 三个文件各实现一个类，方法签名与第 2/3 节完全一致（async、参数名、返回类型）
+- `AnswerResult.related_nodes[].id` 与 `prediction_html` 的 `data-node-id` 一一对应，且必须是图谱中真实存在的节点 ID
+- `get_sub_graph` 遇到未知 node_id 返回空图而不是抛异常
+- `search_keywords` 不依赖 LLM，无命中返回空图
+- `preload` 幂等、失败不抛异常
+- Agent 内部捕获可恢复异常，避免冒泡触发熔断
+- 用 mock_main.py 的 `MockGraphService` / `MockQaAgent` 对照过字段结构
 
 ---
 
 ## 7. 实现清单（写完后自查）
 
-- [ ] 三个文件各实现一个类，方法签名与第 2/3/4 节完全一致（async、参数名、返回类型）
-- [ ] `IntentAgent.parse` 返回的 entities 是真实节点 ID，且只从图谱候选集中选取
-- [ ] `get_sub_graph` 遇到未知 node_id 返回空图而不是抛异常
-- [ ] `search_keywords` 不依赖 LLM，无命中返回空图
-- [ ] 用 mock_main.py 的三个 Mock 类对照过字段结构
+- [ ] `data_service.py` 实现 `GraphService` 三方法（签名不变）
+- [ ] `qa_agent.py` 实现 `QaAgent` 两方法：`preload(graph_id, graph)` / `answer(graph_id, question)`
+- [ ] `answer` 返回的 `AnswerResult` 与《llm返回输出示例.md》逐字段核对
+- [ ] `related_nodes` 的 id 全部来自图谱真实节点
+- [ ] preload 幂等且内部吞异常
+- [ ] 用 mock_main.py 的两个 Mock 类对照过字段结构
 
 ---
 
@@ -198,20 +237,26 @@ pip install fastapi "pydantic>=2" uvicorn
 from fastapi import FastAPI
 from controller.router import create_router
 from service.data_service import YourGraphService
-from agent.intent_agent import YourIntentAgent
-from agent.reason_agent import YourReasonAgent
+from agent.qa_agent import YourQaAgent
 
 app = FastAPI()
-app.include_router(create_router(
-    YourGraphService(), YourIntentAgent(), YourReasonAgent()
-))
+app.include_router(create_router(YourGraphService(), YourQaAgent()))
 ```
 
 ### 本地自测
 
 - 启动后访问 http://localhost:8000/docs 调 `/api/graph/query`
-- 快速验证 IntentAgent：发 `{"text": "解释一下并购协同效应"}`，若 Agent 正常，响应中 `degraded=false` 且 `data.nodes` 非空；若你的实现超 3 秒或抛异常，`degraded=true` 且走关键词兜底
+- 快速验证 QaAgent：发 `{"text": "解释一下认购期权价值", "graph_id": "corp_fin"}`，若 Agent 正常，响应中 `degraded=false`、`answer` 非空且 `data.nodes` 包含引用节点；若你的实现超 20 秒或抛异常，`degraded=true` 且走关键词兜底
 
 ### 契约变更流程
 
 若需要调整接口签名或字段，**先同步控制层同学改 `interfaces.py` / `schemas.py`**，再一起改实现，避免单方面变更导致装配失败。
+
+---
+
+## 9. 待办（控制层与 service 层对接时再改，当前先冻结）
+
+> 以下变更与 Agent 层无关，先列出备忘，等 service 层同学对接时一起执行。
+
+1. **GraphNode 补字段**：graph.json 里节点有 `label`（映射为 name）、`type`（concept/formula/chapter/section）、`page`（页码），部分节点还有 `original_ocr`/`quality`，经济综合图谱多了 `source_books`。当前 `GraphNode` 缺 `type` 和 `page` —— Agent 的 `related_nodes` 引用了这两个字段，service 层映射时需补齐（Agent 层目前不受影响：它拿到的 `RelatedNode` 由自己输出）。
+2. **节点 ID 跨书重复**：四本书的节点 ID 都是 `concept_0001` 这种本地编号，跨书会重复。service 层支持多图谱后，`get_sub_graph` / `search_keywords` 需要增加按 `graph_id` 过滤（接口签名会同步更新，届时通知大家）。

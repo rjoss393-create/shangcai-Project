@@ -1,6 +1,6 @@
 """assembler 测试：各场景的动画指令序列"""
 from controller.assembler import AnimationAssembler
-from controller.schemas import GraphData, GraphEdge, GraphNode, ReasonResult
+from controller.schemas import GraphData, GraphEdge, GraphNode
 
 
 def _graph(node_ids, edge_pairs=()):
@@ -33,25 +33,23 @@ class TestAssembler:
         assert _types(actions2) == ["focus", "fade_in", "fade_out"]
         assert actions2[2].targets == ["n9"]
 
-    def test_nl_query_with_summary(self):
+    def test_qa_focus_and_highlight_related(self):
         g = _graph(["n1", "n2"])
-        summary = ReasonResult(summary="摘要文本", related_nodes=["n2"])
-        actions = AnimationAssembler().assemble_nl_query(["n1"], g, summary, set())
-        assert _types(actions) == ["highlight", "text_popup", "zoom"]
-        assert actions[0].targets == ["n1"]
-        assert actions[1].targets == ["n1"]
-        assert actions[1].params["text"] == "摘要文本"
+        actions = AnimationAssembler().assemble_qa(["n1", "n2"], g)
+        assert _types(actions) == ["focus", "highlight", "zoom"]
+        assert actions[0].targets == ["n1"]           # 聚焦首个引用节点
+        assert actions[1].targets == ["n1", "n2"]     # 高亮全部引用节点
 
-    def test_nl_query_without_summary(self):
+    def test_qa_related_not_in_subgraph_skipped(self):
         g = _graph(["n1"])
-        actions = AnimationAssembler().assemble_nl_query(["n1"], g, None, set())
-        assert _types(actions) == ["highlight", "zoom"]
+        actions = AnimationAssembler().assemble_qa(["n1", "n999"], g)
+        assert _types(actions) == ["focus", "highlight", "zoom"]
+        assert actions[1].targets == ["n1"]           # 只高亮子图中存在的
 
-    def test_nl_query_empty_summary_no_popup(self):
+    def test_qa_no_related_nodes(self):
         g = _graph(["n1"])
-        summary = ReasonResult(summary="")
-        actions = AnimationAssembler().assemble_nl_query(["n1"], g, summary, set())
-        assert _types(actions) == ["highlight", "zoom"]
+        actions = AnimationAssembler().assemble_qa([], g)
+        assert _types(actions) == ["zoom"]            # 无引用节点只缩放
 
     def test_fallback(self):
         g = _graph(["n1", "n2"])
