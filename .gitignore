@@ -1,0 +1,10 @@
+# 编译缓存
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# 本地配置
+.deepseek/
+
+# 打包备份（不进版本库）
+*.zip
