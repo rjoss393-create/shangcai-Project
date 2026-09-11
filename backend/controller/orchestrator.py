@@ -9,6 +9,7 @@
 
 每次响应后通过 SessionContextManager 更新会话上下文（焦点/可见集/最近查询）。
 """
+import asyncio
 import logging
 from typing import Sequence
 
@@ -120,14 +121,8 @@ class Orchestrator:
         if intent is None or not intent.entities:
             return await self._fallback_query(session_id, text)
 
-        # 依实体取局部图，多实体结果合并去重
-        subgraphs: list[GraphData] = []
-        for entity_id in intent.entities:
-            try:
-                subgraphs.append(await self.service.get_sub_graph(entity_id, depth=1))
-            except Exception:
-                logger.warning("获取实体子图失败: %s", entity_id)
-        subgraph = self._merge_graphs(subgraphs)
+        # 依实体并行取局部图，合并去重（单个失败不影响其他）
+        subgraph = await self._fetch_entity_subgraphs(intent.entities)
 
         # 摘要是可选增强：失败不影响主流程
         summary: ReasonResult | None = None
@@ -151,6 +146,19 @@ class Orchestrator:
         )
 
     # ---------- 工具 ----------
+
+    async def _fetch_entity_subgraphs(self, entity_ids: Sequence[str]) -> GraphData:
+        """并行获取各实体的局部子图并合并去重（单个失败仅告警，不影响其他）"""
+
+        async def _fetch_one(entity_id: str) -> GraphData | None:
+            try:
+                return await self.service.get_sub_graph(entity_id, depth=1)
+            except Exception:
+                logger.warning("获取实体子图失败: %s", entity_id)
+                return None
+
+        subgraphs = await asyncio.gather(*(_fetch_one(eid) for eid in entity_ids))
+        return self._merge_graphs([g for g in subgraphs if g is not None])
 
     def _ok(
         self,
