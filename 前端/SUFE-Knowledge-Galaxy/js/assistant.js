@@ -1,7 +1,8 @@
 /* ============================================================
-   知识助手 · 场景4 前端骨架
+   知识助手 · 场景4 前端
    ------------------------------------------------------------
-   后期对接：只需替换 callAssistantAPI() 一个函数
+   已对接后端 /api/graph/query（统一响应契约）：
+   answer.prediction_llm → text；answer.related_nodes → nodes
 ============================================================ */
 (function () {
     'use strict';
@@ -12,21 +13,10 @@
     let busy = false;
     let suppressFabClick = false;   // 拖动之后，抑制这次 click
 
-    // ---------- 示例回答（mock 数据，后端就绪后删掉） ----------
-    // nodes 里的 id 要和 galaxy 图谱节点 id 对齐
-    const MOCK = {
-        text: '影响通货膨胀的因素主要包括货币供应量、总需求与总供给的失衡，以及国际大宗商品价格冲击。其中，并购协同效应通过提升企业效率可能间接影响价格水平，而杠杆收购带来的债务扩张则可能推高融资成本。',
-        nodes: [
-            { id: 'n1', name: '并购协同效应' },
-            { id: 'n2', name: '杠杆收购' }
-        ],
-        edges: [['n1', 'n2']]
-    };
+    const API_BASE = 'http://localhost:8000';
 
     // ============================================================
-    // ★★★ 后期对接点：只改这个函数 ★★★
-    // ------------------------------------------------------------
-    // 返回格式约定：
+    // ★ 对接点：调用后端智能问答接口，映射为面板所需格式
     //   {
     //     text:  '回答正文（纯文本，概念名直接写在里面）',
     //     nodes: [{ id: '图谱节点ID', name: '概念名' }, ...],
@@ -34,22 +24,35 @@
     //   }
     // ============================================================
     async function callAssistantAPI(question) {
-        // -------- 阶段一：现在用 mock，方便看样式 --------
-        await new Promise(r => setTimeout(r, 900));   // 假装"思考中"
+        const G = window.GalaxyEngine;
+        const state = (G && G.state) || {};
+        const res = await fetch(API_BASE + '/api/graph/query', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({
+                text:       question,
+                session_id: state.sessionId || null,
+                graph_id:   state.graphId || 'econ'
+            })
+        });
+        if (!res.ok) throw new Error('后端返回 ' + res.status);
+        const resp = await res.json();
+        if (!resp || resp.code !== 0) {
+            throw new Error((resp && resp.message) || '接口返回异常');
+        }
+        // 智能问答不可用（降级/无答案）时给友好提示
+        if (!resp.answer || !resp.answer.prediction_llm) {
+            return {
+                text:  (resp.notice || '智能问答暂不可用，已切换为基础检索'),
+                nodes: [],
+                edges: []
+            };
+        }
         return {
-            text: MOCK.text,
-            nodes: MOCK.nodes,
-            edges: MOCK.edges
+            text:  resp.answer.prediction_llm,
+            nodes: (resp.answer.related_nodes || []).map(n => ({ id: n.id, name: n.name })),
+            edges: []
         };
-
-        // -------- 阶段二：接真实大模型时，注释掉上面，改用下面 --------
-        // const res = await fetch('/api/assistant/ask', {
-        //     method:  'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body:    JSON.stringify({ question, session_id: window.GalaxyEngine?.state?.sessionId })
-        // });
-        // if (!res.ok) throw new Error('AI 接口返回 ' + res.status);
-        // return await res.json();
     }
     function init() {
         if (inited) return;

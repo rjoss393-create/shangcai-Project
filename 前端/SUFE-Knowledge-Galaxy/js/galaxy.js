@@ -50,6 +50,7 @@
     // ---------- 全局状态 ----------
     const state = {
         sessionId:      null,
+        graphId:        'econ',        // ★ 当前图谱（对应后端 graph_id，默认经济综合）
         nodes:          [],
         edges:          [],
         visibleIds:     new Set(),
@@ -915,7 +916,10 @@ render();
     async function load() {
         setLoading(true);
         try {
-            const r = await api('/api/graph/load', { session_id: state.sessionId });
+            const r = await api('/api/graph/load', {
+                session_id: state.sessionId,
+                graph_id:   state.graphId
+            });
             await handleResponse(r);
         } catch (e) {
             console.warn('加载图谱失败', e);
@@ -923,6 +927,21 @@ render();
         } finally {
             setLoading(false);
         }
+    }
+
+    // ★ 切换图谱（图书选择框）：清空画布状态后按新 graph_id 重新加载
+    async function switchBook(graphId) {
+        if (!graphId || graphId === state.graphId) return;
+        state.graphId = graphId;
+        state.nodes = [];
+        state.edges = [];
+        state.visibleIds = new Set();
+        state.focusedId = null;
+        state.highlightedIds.clear();
+        state.selectedIds = [];
+        state.activePath = null;
+        state.timelineValue = null;
+        await load();
     }
 
     // ★ 点击节点：Ctrl/Cmd 是"选中"，否则走原聚焦 API
@@ -935,7 +954,8 @@ render();
         try {
             const r = await api('/api/graph/click', {
                 node_id:    nodeId,
-                session_id: state.sessionId
+                session_id: state.sessionId,
+                graph_id:   state.graphId
             });
             await handleResponse(r);
         } catch (e) {
@@ -949,7 +969,8 @@ render();
         try {
             const r = await api('/api/graph/query', {
                 text:       text.trim(),
-                session_id: state.sessionId
+                session_id: state.sessionId,
+                graph_id:   state.graphId
             });
             await handleResponse(r);
         } catch (e) {
@@ -1022,6 +1043,9 @@ render();
         const resetBtn = document.getElementById('galaxyReset');
         if (resetBtn) resetBtn.addEventListener('click', resetView);
 
+        const bookSelect = document.getElementById('galaxyBookSelect');
+        if (bookSelect) bookSelect.addEventListener('change', () => switchBook(bookSelect.value));
+
         const macroBtn = document.getElementById('galaxyMacro');
         if (macroBtn) macroBtn.addEventListener('click', goMacro);
 
@@ -1042,14 +1066,15 @@ render();
     window.GalaxyEngine = {
         init,
         load,
+        switchBook,                                   // ★ 切换图谱（图书选择框）
         query:     handleQuery,
         clickNode: (id) => handleNodeClick(id, null),
         selectNode:(id) => toggleNodeSelection(id),   // ★ 供知识助手复用
         goMacro,                                       // ★
         roam: startRoam,                               // ★
-        toggleImmersive, 
+        toggleImmersive,
         pulseNodes,      // ★ 新增
-        focusOnNodes,    // ★ 新增                              
+        focusOnNodes,    // ★ 新增
         get state() { return state; }
     };
 
