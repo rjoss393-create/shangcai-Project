@@ -8,3 +8,14 @@ __pycache__/
 
 # 打包备份（不进版本库）
 *.zip
+
+# API 密钥（明文 key 严禁入库，改用环境变量 AGNES_API_KEY / AGNES_BASE_URL）
+backend/config.json
+
+# Agent 运行产物（可重新生成）
+backend/cache/
+backend/results/
+backend/dataset_files/
+
+# 前端依赖
+前端/proxy-server/node_modules/

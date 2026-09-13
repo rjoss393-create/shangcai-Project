@@ -1,0 +1,2627 @@
+:root{
+    --main-red:rgba(129,28,33,1);
+    --light-red:rgba(129,28,33,0.35);
+    --paper:rgba(241,240,233,1);
+    --deep-red:#5A1818;
+    --text-gray:#444;
+}
+
+@font-face {
+    font-family: 'Source Han Serif SC';
+    src: url('../assets/fonts/SourceHanSerifCN-Bold-2.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Times New Roman';
+    src: url('../assets/fonts/TimesNewerRoman-Regular-2.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth; /* 全局平滑滚动 */
+}
+
+body{
+    margin:0;
+    background:#ffffff; /* 主背景纯白 */
+    color:var(--text-gray);
+    font-family:"Source Han Serif SC","思源宋体",serif;
+}
+
+/* =====================
+   Header
+===================== */
+.header{
+    width:100%;
+}
+
+/* 红色区域 */
+.brand-area{
+    height:114px;
+    width:100%;
+    background:var(--main-red);
+    position:relative;
+}
+
+/* 校徽 - 修正为正方形容器+contain */
+.school-badge{
+    position:absolute;
+    left:0;
+    top:-26px;
+    width:196px;
+    height:196px;      /* 正方形容器 */
+    object-fit:contain; /* 等比缩放，不变形 */
+    z-index:10;
+}
+
+/* 标题区域 */
+.brand-title{
+    position:absolute;
+    left:174px;
+    top:6px;
+    color:white;
+}
+
+.title-main{
+    display:flex;
+    align-items:center;
+    height:45px;
+}
+
+.title-sufe{
+    font-family:"Times New Roman", serif; /* 使用声明字体 */
+    font-size:36px;
+    font-weight:bold;
+}
+
+.title-cn{
+    font-family:"Source Han Serif SC","思源宋体",serif;
+    font-size:36px;
+    margin-left:12px;
+    white-space:nowrap;
+}
+
+.title-en{
+    margin-top:5px;
+    margin-left:80px;
+    font-family:"Times New Roman", serif;
+    font-size:20px;
+}
+
+/* 米白导航 */
+.navigation{
+    height:41px;
+    width:calc(100% - 155px);
+    margin-left:155px;
+    background:var(--paper); /* 保留米白小条 */
+    border-bottom:2px solid var(--main-red);
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:35px;
+    padding-right:50px;
+}
+
+.nav-item{
+    border:none;
+    background:none;
+    color:var(--main-red);
+    font-size:16px;
+    font-family:"Source Han Serif SC","思源宋体",serif;
+    cursor:pointer;
+    padding:6px 10px;
+    border-radius:30px;
+    transition:.3s;
+}
+
+.nav-item.active{
+    background:var(--light-red);
+}
+
+.nav-item:hover{
+    color:var(--deep-red);
+}
+
+/* =====================
+   页面板块 - 全部可见，不隐藏
+===================== */
+.page-section{
+    opacity:1;
+    visibility:visible;
+    transform:none;
+    transition:none;
+    padding-bottom:40px; /* 给板块间留点呼吸感 */
+}
+
+/* =====================
+   标题
+===================== */
+.section-title{
+    margin-top:50px;
+    margin-left:10%;
+}
+
+.section-title h1{
+    margin:0;
+    font-size:36px;
+    font-weight:normal;
+    color:var(--main-red);
+    font-family:"Source Han Serif SC","思源宋体",serif;
+}
+
+/* =====================
+财经滚动 (卡片用米白)
+===================== */
+.finance-scroll-box {
+    margin: 40px 10%;
+    height: 65px;
+    background: var(--paper);
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    padding: 0 30px;
+    overflow: hidden;
+    position: relative;
+}
+
+.scroll-label {
+    white-space: nowrap;
+    font-size: 22px;
+    color: var(--main-red);
+    margin-right: 30px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+    background: var(--paper);
+    padding-right: 15px;
+}
+
+#finance-scroll {
+    flex: 1;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+#finance-scroll-track {
+    display: inline-block;
+    white-space: nowrap;
+    animation: scrollMove linear infinite;
+    will-change: transform;
+}
+
+@keyframes scrollMove {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); } /* 移动一半宽度（一份内容的宽度） */
+}
+
+#finance-scroll-text,
+#finance-scroll-text-clone {
+    display: inline-block;
+    white-space: nowrap;
+    font-family: "Times New Roman", "Microsoft YaHei", sans-serif;
+    font-size: 16px;
+}
+/* 涨跌颜色 */
+.text-up {
+    color: #891D25;
+    font-weight: 600;
+}
+
+.text-down {
+    color: #2E7D32;
+    font-weight: 600;
+}
+/* =====================
+股票区域
+===================== */
+.market-container{
+    margin:70px 10%;
+}
+
+.market-container h2{
+    font-size:26px;
+    font-weight:normal;
+    color:var(--main-red);
+    font-family:"Source Han Serif SC","思源宋体",serif;
+}
+
+.chart-box{
+    height:420px;
+    background:var(--paper); /* 米白卡片 */
+    border-radius:30px;
+    padding:30px;
+}
+
+.table-box{
+    margin-top:40px;
+    background:var(--paper); /* 米白卡片 */
+    border-radius:30px;
+    padding:30px;
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    color:var(--main-red);
+    font-family:"Source Han Serif SC","思源宋体",serif;
+}
+
+td,th{
+    padding:18px;
+    text-align:center;
+    border-bottom:1px solid #ddd;
+    font-family:"Times New Roman", "Microsoft YaHei", sans-serif;
+}
+/* =====================
+   股票选项卡
+===================== */
+.stock-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.stock-tab {
+    border: none;
+    background: transparent;
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 15px;
+    color: var(--text-gray);
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.stock-tab:hover {
+    background: var(--light-red);
+    color: var(--main-red);
+}
+
+.stock-tab.active {
+    background: var(--main-red);
+    color: white;
+    box-shadow: 0 2px 8px rgba(129, 28, 33, 0.3);
+}
+/* =====================
+新闻区域
+===================== */
+.news-section{
+    margin:100px 10%;
+}
+
+.outside-title{
+    font-size:26px;
+    font-weight:normal;
+    color:var(--main-red);
+    margin-top:70px;
+    font-family:"Source Han Serif SC","思源宋体",serif;
+}
+
+.news-panel{
+    background:var(--paper); /* 米白卡片 */
+    border-radius:30px;
+    min-height:300px;
+    display:flex;
+    overflow:hidden;
+}
+
+.news-tabs{
+    width:20%;
+    padding:30px;
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+
+.tab{
+    border:none;
+    border-radius:30px;
+    padding:12px;
+    background:var(--light-red);
+    color:var(--main-red);
+    cursor:pointer;
+    transition:.3s;
+    font-family:"Source Han Serif SC","思源宋体",serif;
+    font-size:16px;
+}
+
+.tab.active{
+    background:var(--deep-red);
+    color:white;
+}
+
+.news-content{
+    width:50%;
+    padding:35px;
+}
+
+.news-content ul{
+    margin:0;
+    padding-left:20px;
+}
+
+.news-content li{
+    font-size:18px;
+    margin-bottom:25px;
+    font-family:"Source Han Serif SC","思源宋体",serif;
+    list-style-type:disc;
+}
+
+.news-image{
+    width:30%;
+    background:#e0ddd5; /* 占位底色 */
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:hidden;
+}
+
+.news-image img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+/* =====================
+其他模块占位
+===================== */
+.placeholder{
+    height:500px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    font-size:30px;
+    color:var(--main-red);
+    font-family:"Source Han Serif SC","思源宋体",serif;
+    background:#ffffff;
+}
+
+/* =====================
+底部Logo
+===================== */
+footer{
+    height:300px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#ffffff;
+}
+
+.footer-logo{
+    width:260px;
+    opacity:.6;
+}
+
+/* =====================
+响应式
+===================== */
+@media(max-width:1000px){
+    .navigation{
+        height:auto;
+        padding:15px;
+        justify-content:center;
+        flex-wrap:wrap;
+        width:100%;
+        margin-left:0;
+    }
+
+    .brand-title{
+        font-size:26px;
+        margin-left:120px;
+    }
+
+    .school-badge{
+        height:100px;
+        width:100px;
+        top:-10px;
+    }
+
+    .news-panel{
+        flex-direction:column;
+    }
+
+    .news-tabs,
+    .news-content,
+    .news-image{
+        width:100%;
+    }
+    
+    .news-image{
+        min-height:200px;
+    }
+}
+/* =====================
+   职业发展板块
+===================== */
+.career-filter {
+    margin: 30px 10% 20px 10%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 20px;
+    background: var(--paper);
+    padding: 15px 25px;
+    border-radius: 30px;
+}
+
+.filter-label {
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 16px;
+    color: var(--main-red);
+    font-weight: bold;
+}
+
+.filter-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-gray);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 15px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.filter-btn.active {
+    background: var(--main-red);
+    color: white;
+}
+
+.filter-btn:hover {
+    background: var(--light-red);
+    color: var(--main-red);
+}
+
+.job-list-container {
+    margin: 20px 10% 60px 10%;
+    background: var(--paper);
+    border-radius: 30px;
+    padding: 25px 30px;
+    min-height: 400px;
+}
+
+#job-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.job-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 16px 22px;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    transition: 0.2s;
+}
+
+.job-item:hover {
+    box-shadow: 0 4px 16px rgba(129,28,33,0.10);
+    transform: translateY(-2px);
+}
+
+.job-info {
+    flex: 2;
+}
+
+.job-title {
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--main-red);
+}
+
+.job-company {
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 15px;
+    color: var(--text-gray);
+    margin-top: 4px;
+}
+
+.job-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    font-family: "Times New Roman", "Microsoft YaHei", sans-serif;
+    font-size: 14px;
+    color: #666;
+    margin-top: 6px;
+}
+
+.job-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.job-salary {
+    font-family: "Times New Roman", "Microsoft YaHei", sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--main-red);
+    background: rgba(129,28,33,0.08);
+    padding: 4px 14px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.job-tag {
+    background: var(--light-red);
+    color: var(--main-red);
+    padding: 2px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    margin-left: 10px;
+}
+
+@media (max-width: 768px) {
+    .job-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .job-salary {
+        align-self: flex-start;
+    }
+}
+/* =====================
+   课程 · 线上书架
+===================== */
+.bookshelf {
+    overflow: hidden;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    padding: 0;
+
+    /* 左右各 4.5% 的递次淡出区域，模拟滚筒景深 */
+    -webkit-mask-image: linear-gradient(
+        to right,
+        transparent 0%,
+        rgba(0, 0, 0, 0.15) 1.5%,
+        rgba(0, 0, 0, 0.45) 2.8%,
+        rgba(0, 0, 0, 0.80) 4%,
+        #000 5%,
+        #000 95%,
+        rgba(0, 0, 0, 0.80) 96%,
+        rgba(0, 0, 0, 0.45) 97.2%,
+        rgba(0, 0, 0, 0.15) 98.5%,
+        transparent 100%
+    );
+    mask-image: linear-gradient(
+        to right,
+        transparent 0%,
+        rgba(0, 0, 0, 0.15) 1.5%,
+        rgba(0, 0, 0, 0.45) 2.8%,
+        rgba(0, 0, 0, 0.80) 4%,
+        #000 5%,
+        #000 95%,
+        rgba(0, 0, 0, 0.80) 96%,
+        rgba(0, 0, 0, 0.45) 97.2%,
+        rgba(0, 0, 0, 0.15) 98.5%,
+        transparent 100%
+    );
+}
+
+.bookshelf.dragging {
+    cursor: grabbing;
+}
+.course-intro {
+    margin: 18px 10% 0 10%;
+    font-size: 15px;
+    line-height: 1.8;
+    color: #8a8a8a;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+.bookshelf-wrap {
+    /* 左右各 10%，与 .section-title 的 margin-left: 10% 完全对齐 */
+    margin: 26px 10% 70px 10%;
+    position: relative;
+}
+
+.bookshelf-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 1.2vw;        /* 间距随屏幕缩放 */
+    padding: 0;        /* 交给外层 margin 控制左右对齐 */
+}
+
+.bookshelf.dragging {
+    cursor: grabbing;
+}
+
+/* 轨道：宽度为内容宽度，通过 transform 左右移动 */
+.bookshelf-track {
+    display: flex;
+    flex-direction: column;
+    width: max-content;
+    gap: 58px;
+    padding: 52px 0 30px 0;
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+}
+
+.bookshelf-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 26px;
+    padding: 0 70px;
+}
+
+.book-item {
+    flex: 0 0 auto;
+    /* 可用宽度 80vw，8 本 + 7 个 1.2vw 间距 → 每本 = (80vw - 8.4vw) / 8 */
+    width: calc((80vw - 8.4vw) / 8);
+    position: relative;
+    cursor: pointer;
+    z-index: 1;
+    transform-origin: center bottom;
+    transition: transform .35s cubic-bezier(.2, .8, .3, 1);
+}
+
+.book-item:hover {
+    transform: scale(1.3) translateY(-4px);
+    z-index: 60;
+}
+
+.book-cover {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4.2;
+    border-radius: 5px;
+    overflow: hidden;
+    /* 占位底色：纯 #811C21（删掉了原来的深红渐变） */
+    background: #811C21;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .18);
+    transition: box-shadow .35s;
+}
+
+.book-item:hover .book-cover {
+    box-shadow: 0 18px 34px rgba(129, 28, 33, .30);
+}
+
+.book-cover img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    -webkit-user-drag: none;
+
+}
+
+/* 图片缺失 / 数据未填时的占位封面 */
+.cover-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    text-align: center;
+    color: rgba(255, 255, 255, .95);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+.cover-fallback .fb-no {
+    font-family: "Times New Roman", serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+    opacity: .85;
+}
+
+.cover-fallback .fb-label {
+    font-size: 12px;
+    line-height: 1.4;
+    letter-spacing: .5px;
+    opacity: .9;
+}
+
+/* 悬停书名气泡 */
+.book-name {
+    position: absolute;
+    left: 50%;
+    bottom: -38px;
+    transform: translateX(-50%) translateY(-4px);
+    white-space: nowrap;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* 字号随屏幕微调，避免小屏溢出 */
+    font-size: clamp(11px, .95vw, 14px);
+    color: var(--main-red);
+    background: rgba(255, 255, 255, .97);
+    padding: 4px 12px;
+    border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .10);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease, transform .25s ease;
+}
+
+.book-item:hover .book-name {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.bookshelf-hint {
+    text-align: center;
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: #bbb;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    margin-top: 10px;
+}
+
+/* =====================
+   书籍详情页（模态）
+===================== */
+.book-detail-mask {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+    background: rgba(32, 10, 12, .55);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .3s ease, visibility .3s;
+}
+
+.book-detail-mask.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.book-detail {
+    position: relative;
+    width: min(980px, 100%);
+    max-height: 88vh;
+    overflow-y: auto;
+    background: var(--paper);
+    border-radius: 28px;
+    padding: 42px 46px 46px 46px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .35);
+    transform: translateY(26px) scale(.98);
+    transition: transform .35s cubic-bezier(.2, .8, .3, 1);
+}
+
+.book-detail-mask.show .book-detail {
+    transform: translateY(0) scale(1);
+}
+
+.detail-close {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(129, 28, 33, .08);
+    color: var(--main-red);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    transition: .25s;
+    font-family: "Times New Roman", serif;
+}
+
+.detail-close:hover {
+    background: var(--main-red);
+    color: #fff;
+}
+
+.detail-header {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 36px;
+    align-items: start;
+}
+
+.detail-cover-box {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4.2;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #811C21;      /* ← 改成这个 */
+    box-shadow: 0 14px 32px rgba(0, 0, 0, .22);
+}
+
+.detail-cover {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.detail-cover-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    text-align: center;
+    font-size: 17px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, .94);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+.detail-meta {
+    min-width: 0;
+}
+
+.detail-title-cn {
+    margin: 0;
+    font-size: 28px;
+    font-weight: normal;
+    color: var(--main-red);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    line-height: 1.3;
+}
+
+.detail-title-en {
+    margin: 8px 0 0 0;
+    font-size: 16px;
+    font-weight: normal;
+    font-style: italic;
+    color: #9a9a9a;
+    font-family: "Times New Roman", serif;
+    line-height: 1.4;
+}
+
+.detail-author {
+    margin-top: 16px;
+    font-size: 15px;
+    color: var(--text-gray);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+.detail-tags {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.detail-tags span {
+    font-size: 12px;
+    padding: 3px 12px;
+    border-radius: 12px;
+    background: rgba(129, 28, 33, .09);
+    color: var(--main-red);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+.detail-intro {
+    margin: 20px 0 0 0;
+    font-size: 15px;
+    line-height: 1.9;
+    color: #555;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    text-align: justify;
+}
+
+.detail-intro-en {
+    margin: 12px 0 0 0;
+    font-size: 13px;
+    line-height: 1.8;
+    color: #9a9a9a;
+    font-family: "Times New Roman", serif;
+    text-align: justify;
+}
+
+/* 知识图谱占位 */
+.detail-graph {
+    margin-top: 40px;
+}
+
+.detail-graph h3 {
+    margin: 0 0 16px 0;
+    font-size: 20px;
+    font-weight: normal;
+    color: var(--main-red);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+.graph-placeholder {
+    height: 330px;
+    border-radius: 20px;
+    border: 2px dashed rgba(129, 28, 33, .28);
+    background:
+        radial-gradient(circle at 18% 28%, rgba(129, 28, 33, .06), transparent 55%),
+        radial-gradient(circle at 82% 72%, rgba(129, 28, 33, .06), transparent 55%),
+        #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: rgba(129, 28, 33, .55);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+.graph-placeholder p {
+    margin: 4px 0 0 0;
+    font-size: 17px;
+    letter-spacing: 2px;
+}
+
+.graph-placeholder span {
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: rgba(129, 28, 33, .38);
+    font-family: "Times New Roman", serif;
+}
+
+/* 响应式 */
+@media (max-width: 1000px) {
+    .book-item { width: 98px; }
+    .bookshelf-row { gap: 20px; padding: 0 46px; }
+    .bookshelf-track { gap: 46px; }
+
+    .book-detail { padding: 34px 26px 34px 26px; border-radius: 22px; }
+    .detail-header { grid-template-columns: 140px 1fr; gap: 22px; }
+    .detail-title-cn { font-size: 22px; }
+    .detail-title-en { font-size: 14px; }
+    .graph-placeholder { height: 240px; }
+}
+
+@media (max-width: 620px) {
+    .detail-header { grid-template-columns: 1fr; }
+    .detail-cover-box { width: 150px; margin: 0 auto; }
+}
+/* =====================
+   科研论文板块
+===================== */
+.paper-intro {
+    margin: 18px 10% 0 10%;
+    font-size: 15px;
+    line-height: 1.8;
+    color: #8a8a8a;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+.paper-wrap {
+    margin: 30px 10% 70px 10%;
+    position: relative;
+}
+
+/* ---------- 论文卡片 ---------- */
+.paper-stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 460px;
+    background: var(--paper);
+    border-radius: 30px;
+    padding: 44px 52px 38px 52px;
+    cursor: pointer;
+    box-shadow: 0 6px 22px rgba(0, 0, 0, .05);
+    --exit-dir: 1;
+    transition: opacity .24s ease, transform .24s ease, box-shadow .35s ease;
+}
+
+.paper-stage:hover {
+    box-shadow: 0 16px 40px rgba(129, 28, 33, .13);
+    transform: translateY(-2px);
+}
+
+.paper-stage:focus-visible {
+    outline: 2px solid var(--light-red);
+    outline-offset: 4px;
+}
+
+/* 切换时的淡出位移 */
+.paper-stage.paper-fade-out {
+    opacity: 0;
+    transform: translateX(calc(var(--exit-dir, 1) * 30px));
+}
+
+.paper-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.paper-journal {
+    font-family: "Times New Roman", serif;
+    font-style: italic;
+    font-size: 14px;
+    letter-spacing: .6px;
+    color: #9a9a9a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.paper-type {
+    flex-shrink: 0;
+    font-size: 12px;
+    padding: 3px 14px;
+    border-radius: 12px;
+    color: var(--main-red);
+    background: rgba(129, 28, 33, .09);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+.paper-title-cn {
+    margin: 0;
+    font-size: 27px;
+    font-weight: normal;
+    line-height: 1.45;
+    color: var(--main-red);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.paper-title-en {
+    margin: 10px 0 0 0;
+    font-size: 15px;
+    font-weight: normal;
+    font-style: italic;
+    line-height: 1.5;
+    color: #9a9a9a;
+    font-family: "Times New Roman", serif;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.paper-meta {
+    margin-top: 16px;
+    font-size: 14px;
+    color: #666;
+    font-family: "Times New Roman", "Microsoft YaHei", sans-serif;
+    letter-spacing: .3px;
+}
+
+.paper-divider {
+    height: 1px;
+    background: rgba(129, 28, 33, .13);
+    margin: 20px 0 18px 0;
+}
+
+.paper-abstract {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.95;
+    color: #4a4a4a;
+    text-align: justify;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: calc(1.95em * 3);
+}
+
+.paper-abstract .abstract-label {
+    color: var(--main-red);
+    font-weight: bold;
+    margin-right: 6px;
+}
+
+.paper-tags {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.paper-tags span {
+    font-size: 12px;
+    padding: 3px 12px;
+    border-radius: 12px;
+    background: rgba(129, 28, 33, .09);
+    color: var(--main-red);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+.paper-readmore {
+    margin-top: auto;
+    padding-top: 22px;
+    text-align: right;
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: rgba(129, 28, 33, .55);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    transition: color .28s;
+}
+
+.paper-readmore .arrow {
+    display: inline-block;
+    margin-left: 4px;
+    transition: transform .28s;
+}
+
+.paper-stage:hover .paper-readmore {
+    color: var(--main-red);
+}
+
+.paper-stage:hover .paper-readmore .arrow {
+    transform: translateX(5px);
+}
+
+/* ---------- 翻页控制 ---------- */
+.paper-pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 26px;
+    margin-top: 30px;
+}
+
+.pager-arrow {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 1px solid rgba(129, 28, 33, .25);
+    background: transparent;
+    color: var(--main-red);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: .28s;
+}
+
+.pager-arrow:hover {
+    background: var(--main-red);
+    border-color: var(--main-red);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(129, 28, 33, .28);
+}
+
+.pager-arrow:active {
+    transform: scale(.94);
+}
+
+.pager-info {
+    min-width: 86px;
+    text-align: center;
+    font-family: "Times New Roman", serif;
+    font-size: 16px;
+    letter-spacing: 1px;
+    color: #b5b5b5;
+}
+
+.pager-current {
+    color: var(--main-red);
+    font-size: 21px;
+    font-weight: bold;
+}
+
+.pager-divider {
+    margin: 0 4px;
+}
+
+.paper-dots {
+    display: flex;
+    justify-content: center;
+    gap: 9px;
+    margin-top: 20px;
+}
+
+.paper-dot {
+    width: 7px;
+    height: 7px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(129, 28, 33, .18);
+    cursor: pointer;
+    transition: .3s;
+}
+
+.paper-dot:hover {
+    background: rgba(129, 28, 33, .45);
+}
+
+.paper-dot.active {
+    width: 22px;
+    border-radius: 4px;
+    background: var(--main-red);
+}
+
+/* =====================
+   论文详情（模态）
+===================== */
+.paper-detail-mask {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+    background: rgba(32, 10, 12, .55);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .3s ease, visibility .3s;
+}
+
+.paper-detail-mask.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.paper-detail {
+    position: relative;
+    width: min(1000px, 100%);
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--paper);
+    border-radius: 28px;
+    padding: 46px 54px 0 54px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .35);
+    transform: translateY(26px) scale(.98);
+    transition: transform .35s cubic-bezier(.2, .8, .3, 1);
+}
+
+.paper-detail-mask.show .paper-detail {
+    transform: translateY(0) scale(1);
+}
+
+.paper-detail-head {
+    flex-shrink: 0;
+    padding-bottom: 22px;
+    border-bottom: 1px solid rgba(129, 28, 33, .13);
+}
+
+.paper-detail-journal {
+    font-family: "Times New Roman", serif;
+    font-style: italic;
+    font-size: 14px;
+    letter-spacing: .6px;
+    color: #9a9a9a;
+}
+
+.paper-detail-title-cn {
+    margin: 10px 0 0 0;
+    font-size: 26px;
+    font-weight: normal;
+    line-height: 1.42;
+    color: var(--main-red);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+.paper-detail-title-en {
+    margin: 10px 0 0 0;
+    font-size: 15px;
+    font-weight: normal;
+    font-style: italic;
+    line-height: 1.55;
+    color: #9a9a9a;
+    font-family: "Times New Roman", serif;
+}
+
+.paper-detail-meta {
+    margin-top: 14px;
+    font-size: 14px;
+    color: #666;
+    font-family: "Times New Roman", "Microsoft YaHei", sans-serif;
+    letter-spacing: .3px;
+}
+
+.paper-detail-tags {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.paper-detail-tags span {
+    font-size: 12px;
+    padding: 3px 12px;
+    border-radius: 12px;
+    background: rgba(129, 28, 33, .09);
+    color: var(--main-red);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+/* 滚动阅读区 */
+.paper-detail-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 26px 8px 30px 0;
+    scroll-behavior: smooth;
+}
+
+.paper-detail-scroll::-webkit-scrollbar {
+    width: 7px;
+}
+
+.paper-detail-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.paper-detail-scroll::-webkit-scrollbar-thumb {
+    background: rgba(129, 28, 33, .22);
+    border-radius: 4px;
+}
+
+.paper-detail-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(129, 28, 33, .45);
+}
+
+.paper-detail-block {
+    margin-bottom: 26px;
+}
+
+.paper-detail-block h4 {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    font-weight: normal;
+    letter-spacing: 1px;
+    color: var(--main-red);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+.paper-detail-block p {
+    margin: 0 0 15px 0;
+    font-size: 15px;
+    line-height: 2.05;
+    color: #4a4a4a;
+    text-align: justify;
+    text-indent: 2em;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+.paper-detail-en-text {
+    font-family: "Times New Roman", serif !important;
+    font-size: 13.5px !important;
+    line-height: 1.9 !important;
+    color: #8f8f8f !important;
+    text-indent: 0 !important;
+}
+
+.paper-scroll-hint {
+    flex-shrink: 0;
+    padding: 14px 0 16px 0;
+    text-align: center;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: #bbb;
+    border-top: 1px dashed rgba(129, 28, 33, .16);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 1000px) {
+    .paper-stage {
+        padding: 34px 30px 30px 30px;
+        min-height: 0;
+    }
+    .paper-title-cn { font-size: 22px; }
+    .paper-title-en { font-size: 14px; }
+    .paper-detail { padding: 34px 26px 0 26px; border-radius: 22px; }
+    .paper-detail-title-cn { font-size: 21px; }
+    .paper-detail-title-en { font-size: 13.5px; }
+}
+
+@media (max-width: 620px) {
+    .paper-stage { padding: 26px 20px 24px 20px; }
+    .paper-title-cn { font-size: 19px; }
+    .paper-abstract { font-size: 14px; -webkit-line-clamp: 4; line-clamp: 4; }
+    .paper-pager { gap: 16px; }
+    .pager-arrow { width: 40px; height: 40px; }
+}
+/* =====================
+   知识星系 · 雷达环
+===================== */
+.galaxy-intro {
+    margin: 18px 10% 0 10%;
+    font-size: 15px;
+    line-height: 1.8;
+    color: #8a8a8a;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+/* 子页面切换 */
+.galaxy-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 26px 10% 0 10%;
+}
+
+.galaxy-tab {
+    border: none;
+    padding: 10px 26px;
+    border-radius: 22px;
+    background: var(--paper);
+    color: var(--main-red);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 15px;
+    cursor: pointer;
+    transition: .3s;
+    letter-spacing: .5px;
+}
+
+.galaxy-tab:hover {
+    background: var(--light-red);
+}
+
+.galaxy-tab.active {
+    background: var(--main-red);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(129, 28, 33, .25);
+}
+
+/* 页面容器：只显示 active 那一页 */
+.galaxy-page {
+    display: none;
+}
+
+.galaxy-page.active {
+    display: block;
+    margin: 20px 10% 70px 10%;
+    position: relative;   /* ★ 新增 */
+}
+/* 画布：径向遮罩做边缘淡出，营造"球体背面转出去"的错觉 */
+.galaxy-stage {
+    position: relative;
+    height: 660px;
+    background: var(--paper);
+    border-radius: 30px;
+    overflow: hidden;
+    cursor: grab;
+    user-select: none;
+    -webkit-mask-image: radial-gradient(
+        circle at 50% 50%,
+        #000 0%, #000 52%,
+        rgba(0, 0, 0, .70) 66%,
+        rgba(0, 0, 0, .28) 80%,
+        transparent 96%
+    );
+    mask-image: radial-gradient(
+        circle at 50% 50%,
+        #000 0%, #000 52%,
+        rgba(0, 0, 0, .70) 66%,
+        rgba(0, 0, 0, .28) 80%,
+        transparent 96%
+    );
+}
+
+.galaxy-stage.dragging { cursor: grabbing; }
+
+.galaxy-stage svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* 节点 */
+.g-node circle {
+    transition: r .3s ease, fill .3s ease, stroke .3s ease, opacity .35s ease;
+}
+
+.g-node.course circle {
+    fill: var(--main-red);
+    stroke: #fff;
+    stroke-width: 2;
+}
+
+.g-node.concept circle {
+    fill: #fff;
+    stroke: var(--main-red);
+    stroke-width: 2;
+}
+
+.g-node.other circle {
+    fill: #c8c5bd;
+    stroke: #fff;
+    stroke-width: 2;
+}
+
+.g-node.faded {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.g-node.focused circle {
+    stroke: var(--deep-red);
+    stroke-width: 4;
+    filter: drop-shadow(0 0 12px rgba(129, 28, 33, .45));
+}
+
+.g-node.highlighted circle {
+    filter: drop-shadow(0 0 10px rgba(129, 28, 33, .55));
+}
+
+/* 文字标签 */
+.g-label {
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 12px;
+    fill: #4a4a4a;
+    text-anchor: middle;
+    pointer-events: none;
+    transition: opacity .3s;
+}
+
+.g-label.ring-core {
+    font-size: 13px;
+    font-weight: bold;
+    fill: var(--main-red);
+}
+
+/* 连线 */
+.g-link {
+    stroke: rgba(129, 28, 33, .18);
+    stroke-width: 1.2;
+    fill: none;
+    transition: stroke .3s, stroke-width .3s, opacity .35s;
+}
+
+.g-link.highlighted {
+    stroke: rgba(129, 28, 33, .75);
+    stroke-width: 2.2;
+}
+
+.g-link-label {
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 10px;
+    fill: #b0aea6;
+    text-anchor: middle;
+    pointer-events: none;
+}
+
+/* 底部提示 */
+.galaxy-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: #bbb;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    pointer-events: none;
+}
+
+/* 降级 / 提示条 */
+.galaxy-toast {
+    position: absolute;
+    left: 50%;
+    top: 18px;
+    transform: translateX(-50%) translateY(-12px);
+    padding: 8px 22px;
+    border-radius: 20px;
+    background: rgba(129, 28, 33, .92);
+    color: #fff;
+    font-size: 13px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    opacity: 0;
+    pointer-events: none;
+    transition: .35s;
+    max-width: 80%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.galaxy-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* 加载遮罩 */
+.galaxy-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(241, 240, 233, .85);
+    color: var(--main-red);
+    font-size: 15px;
+    letter-spacing: 2px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s;
+}
+
+.galaxy-loading.show { opacity: 1; }
+
+/* 占位块（拓展星系） */
+.galaxy-placeholder {
+    height: 660px;
+    background: var(--paper);
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(129, 28, 33, .30);
+    font-size: 22px;
+    letter-spacing: 6px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+@media (max-width: 1000px) {
+    .galaxy-stage,
+    .galaxy-placeholder { height: 520px; }
+}
+/* ========== 图谱连线：淡出版 ========== */
+.g-link.faded {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.g-link-label.faded {
+    opacity: 0;
+}
+
+/* 边标签加个米白底衬，避免与线条糊在一起 */
+.g-link-label {
+    paint-order: stroke;
+    stroke: var(--paper);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+}
+
+/* ========== 重置按钮（卡片外） ========== */
+.galaxy-reset-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 22px;
+}
+
+.galaxy-reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 32px;
+    border: none;
+    border-radius: 28px;
+    background: var(--main-red);
+    color: #fff;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 16px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: background .25s, box-shadow .25s, transform .25s;
+    box-shadow: 0 4px 16px rgba(129, 28, 33, .28);
+}
+
+.galaxy-reset:hover {
+    background: var(--deep-red);
+    box-shadow: 0 8px 24px rgba(129, 28, 33, .40);
+    transform: translateY(-1px);
+}
+
+.galaxy-reset:active {
+    transform: translateY(0) scale(.97);
+}
+
+.galaxy-reset .reset-icon {
+    display: inline-block;
+    font-size: 20px;
+    line-height: 1;
+    font-family: "Times New Roman", serif;
+    transition: transform .5s cubic-bezier(.2, .8, .3, 1);
+}
+
+.galaxy-reset:hover .reset-icon {
+    transform: rotate(-180deg);
+}
+/* =====================
+   知识星系 · 场景3 增强
+===================== */
+
+/* ---------- 缩放层级指示器 ---------- */
+.galaxy-zoom-indicator{
+    position:absolute;
+    right:4px;             /* ★ 从 20px 改成 4px */
+    top:20px;              /* 保持不变 */
+    padding:6px 16px;
+    border-radius:16px;
+    background:rgba(129,28,33,.08);
+    color:var(--main-red);
+    font-family:"Source Han Serif SC","思源宋体",serif;
+    font-size:12px;
+    letter-spacing:1.5px;
+    transition:.35s;
+    pointer-events:none;
+    z-index:5;
+    display:flex;
+    align-items:center;
+    gap:0;
+}
+.galaxy-zoom-indicator .zoom-pct{
+    font-family:"Times New Roman",serif;
+    font-size:14px;
+    font-weight:bold;
+    letter-spacing:.5px;
+}
+.galaxy-zoom-indicator .zoom-name{
+    margin-left:10px;
+    padding-left:10px;
+    border-left:1px solid currentColor;
+    opacity:.72;
+    font-size:11.5px;
+}
+.galaxy-page[data-zoom-level="macro"] .galaxy-zoom-indicator{
+    background:rgba(129,28,33,.06); color:rgba(129,28,33,.55);
+}
+.galaxy-page[data-zoom-level="micro"] .galaxy-zoom-indicator{
+    background:var(--main-red); color:#fff;
+    box-shadow:0 4px 14px rgba(129,28,33,.35);
+}
+
+/* ---------- 悬停 tooltip ---------- */
+.galaxy-tooltip{
+    position:absolute; left:0; top:0;
+    max-width:260px;
+    padding:10px 14px;
+    border-radius:14px;
+    background:rgba(255,255,255,.98);
+    box-shadow:0 8px 28px rgba(0,0,0,.14);
+    font-family:"Source Han Serif SC","思源宋体",serif;
+    font-size:12.5px; line-height:1.65;
+    color:#4a4a4a;
+    pointer-events:none;
+    opacity:0; transform:translateY(-4px);
+    transition:opacity .2s ease, transform .2s ease;
+    z-index:20;
+}
+.galaxy-tooltip.show{ opacity:1; transform:translateY(0); }
+.galaxy-tooltip .tt-title{
+    color:var(--main-red); font-weight:bold;
+    margin-bottom:5px; font-size:13.5px;
+}
+.galaxy-tooltip .tt-body{ color:#5a5a5a; }
+
+/* ---------- 自动漫游节点浮窗 ---------- */
+.galaxy-node-popup{
+    position:absolute; left:50%; bottom:90px;
+    transform:translateX(-50%) translateY(10px);
+    max-width:min(520px, 80%);
+    padding:18px 26px;
+    border-radius:18px;
+    background:rgba(255,255,255,.97);
+    box-shadow:0 18px 48px rgba(129,28,33,.20);
+    font-family:"Source Han Serif SC","思源宋体",serif;
+    opacity:0; pointer-events:none;
+    transition:opacity .35s ease, transform .35s ease;
+    z-index:15;
+    border-top:3px solid var(--main-red);
+}
+.galaxy-node-popup.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+}
+.galaxy-node-popup .popup-title{
+    font-size:17px; color:var(--main-red);
+    margin-bottom:8px; font-weight:bold;
+}
+.galaxy-node-popup .popup-body{
+    font-size:14px; line-height:1.75;
+    color:#4a4a4a; text-align:justify;
+}
+
+/* ---------- 旋转光标 ---------- */
+.galaxy-stage.rotating{ cursor:ew-resize; }
+
+/* ---------- 缩放分层：节点/标签可见性 ---------- */
+/* 宏观：非核心节点淡出为极小点，标签只留核心简称 */
+.g-node.zoom-macro:not(.course) circle{
+    opacity:.45;
+    transition:r .35s, opacity .35s, fill .35s;
+}
+.g-node.zoom-macro:not(.course) .g-label{
+    opacity:0;
+}
+.g-node.zoom-macro.course circle{
+    fill:var(--main-red);
+    opacity:1;
+    stroke-width:2.5;
+}
+.g-node.zoom-macro.course .g-label{
+    font-size:11px;
+    fill:rgba(129,28,33,.85);
+    opacity:.9;
+}
+/* 中观：次级节点展示，外环隐藏文字 */
+.g-node.zoom-meso.other .g-label{
+    opacity:0;
+}
+/* 微观：中心节点放大 + 卡片脉冲 */
+.g-node.zoom-micro.focused circle{
+    filter:drop-shadow(0 0 18px rgba(129,28,33,.65));
+    animation:microPulse 2.2s ease-in-out infinite;
+}
+@keyframes microPulse{
+    0%,100%{ stroke-width:4; }
+    50%    { stroke-width:6; }
+}
+.galaxy-stage.has-focus .g-node.zoom-micro:not(.focused):not(.highlighted):not(.path-node){
+    opacity:.32;
+}
+.galaxy-stage:not(.has-focus) .g-node.zoom-micro{
+    opacity:1;
+}
+/* ---------- 路径高亮 + 粒子流动 ---------- */
+.g-link.path-active{
+    stroke:#e8a020 !important;
+    stroke-width:2.6;
+    opacity:1 !important;
+    filter:drop-shadow(0 0 6px rgba(232,160,32,.55));
+}
+.g-link.path-flow{
+    stroke-dasharray:6 10;
+    animation:linkFlow .85s linear infinite;
+}
+@keyframes linkFlow{
+    to{ stroke-dashoffset:-16; }
+}
+.g-node.path-node circle{
+    stroke:#e8a020 !important;
+    stroke-width:3.5;
+    filter:drop-shadow(0 0 10px rgba(232,160,32,.65));
+}
+.g-node.path-node .g-label{
+    fill:#b87a10;
+    font-weight:bold;
+}
+
+/* ---------- 选中态 ---------- */
+.g-node.selected circle{
+    stroke:#f0b040 !important;
+    stroke-width:4;
+    fill:#fff8e6;
+}
+.g-node.selected .g-label{
+    fill:#b87a10;
+    font-weight:bold;
+}
+
+/* ---------- 中观层：促进/抑制方向色 ---------- */
+.galaxy-stage[data-zoom-level="meso"] .g-link.promote{
+    stroke:rgba(196,40,52,.62);
+}
+.galaxy-stage[data-zoom-level="meso"] .g-link.inhibit{
+    stroke:rgba(46,90,196,.62);
+}
+.galaxy-stage[data-zoom-level="micro"] .g-link.promote{
+    stroke:rgba(196,40,52,.72);
+}
+.galaxy-stage[data-zoom-level="micro"] .g-link.inhibit{
+    stroke:rgba(46,90,196,.72);
+}
+
+/* ---------- 时间轴 ---------- */
+.galaxy-timeline-wrap{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    margin:22px 10% 0 10%;
+    padding:14px 26px;
+    background:var(--paper);
+    border-radius:20px;
+    font-family:"Source Han Serif SC","思源宋体",serif;
+}
+.timeline-label{
+    color:var(--main-red);
+    font-size:14px;
+    letter-spacing:2px;
+    flex-shrink:0;
+}
+.galaxy-timeline{
+    flex:1;
+    -webkit-appearance:none;
+    appearance:none;
+    height:4px;
+    border-radius:2px;
+    background:linear-gradient(
+        to right,
+        rgba(129,28,33,.15),
+        rgba(129,28,33,.55)
+    );
+    outline:none;
+    cursor:pointer;
+}
+.galaxy-timeline::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:18px; height:18px;
+    border-radius:50%;
+    background:var(--main-red);
+    box-shadow:0 2px 8px rgba(129,28,33,.4);
+    cursor:grab;
+    transition:transform .2s;
+}
+.galaxy-timeline::-webkit-slider-thumb:hover{
+    transform:scale(1.15);
+}
+.galaxy-timeline::-moz-range-thumb{
+    width:18px; height:18px; border:none;
+    border-radius:50%;
+    background:var(--main-red);
+    box-shadow:0 2px 8px rgba(129,28,33,.4);
+    cursor:grab;
+}
+.timeline-year{
+    font-family:"Times New Roman",serif;
+    font-size:17px;
+    color:var(--main-red);
+    font-weight:bold;
+    min-width:52px;
+    text-align:right;
+}
+.timeline-reset{
+    border:none;
+    background:transparent;
+    color:var(--main-red);
+    font-size:16px;
+    cursor:pointer;
+    padding:4px 8px;
+    border-radius:10px;
+    transition:.25s;
+    font-family:"Times New Roman",serif;
+}
+.timeline-reset:hover{ background:rgba(129,28,33,.08); }
+
+/* 时间轴未到年份的节点淡出 */
+.g-node.time-faded{
+    opacity:.08;
+    pointer-events:none;
+}
+.g-link.time-faded{
+    opacity:.05;
+}
+.g-link-label.time-faded{
+    opacity:0;
+}
+
+/* ---------- 通用次按钮 ---------- */
+.galaxy-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:11px 26px;
+    border-radius:26px;
+    border:1px solid rgba(129,28,33,.30);
+    background:transparent;
+    color:var(--main-red);
+    font-family:"Source Han Serif SC","思源宋体",serif;
+    font-size:15px;
+    letter-spacing:1px;
+    cursor:pointer;
+    transition:.25s;
+}
+.galaxy-btn:hover{
+    background:rgba(129,28,33,.07);
+    border-color:var(--main-red);
+    transform:translateY(-1px);
+}
+.galaxy-btn:active{ transform:scale(.97); }
+.galaxy-btn .btn-icon{
+    font-size:15px;
+    line-height:1;
+    font-family:"Times New Roman",serif;
+}
+.galaxy-btn.active{
+    background:var(--main-red);
+    color:#fff;
+    border-color:var(--main-red);
+}
+
+.galaxy-reset-wrap{
+    flex-wrap:wrap;
+    gap:14px;
+    row-gap:12px;
+}
+
+/* ---------- 沉浸模式 ---------- */
+body.immersive{
+    overflow:hidden;
+}
+body.immersive .header,
+body.immersive .section-title,
+body.immersive .galaxy-intro,
+body.immersive .galaxy-tabs,
+body.immersive .galaxy-timeline-wrap,
+body.immersive footer,
+body.immersive > main > section:not(#galaxy){
+    display:none !important;
+}
+body.immersive #galaxy{
+    padding:0; margin:0;
+}
+body.immersive #galaxy .galaxy-page.active{
+    margin:0 !important;
+}
+body.immersive #galaxy .galaxy-stage{
+    position:fixed;
+    inset:0;
+    height:100vh !important;
+    border-radius:0 !important;
+    z-index:9998;
+    -webkit-mask-image:none;
+    mask-image:none;
+    background:#fff;
+}
+body.immersive #galaxy .galaxy-reset-wrap{
+    position:fixed;
+    right:36px; bottom:36px;
+    z-index:9999;
+    margin:0;
+}
+body.immersive #galaxy .galaxy-reset-wrap .galaxy-btn.ghost:not(#galaxyImmersive){
+    display:none;
+}
+body.immersive #galaxy .galaxy-reset{
+    display:none;
+}
+body.immersive .galaxy-immersive-exit{
+    opacity:1;
+    pointer-events:auto;
+}
+.galaxy-immersive-exit{
+    position:absolute;
+    left:50%; top:20px;
+    transform:translateX(-50%);
+    padding:6px 18px;
+    border-radius:16px;
+    background:rgba(129,28,33,.08);
+    color:rgba(129,28,33,.62);
+    font-family:"Source Han Serif SC","思源宋体",serif;
+    font-size:12px;
+    letter-spacing:1.5px;
+    opacity:0;
+    pointer-events:none;
+    transition:.35s;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width:1000px){
+    .galaxy-reset-wrap{ gap:10px; }
+    .galaxy-btn{ padding:9px 18px; font-size:13px; }
+    .galaxy-zoom-indicator{ right:12px; top:12px; font-size:11px; padding:4px 12px; }
+    .galaxy-timeline-wrap{ margin:16px 6% 0 6%; padding:12px 16px; gap:10px; }
+}
+/* =====================
+   知识助手 · 板块内容
+===================== */
+.assistant-intro {
+    margin: 18px 10% 0 10%;
+    font-size: 15px;
+    line-height: 1.8;
+    color: #8a8a8a;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+.assistant-features {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin: 32px 10% 0 10%;
+}
+.assistant-feature {
+    background: var(--paper);
+    border-radius: 22px;
+    padding: 26px 24px;
+    transition: transform .3s, box-shadow .3s;
+}
+.assistant-feature:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(129, 28, 33, .10);
+}
+.af-icon { font-size: 26px; line-height: 1; }
+.assistant-feature h3 {
+    margin: 14px 0 8px 0;
+    font-size: 18px;
+    font-weight: normal;
+    color: var(--main-red);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+.assistant-feature p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #7a7a7a;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+.assistant-samples {
+    margin: 34px 10% 60px 10%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+.samples-label {
+    color: var(--main-red);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 15px;
+}
+.sample-chip {
+    border: 1px solid rgba(129, 28, 33, .25);
+    background: transparent;
+    color: var(--main-red);
+    padding: 8px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    transition: .25s;
+}
+.sample-chip:hover {
+    background: var(--main-red);
+    color: #fff;
+    border-color: var(--main-red);
+    transform: translateY(-1px);
+}
+
+/* =====================
+   知识助手 · 悬浮球
+===================== */
+.assistant-fab {
+    position: fixed;
+    /* left / top 由 JS 接管，初始时 JS 会把 right/bottom 换算过去 */
+    right: 36px;
+    bottom: 36px;
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(145deg, #a12e34, #811C21);
+    color: #fff;
+    cursor: grab;
+    z-index: 9990;
+    box-shadow: 0 10px 30px rgba(129, 28, 33, .45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .3s, box-shadow .3s;
+    touch-action: none;          /* 触屏拖动不被页面滚动拦截 */
+    user-select: none;
+    -webkit-user-select: none;
+}
+.assistant-fab:hover {
+    transform: scale(1.08);
+    box-shadow: 0 14px 38px rgba(129, 28, 33, .55);
+}
+.assistant-fab svg {
+    width: 30px;
+    height: 30px;
+    pointer-events: none;        /* 让 pointerdown 命中按钮本身，而不是内部图形 */
+}
+.assistant-fab.dragging {
+    cursor: grabbing;
+    transform: scale(1.06);
+    box-shadow: 0 18px 44px rgba(129, 28, 33, .55);
+}
+.assistant-fab.dragging::before { animation: none; opacity: 0; }
+
+/* 呼吸光晕（保留） */
+.assistant-fab::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(129, 28, 33, .38), transparent 70%);
+    animation: fabBreath 2.6s ease-in-out infinite;
+    z-index: -1;
+    pointer-events: none;
+}
+@keyframes fabBreath {
+    0%, 100% { opacity: .45; transform: scale(1); }
+    50%      { opacity: 1;   transform: scale(1.18); }
+}
+
+/* =====================
+   知识助手 · 底部对话框
+===================== */
+.assistant-panel {
+    position: fixed;
+    left: 50%;
+    bottom: 0;
+    width: min(880px, 94vw);
+    max-height: 72vh;
+    transform: translateX(-50%) translateY(calc(100% + 24px));
+    background: rgba(241, 240, 233, .94);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(129, 28, 33, .10);
+    border-bottom: none;
+    border-radius: 26px 26px 0 0;
+    box-shadow: 0 -18px 60px rgba(129, 28, 33, .18);
+    display: flex;
+    flex-direction: column;
+    z-index: 9980;
+    transition: transform .45s cubic-bezier(.2, .8, .3, 1);
+    overflow: hidden;
+}
+.assistant-panel.show {
+    transform: translateX(-50%) translateY(0);
+}
+
+/* 顶部标题栏 */
+.assistant-head {
+    flex-shrink: 0;
+    padding: 16px 26px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(129, 28, 33, .10);
+    background: rgba(255, 255, 255, .55);
+}
+.ah-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--main-red);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: .5px;
+}
+.ah-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--main-red);
+    box-shadow: 0 0 8px rgba(129, 28, 33, .75);
+    animation: ahDotBlink 1.8s ease-in-out infinite;
+}
+@keyframes ahDotBlink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: .35; }
+}
+.ah-sub {
+    color: #a5a09a;
+    font-size: 12.5px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+.ah-close {
+    margin-left: auto;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(129, 28, 33, .08);
+    color: var(--main-red);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    transition: .25s;
+    font-family: "Times New Roman", serif;
+}
+.ah-close:hover {
+    background: var(--main-red);
+    color: #fff;
+}
+
+/* 消息区 */
+.assistant-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 30px 8px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scroll-behavior: smooth;
+}
+.assistant-body::-webkit-scrollbar { width: 6px; }
+.assistant-body::-webkit-scrollbar-thumb {
+    background: rgba(129, 28, 33, .2);
+    border-radius: 3px;
+}
+
+/* 消息气泡 */
+.msg {
+    max-width: 80%;
+    padding: 14px 20px;
+    border-radius: 18px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 15px;
+    line-height: 1.75;
+    word-wrap: break-word;
+    animation: msgIn .35s ease both;
+}
+@keyframes msgIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.msg.user {
+    align-self: flex-end;
+    background: var(--main-red);
+    color: #fff;
+    border-bottom-right-radius: 6px;
+}
+.msg.ai {
+    align-self: flex-start;
+    background: rgba(255, 255, 255, .92);
+    color: #4a4a4a;
+    border-bottom-left-radius: 6px;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, .05);
+    max-width: 88%;
+}
+.msg.ai .ai-text { white-space: pre-wrap; }
+
+/* 「思考中」三点跳动 */
+.msg.ai.typing {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    padding: 16px 22px;
+}
+.msg.ai.typing .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: rgba(129, 28, 33, .5);
+    animation: typingBounce 1.3s ease-in-out infinite;
+}
+.msg.ai.typing .dot:nth-child(2) { animation-delay: .15s; }
+.msg.ai.typing .dot:nth-child(3) { animation-delay: .3s; }
+@keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0);   opacity: .45; }
+    30%           { transform: translateY(-4px); opacity: 1; }
+}
+
+/* 回答里的概念名（可点击） */
+.assistant-concept {
+    color: var(--main-red);
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0 2px;
+    border-bottom: 1px dashed rgba(129, 28, 33, .5);
+    transition: .2s;
+}
+.assistant-concept:hover {
+    background: rgba(129, 28, 33, .10);
+    border-bottom-style: solid;
+}
+
+/* 「查看图谱证据」按钮 */
+.assistant-evidence {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 8px 18px;
+    border-radius: 20px;
+    border: 1px solid rgba(129, 28, 33, .28);
+    background: transparent;
+    color: var(--main-red);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: .25s;
+}
+.assistant-evidence:hover {
+    background: var(--main-red);
+    color: #fff;
+    border-color: var(--main-red);
+    transform: translateY(-1px);
+}
+.assistant-evidence .ev-icon { font-size: 14px; }
+
+/* 底部输入栏 */
+.assistant-foot {
+    flex-shrink: 0;
+    display: flex;
+    gap: 12px;
+    padding: 16px 26px 20px 26px;
+    border-top: 1px solid rgba(129, 28, 33, .10);
+    background: rgba(255, 255, 255, .55);
+}
+.assistant-input {
+    flex: 1;
+    border: 1px solid rgba(129, 28, 33, .18);
+    background: rgba(255, 255, 255, .85);
+    border-radius: 22px;
+    padding: 12px 22px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 15px;
+    color: #333;
+    outline: none;
+    transition: .25s;
+}
+.assistant-input:focus {
+    border-color: var(--main-red);
+    box-shadow: 0 0 0 3px rgba(129, 28, 33, .10);
+}
+.assistant-send {
+    border: none;
+    background: var(--main-red);
+    color: #fff;
+    border-radius: 22px;
+    padding: 0 26px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 15px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: .25s;
+    box-shadow: 0 4px 14px rgba(129, 28, 33, .30);
+}
+.assistant-send:hover {
+    background: var(--deep-red);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(129, 28, 33, .42);
+}
+.assistant-send:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* =====================
+   图谱节点 · 心跳脉冲（场景4）
+===================== */
+.g-node.pulse circle {
+    animation: nodePulse 1.15s ease-in-out infinite;
+}
+@keyframes nodePulse {
+    0%, 100% { stroke-width: 2; filter: none; }
+    50%      { stroke-width: 6;
+               filter: drop-shadow(0 0 14px rgba(129, 28, 33, .8)); }
+}
+
+/* =====================
+   响应式
+===================== */
+@media (max-width: 1000px) {
+    .assistant-features { grid-template-columns: repeat(2, 1fr); }
+    .assistant-panel    { width: 100vw; max-height: 80vh; border-radius: 22px 22px 0 0; }
+    .assistant-fab      { right: 20px; bottom: 20px; }
+}
+@media (max-width: 620px) {
+    .assistant-features { grid-template-columns: 1fr; }
+    .assistant-body     { padding: 18px 18px 6px 18px; }
+    .assistant-foot     { padding: 12px 18px 16px 18px; }
+    .assistant-send     { padding: 0 18px; }
+}
+/* =====================
+   知识助手 · 常驻提问框
+===================== */
+.assistant-inline-ask {
+    margin: 6px 10% 70px 10%;
+}
+
+.inline-ask-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--paper);
+    border-radius: 30px;
+    padding: 8px 8px 8px 22px;
+    box-shadow: 0 6px 22px rgba(0, 0, 0, .05);
+    transition: box-shadow .3s, transform .3s;
+}
+.inline-ask-form:focus-within {
+    box-shadow: 0 12px 34px rgba(129, 28, 33, .16);
+    transform: translateY(-1px);
+}
+
+.inline-ask-icon {
+    display: flex;
+    color: var(--main-red);
+    opacity: .8;
+    flex-shrink: 0;
+}
+
+.inline-ask-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 14px 4px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 15.5px;
+    color: #333;
+}
+.inline-ask-input::placeholder {
+    color: #b6b1aa;
+}
+
+.inline-ask-btn {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    background: var(--main-red);
+    color: #fff;
+    padding: 13px 26px;
+    border-radius: 24px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 15px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: .25s;
+    box-shadow: 0 4px 16px rgba(129, 28, 33, .28);
+}
+.inline-ask-btn:hover {
+    background: var(--deep-red);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(129, 28, 33, .40);
+}
+.inline-ask-btn:active {
+    transform: translateY(0) scale(.98);
+}
+.inline-ask-arrow {
+    display: inline-block;
+    transition: transform .3s;
+    font-family: "Times New Roman", serif;
+}
+.inline-ask-btn:hover .inline-ask-arrow {
+    transform: translateX(4px);
+}
+
+.inline-ask-tip {
+    margin: 12px 0 0 22px;
+    font-size: 12.5px;
+    color: #b1aca6;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    letter-spacing: .3px;
+}
+
+@media (max-width: 1000px) {
+    .assistant-inline-ask { margin: 6px 6% 60px 6%; }
+}
+@media (max-width: 620px) {
+    .inline-ask-form {
+        flex-wrap: wrap;
+        border-radius: 22px;
+        padding: 12px 14px;
+    }
+    .inline-ask-input { width: 100%; padding: 6px 0; }
+    .inline-ask-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 18px;
+    }
+    .inline-ask-icon { display: none; }
+    .inline-ask-tip  { margin-left: 4px; }
+}

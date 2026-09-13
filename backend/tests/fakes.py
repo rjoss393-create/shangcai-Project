@@ -14,11 +14,11 @@ from controller.schemas import (
 )
 
 TEST_NODES = {
-    "n1": GraphNode(id="n1", name="并购协同效应", category="概念",
+    "n1": GraphNode(id="n1", label="并购协同效应", type="concept", page=1,
                     media={"text": "协同效应解释"}),
-    "n2": GraphNode(id="n2", name="杠杆收购", category="概念",
+    "n2": GraphNode(id="n2", label="杠杆收购", type="concept", page=2,
                     media={"text": "杠杆收购解释"}),
-    "n3": GraphNode(id="n3", name="并购与重组", category="课程",
+    "n3": GraphNode(id="n3", label="并购与重组", type="chapter", page=3,
                     media={"text": "课程介绍"}),
 }
 TEST_EDGES = [
@@ -50,14 +50,16 @@ class FakeGraphService:
         self.get_sub_graph_calls: list[str] = []
         self.search_keywords_calls = 0
 
-    async def get_full_graph(self) -> GraphData:
+    async def get_full_graph(self, graph_id: str | None = None) -> GraphData:
         self.get_full_graph_calls += 1
         await asyncio.sleep(self.delay)
         if self.fail_full:
             raise RuntimeError("db down")
         return GraphData(nodes=list(self.nodes.values()), edges=self.edges)
 
-    async def get_sub_graph(self, node_id: str, depth: int = 1) -> GraphData:
+    async def get_sub_graph(
+        self, node_id: str, depth: int = 1, graph_id: str | None = None
+    ) -> GraphData:
         self.get_sub_graph_calls.append(node_id)
         await asyncio.sleep(self.delay)
         if node_id in self.fail_ids:
@@ -80,7 +82,9 @@ class FakeGraphService:
             nodes=[self.nodes[nid] for nid in seen], edges=sub_edges,
         )
 
-    async def search_keywords(self, keywords, limit: int = 20) -> GraphData:
+    async def search_keywords(
+        self, keywords, limit: int = 20, graph_id: str | None = None
+    ) -> GraphData:
         self.search_keywords_calls += 1
         await asyncio.sleep(self.delay)
         if self.fail_search:
@@ -88,7 +92,7 @@ class FakeGraphService:
         matched = set()
         for kw in keywords:
             for node in self.nodes.values():
-                haystack = node.name + node.category + str(node.media)
+                haystack = node.label + node.type + str(node.media)
                 if kw and kw in haystack:
                     matched.add(node.id)
         matched_edges = [
@@ -119,6 +123,7 @@ class FakeQaAgent:
         self.raise_preload = raise_preload
         self.calls = 0
         self.preload_calls: list[str] = []
+        self.last_graph_id: str | None = None
 
     async def preload(self, graph_id: str, graph: GraphData) -> None:
         self.preload_calls.append(graph_id)
@@ -126,8 +131,9 @@ class FakeQaAgent:
         if self.raise_preload:
             raise RuntimeError("preload down")
 
-    async def answer(self, graph_id: str, question: str) -> AnswerResult:
+    async def answer(self, graph_data: GraphData, question: str) -> AnswerResult:
         self.calls += 1
+        self.last_graph_id = graph_data.graph_id
         await asyncio.sleep(self.delay)
         if self.raise_error:
             raise RuntimeError("llm down")

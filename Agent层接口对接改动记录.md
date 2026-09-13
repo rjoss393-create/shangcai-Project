@@ -76,7 +76,7 @@ cd backend && python -m pytest -q
 
 ## 六、待办（service 层对接时处理，当前冻结）
 
-1. **GraphNode 补字段**：graph.json 节点有 `type`（concept/formula/chapter/section）和 `page`，当前 GraphNode 缺这两个字段，service 层映射时补齐；
+1. **GraphNode 补字段**：~~graph.json 节点有 `type`（concept/formula/chapter/section）和 `page`，当前 GraphNode 缺这两个字段，service 层映射时补齐~~ **已解决（2026-09-12，见第八节）**：契约已按《字段.md》定为 `id/label/type/page/media/extra`，service 层只需照此映射 graph.json；
 2. **节点 ID 跨书重复**：四本书节点都是 `concept_0001` 式本地编号，跨书重复；service 层支持多图谱后 `get_sub_graph`/`search_keywords` 需按 graph_id 过滤（接口签名届时同步更新）；
 3. **graph_id 编码规则**：~~待定~~ 已设计（2026-09-11）：`ma`/`corp_fin`/`intl_inv`/`econ`，常量定义在 `backend/controller/graph_ids.py`，协议文档第 4 节有编码表；待数据层/前端确认（遗留问题：前端是否把"经济综合"当一本书展示，以及是否会有独立《投资学》图谱需加 `invest`）。
 
@@ -88,3 +88,23 @@ cd backend && python -m pytest -q
 | 前端 | 响应新增 `answer` 字段；请求带 `graph_id`；渲染 prediction_html 时绑定 `.kg-node-link` 点击 → 调 /click 定位高亮；HTML 防注入 |
 | Service 层 | 暂无需改动；待办第 1/2 条对接后处理 |
 | main.py 入口 | 装配方式变为 `create_router(service, qa_agent)` |
+
+## 八、按 Agent 层《字段.md》修订 GraphData 契约（2026-09-12）
+
+> 背景：Agent 层给出《字段.md》，明确控制层调用其 `answer` 方法时传入的 `graph_data` 参数格式。
+> 全部 67 个单元测试通过。
+
+| 项 | 旧 | 新 |
+|----|----|----|
+| `GraphData` | 仅 `nodes` / `edges` | 新增 `graph_id`（Agent 侧必填，控制层转交前填充）、`title`（可选，取值 graph_ids.GRAPH_IDS） |
+| `GraphNode` | `id` / `name` / `category` / `media` | `id` / `label`（原 name）/ `type`（原 category）/ `page` / `media`（可空，格式 `{"image_url","video_url"}`）/ `extra` |
+| `GraphEdge` | `source` / `target` / `relation`(可空) | `relation` 改为**必填**；新增 `extra` |
+| `QaAgent.answer` | `answer(graph_id, question)` | **`answer(graph_data, question)`**：控制层每次现取全图（`get_full_graph`）并填 `graph_id`/`title` 后传入；取图失败走关键词降级 |
+| `QaAgent.preload` | `preload(graph_id, graph)` | 不变（graph 同样已填 `graph_id`/`title`） |
+| orchestrator | 问答只传 graph_id | 慢通道新增一次 `get_full_graph` + `_attach_graph_meta` 填充 |
+
+代码改动：`schemas.py`、`interfaces.py`、`orchestrator.py`、`mock_main.py`、`tests/`（fakes/test_assembler/test_orchestrator）。
+
+文档同步：`Service与Agent层接口协议.md`（数据模型/第 3 节/时序/清单/待办）、`controller.txt`（场景 2/契约/待办 5）。
+
+**注意**：`name`/`category` 改名会**同步影响前端**——`/load`、`/click`、`/query` 返回的节点字段变为 `label`/`type`，前端展示层需同步改字段名。

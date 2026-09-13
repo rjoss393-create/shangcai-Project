@@ -127,6 +127,8 @@ class TestQuery:
         o = Orchestrator(service, qa)
         resp = await o.handle_query("解释一下并购协同效应和国际投资", graph_id="gsjr")
         assert qa.calls == 1
+        assert service.get_full_graph_calls == 1   # answer 收全图数据（《字段.md》契约）
+        assert qa.last_graph_id == "gsjr"          # 全图数据里已填充 graph_id
         assert set(service.get_sub_graph_calls) == {"n1", "n3"}
         assert {n.id for n in resp.data.nodes} == {"n1", "n2", "n3"}
         assert _types(resp) == ["focus", "highlight", "zoom"]
@@ -199,8 +201,8 @@ class TestParallelFetch:
         elapsed = time.perf_counter() - start
         assert {n.id for n in resp.data.nodes} == {"n1", "n2", "n3"}
         assert set(service.get_sub_graph_calls) == {"n1", "n3"}
-        # 串行需 ~0.3s（两个节点各 0.15s），并行应接近单次延迟
-        assert elapsed < 0.27
+        # 全图 0.15s + 两个子图并行 0.15s ≈ 0.30s；子图串行需 ~0.45s
+        assert elapsed < 0.40
 
     async def test_single_related_failure_ignored(self):
         service = FakeGraphService(fail_ids={"n3"})

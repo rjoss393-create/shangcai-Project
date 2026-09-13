@@ -4,8 +4,8 @@ from controller.schemas import GraphData, GraphEdge, GraphNode
 
 
 def _graph(node_ids, edge_pairs=()):
-    nodes = [GraphNode(id=nid, name=nid) for nid in node_ids]
-    edges = [GraphEdge(source=s, target=t) for s, t in edge_pairs]
+    nodes = [GraphNode(id=nid, label=nid) for nid in node_ids]
+    edges = [GraphEdge(source=s, target=t, relation="相关") for s, t in edge_pairs]
     return GraphData(nodes=nodes, edges=edges)
 
 

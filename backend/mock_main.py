@@ -25,19 +25,19 @@ MOCK_AGENT_DELAY = 0.5
 # ---------- 假图谱数据（字段与 graph.json / schemas.GraphNode 约定一致） ----------
 
 _MOCK_NODES: list[GraphNode] = [
-    GraphNode(id="n1", name="并购协同效应", category="概念",
+    GraphNode(id="n1", label="并购协同效应", type="concept", page=1,
               media={"text": "并购后企业整体价值大于各部分之和的现象，包括经营协同与财务协同。"}),
-    GraphNode(id="n2", name="杠杆收购", category="概念",
+    GraphNode(id="n2", label="杠杆收购", type="concept", page=2,
               media={"text": "以目标企业资产和未来现金流为担保、大量举债进行的收购方式。"}),
-    GraphNode(id="n3", name="并购与重组", category="课程",
+    GraphNode(id="n3", label="并购与重组", type="chapter", page=3,
               media={"text": "课程《并购与重组》：涵盖并购动因、协同效应、估值与反收购策略。"}),
-    GraphNode(id="n4", name="资本结构", category="概念",
+    GraphNode(id="n4", label="资本结构", type="concept", page=4,
               media={"text": "企业长期资本的构成及比例关系，核心理论包括 MM 定理与权衡理论。"}),
-    GraphNode(id="n5", name="公司金融", category="课程",
+    GraphNode(id="n5", label="公司金融", type="chapter", page=5,
               media={"text": "课程《公司金融》：涵盖资本结构、股利政策、公司估值等。"}),
-    GraphNode(id="n6", name="汇率风险", category="概念",
+    GraphNode(id="n6", label="汇率风险", type="concept", page=6,
               media={"text": "汇率波动导致国际投资资产价值变动的风险。"}),
-    GraphNode(id="n7", name="国际投资", category="课程",
+    GraphNode(id="n7", label="国际投资", type="chapter", page=7,
               media={"text": "课程《国际投资》：涵盖跨国资本流动、汇率风险与政治风险。"}),
 ]
 
@@ -59,10 +59,12 @@ class MockGraphService:
         self._nodes = {n.id: n for n in _MOCK_NODES}
         self._edges = list(_MOCK_EDGES)
 
-    async def get_full_graph(self) -> GraphData:
+    async def get_full_graph(self, graph_id: str | None = None) -> GraphData:
         return GraphData(nodes=list(self._nodes.values()), edges=self._edges)
 
-    async def get_sub_graph(self, node_id: str, depth: int = 1) -> GraphData:
+    async def get_sub_graph(
+        self, node_id: str, depth: int = 1, graph_id: str | None = None
+    ) -> GraphData:
         if node_id not in self._nodes:
             return GraphData(nodes=[], edges=[])
         # 广度优先收集 depth 跳内的节点
@@ -84,11 +86,13 @@ class MockGraphService:
             nodes=[self._nodes[nid] for nid in seen], edges=sub_edges,
         )
 
-    async def search_keywords(self, keywords, limit: int = 20) -> GraphData:
+    async def search_keywords(
+        self, keywords, limit: int = 20, graph_id: str | None = None
+    ) -> GraphData:
         matched_ids = set()
         for kw in keywords:
             for node in self._nodes.values():
-                haystack = node.name + node.category + str(node.media)
+                haystack = node.label + node.type + str(node.media)
                 if kw and kw in haystack:
                     matched_ids.add(node.id)
         if not matched_ids:
@@ -119,13 +123,14 @@ class MockQaAgent:
         if graph_id not in self.preloaded:
             self.preloaded.append(graph_id)
 
-    async def answer(self, graph_id: str, question: str) -> AnswerResult:
+    async def answer(self, graph_data: GraphData, question: str) -> AnswerResult:
         await asyncio.sleep(MOCK_AGENT_DELAY)
-        matched = [n for n in _MOCK_NODES if n.name in question]
+        pool = graph_data.nodes or _MOCK_NODES
+        matched = [n for n in pool if n.label in question]
         if not matched:
-            matched = [_MOCK_NODES[0]]  # 默认命中"并购协同效应"，保证场景2有图可看
+            matched = [pool[0]]  # 默认命中第一个节点，保证场景2有图可看
         nodes = [self._to_related(n, i) for i, n in enumerate(matched, start=1)]
-        plain = "，".join(f"{n.name}：{n.media.get('text', '')}" for n in matched)
+        plain = "，".join(f"{n.label}：{(n.media or {}).get('text', '')}" for n in matched)
         html = "根据知识图谱，" + "，".join(self._sup(n, i) for i, n in enumerate(matched, start=1)) + "。"
         return AnswerResult(
             prediction_llm=plain,
@@ -137,14 +142,14 @@ class MockQaAgent:
 
     @staticmethod
     def _to_related(node: GraphNode, index: int) -> RelatedNode:
-        return RelatedNode(id=node.id, name=node.name, type="concept", page=None)
+        return RelatedNode(id=node.id, name=node.label, type=node.type, page=node.page)
 
     @staticmethod
     def _sup(node: GraphNode, index: int) -> str:
         return (
-            f"{node.name}"
+            f"{node.label}"
             f'<sup><a href="/knowledge/{node.id}" data-node-id="{node.id}" '
-            f'data-node-name="{node.name}" class="kg-node-link">{index}</a></sup>'
+            f'data-node-name="{node.label}" class="kg-node-link">{index}</a></sup>'
         )
 
 

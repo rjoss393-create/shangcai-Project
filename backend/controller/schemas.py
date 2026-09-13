@@ -2,8 +2,8 @@
 
 职责4：统一响应封装 { data: 图谱子集, actions: [动画指令] }。
 - AnimationAction 是与前端渲染引擎（视图层）的动画指令契约；
-- GraphData / GraphNode / GraphEdge 与 models/graph_model.py 约定对齐，
-  待 models 层实现后可替换为共享模型（Service 层契约，暂未变更）；
+- GraphData / GraphNode / GraphEdge 字段格式与 Agent 层《字段.md》约定一致
+  （原 models/graph_model.py 共享模型的设想已被该文档取代）；
 - AnswerResult / RelatedNode 是智能问答 Agent 层必须返回的结构化结果
   （约束：Agent 禁止操作视图，仅返回结构化 JSON）。
 """
@@ -14,24 +14,36 @@ from pydantic import BaseModel, Field
 
 
 class GraphNode(BaseModel):
-    """图谱节点（字段与 graph.json 约定一致）"""
+    """图谱节点（字段与 graph.json 及 Agent 层《字段.md》约定一致）"""
 
-    id: str
-    name: str
-    category: str = ""
-    # 结点内的富媒体内容：{"text": 文字解释, "images": [...], "videos": [...]}
-    media: dict[str, Any] = Field(default_factory=dict)
+    id: str                                 # 节点唯一 ID（超链接 data-node-id 用）
+    label: str                              # 节点显示名（检索与答案上标显示用）
+    type: str = ""                          # 节点类型：concept / formula / chapter / section
+    page: int | None = None                 # 页码，没有则 null
+    # 预留富媒体字段（当前无数据）：{"image_url": "...", "video_url": "..."}
+    media: dict[str, Any] | None = None
+    # 各书特有字段兜底：Agent 不解析，透传给前端
+    extra: dict[str, Any] = Field(default_factory=dict)
 
 
 class GraphEdge(BaseModel):
-    source: str
-    target: str
-    relation: str = ""
+    """图谱边（source / target / relation 必填，见《字段.md》）"""
+
+    source: str                             # 起点节点 ID
+    target: str                             # 终点节点 ID
+    relation: str                           # 关系名（如 "包含概念" / "相关"）
+    extra: dict[str, Any] = Field(default_factory=dict)   # 兜底字段，当前无数据
 
 
 class GraphData(BaseModel):
-    """图谱（子）集"""
+    """图谱（子）集（字段与 Agent 层《字段.md》约定一致）
 
+    graph_id / title 传给 Agent 前由控制层填充（《字段.md》：graph_id 必填、
+    title 可选）；Service 层返回时二者可为空串（Service 契约未动，暂不感知多图谱）。
+    """
+
+    graph_id: str = ""
+    title: str = ""
     nodes: list[GraphNode] = Field(default_factory=list)
     edges: list[GraphEdge] = Field(default_factory=list)
 

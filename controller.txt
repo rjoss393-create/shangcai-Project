@@ -27,7 +27,7 @@ backend/controller/
 流程：Router -> Dispatcher(识别为常规) -> Service.get_sub_graph(node_id) -> Assembler(生成“聚焦+淡入淡出”指令) -> 返回前端。
 
 场景 2：用户输入自然语言（如“解释一下并购协同效应并展示相关节点”）
-流程：Router -> Dispatcher(识别为复杂/非结构化) -> Agent.qa_agent.answer(graph_id, text)（检索+回答都在 Agent 内部完成）-> 按答案引用节点 related_nodes 的 ID 并行调 Service.get_sub_graph 取局部图 -> Assembler(生成“聚焦+高亮+缩放”定位指令) -> 返回前端（含 answer 字段，prediction_html 带 <sup> 上标超链接，点击上标由前端调 /click 定位高亮节点）。
+流程：Router -> Dispatcher(识别为复杂/非结构化) -> Service.get_full_graph 取全图（补 graph_id/title）-> Agent.qa_agent.answer(全图数据, text)（检索+回答都在 Agent 内部完成）-> 按答案引用节点 related_nodes 的 ID 并行调 Service.get_sub_graph 取局部图 -> Assembler(生成“聚焦+高亮+缩放”定位指令) -> 返回前端（含 answer 字段，prediction_html 带 <sup> 上标超链接，点击上标由前端调 /click 定位高亮节点）。
 
 场景 3：超时/熔断降级（Agent 响应慢）
 在 Dispatcher 中设置 asyncio.wait_for 超时（20s，Agent 层缓存命中平均 2.7s，放宽避免首次加载图谱被误杀）。若超时，捕获异常并启用 Fallback：提取用户输入中的关键词，直接调用 Service 的模糊搜索接口，返回基础的子图数据和提示“已切换到基础检索模式”。
@@ -39,7 +39,7 @@ POST /api/graph/load 带 graph_id 时，控制层在后台调用 Agent.preload(g
 
   - GraphService: get_full_graph() / get_sub_graph(node_id, depth) / search_keywords(keywords, limit)
   - QaAgent.preload(graph_id, graph) -> None：页面打开时预热（幂等，失败不抛异常）
-  - QaAgent.answer(graph_id, question) -> AnswerResult：检索+回答，related_nodes 的 id 与 prediction_html 的 data-node-id 一一对应（格式见根目录 llm返回输出示例.md）
+  - QaAgent.answer(graph_data, question) -> AnswerResult：检索+回答，graph_data 字段格式见根目录《字段.md》（必填 graph_id/nodes/edges；节点必填 id/label；边必填 source/target/relation），related_nodes 的 id 与 prediction_html 的 data-node-id 一一对应（格式见根目录 llm返回输出示例.md）
 
   两点说明：
 
@@ -47,4 +47,4 @@ POST /api/graph/load 带 graph_id 时，控制层在后台调用 Agent.preload(g
   2. 兜底分词是零依赖的标点切分，后续可换 jieba；会话目前是内存存储，单进程可用，多人联调时再换 Redis（接口已留好）。
   3. 请求带 graph_id 字段（可空）：标识用户停留在哪本书，load/query 走智能问答必传，缺省自动降级基础检索。
   4. graph_id 统一编码（graph_ids.py）：ma(并购与重组) / corp_fin(公司金融) / intl_inv(国际投资学) / econ(经济综合)，新增只加行不改旧值。
-  5. 待办（service 层对接后再改）：GraphNode 补 type/page 字段；节点 ID 跨书重复，get_sub_graph/search_keywords 需按 graph_id 过滤。
+  5. 待办（service 层对接后再改）：GraphNode 契约已按《字段.md》定为 label/type/page/extra（2026-09-12），service 层映射 graph.json 时照此输出即可；节点 ID 跨书重复，get_sub_graph/search_keywords 需按 graph_id 过滤。

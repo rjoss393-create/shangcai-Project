@@ -23,6 +23,10 @@
 > - 问答超时放宽为 **20 秒**（缓存命中平均 2.7s，放宽是为了首次加载图谱不被误杀）；
 > - `GraphService` 契约**暂未改动**（待与 service 层对接后再动，见第 9 节待办）。
 
+> **2026-09-12 更新（按 Agent 层《字段.md》修订 GraphData 契约）**：
+> - `GraphData` 新增 `graph_id`（Agent 侧必填）/`title`（可选）；节点 `name`/`category` 改为 `label`/`type`，并新增 `page`/`extra`；边新增 `extra`，`relation` 改为**必填**；
+> - `QaAgent.answer` 签名改为 **`answer(graph_data, question)`**：每次调用控制层都传入当次现取的**全图数据**（内含 `graph_id`），`preload` 不变。
+
 ---
 
 ## 1. 数据模型（schemas.py 已定义，直接 import 使用）
@@ -33,14 +37,16 @@ from controller.schemas import (
 )
 ```
 
-### GraphNode（图谱节点）—— 暂未改动
+### GraphNode（图谱节点）—— 2026-09-12 按《字段.md》修订
 
 ```python
 class GraphNode(BaseModel):
-    id: str                    # 节点唯一 ID（与 graph.json 一致）
-    name: str                  # 显示名称
-    category: str = ""         # 类别（如 "概念" / "课程"）
-    media: dict = {}           # 富媒体：{"text": str, "images": [...], "videos": [...]}
+    id: str                    # 节点唯一 ID（超链接 data-node-id 用）
+    label: str                 # 节点显示名（检索与答案上标显示用）
+    type: str = ""             # concept / formula / chapter / section
+    page: int | None = None    # 页码，没有则 null
+    media: dict | None = None  # 预留富媒体：{"image_url": "...", "video_url": "..."}，当前无数据
+    extra: dict = {}           # 各书特有字段兜底：Agent 不解析，透传给前端
 ```
 
 ### GraphEdge（图谱边）
@@ -49,16 +55,21 @@ class GraphNode(BaseModel):
 class GraphEdge(BaseModel):
     source: str                # 起点节点 ID
     target: str                # 终点节点 ID
-    relation: str = ""         # 关系名（如 "包含" / "相关"）
+    relation: str              # 关系名（如 "包含概念" / "相关"），必填
+    extra: dict = {}           # 兜底字段，当前无数据
 ```
 
 ### GraphData（图谱子集）
 
 ```python
 class GraphData(BaseModel):
+    graph_id: str = ""         # 图谱标识（《字段.md》必填，控制层转交 Agent 前填充）
+    title: str = ""            # 书名（可选，日志/展示用）
     nodes: list[GraphNode] = []
     edges: list[GraphEdge] = []
 ```
+
+完整格式说明见根目录《字段.md》（Agent 层给定的必要字段文档）。
 
 ### AnswerResult（QaAgent.answer 必须返回的结构，Agent 层必读）
 
@@ -116,7 +127,7 @@ class GraphService:
 
 **`search_keywords(keywords, limit)`**
 - 这是**兜底通道**：Agent 超时/熔断时控制层会用切词后的关键词调它，因此它**必须稳定、快速、零外部依赖**（不能依赖 LLM）
-- 匹配范围建议：节点 `name` / `category` / `media.text` 的模糊（子串）匹配
+- 匹配范围建议：节点 `label` / `type` / `media` 的模糊（子串）匹配
 - 任一关键词命中即算命中；多关键词取并集
 - 返回：命中的节点（最多 `limit` 个）+ 与命中节点直接相连的边（保证结果图连通）
 - 无命中：返回空 GraphData
@@ -130,25 +141,25 @@ class QaAgent:
     async def preload(self, graph_id: str, graph: GraphData) -> None:
         """页面打开时由控制层调用：加载图谱、建立检索索引（预热）"""
 
-    async def answer(self, graph_id: str, question: str) -> AnswerResult:
-        """基于 graph_id 对应图谱回答自然语言问题（检索 + 生成）"""
+    async def answer(self, graph_data: GraphData, question: str) -> AnswerResult:
+        """基于 graph_data 对应图谱回答自然语言问题（检索 + 生成）"""
 ```
 
 ### preload(graph_id, graph)
 
 - 触发时机：页面打开 `/api/graph/load` 时，控制层在**后台**调用（不阻塞页面加载）；
-- `graph`：控制层从 `GraphService.get_full_graph()` 拿到的**归一化全图数据**（`GraphData`），agent 层不需要知道数据文件路径；
+- `graph`：控制层从 `GraphService.get_full_graph()` 拿到的**归一化全图数据**（`GraphData`，`graph_id`/`title` 已由控制层填充），agent 层不需要知道数据文件路径；
 - 实现要求：
   - 幂等：同一 `graph_id` 可能被重复调用（页面刷新），已有缓存时应快速返回，不必重建；
   - 缓存：建议把索引/向量缓存下来，让后续 `answer` 走热路径（你本地"缓存不删"的做法就很好，正式环境靠 preload 消除冷启动）；
   - **失败不要抛异常**（控制层在后台调用，异常只会记日志，不影响页面加载）；你内部应捕获可恢复异常。
 
-### answer(graph_id, question)
+### answer(graph_data, question)
 
-- `graph_id`：用户当前停留的哪本书（控制层保证非空才调用）；
+- `graph_data`：**每次调用由控制层现取的全图数据**（`GraphData`），`graph_id`/`title` 已填充，字段格式见《字段.md》（必填 `graph_id`/`nodes`/`edges`；节点必填 `id`/`label`；边必填 `source`/`target`/`relation`）；
 - `question`：用户输入的自然语言问题（长句、疑问句才会走到这里，短关键词走 Service 快通道）；
 - 检索 + 回答全部在 agent 内部完成，返回 `AnswerResult`；
-- 若 `graph_id` 尚未 preload 过（理论上不会发生，控制层保证先预热），你可以现场加载，也可以返回错误——控制层超时/异常时会自动降级到关键词检索。
+- 可按 `graph_data.graph_id` 复用 preload 建好的缓存；缓存未命中也可以现场建立索引（首次会慢，20s 超时已为此放宽）——控制层超时/异常时会自动降级到关键词检索。
 
 ### 超时与容错（Agent 层必读）
 
@@ -171,7 +182,7 @@ class QaAgent:
 
 ## 4. graph_id 约定
 
-- 控制层每个请求都会带 `graph_id`（前端根据用户停留在哪本书传入），转发给 agent 的 `preload` / `answer`；
+- 控制层每个请求都会带 `graph_id`（前端根据用户停留在哪本书传入），并以 `graph.graph_id` / `graph_data.graph_id` 传给 agent 的 `preload` / `answer`；
 - **统一编码表**（定义在 `backend/controller/graph_ids.py`，四方共享）：
 
 | graph_id | 图谱 | 数据文件 |
@@ -190,10 +201,11 @@ class QaAgent:
 
 ```
 POST /api/graph/load    → Service.get_full_graph()
-                        → 后台任务：QaAgent.preload(graph_id, full_graph)   ← 预热，不阻塞
+                        → 后台任务：QaAgent.preload(graph_id, full_graph)   ← 预热，不阻塞（graph 已填 graph_id/title）
 POST /api/graph/click   → Service.get_sub_graph(node_id, depth=1)
 POST /api/graph/query   → 短关键词        → Service.search_keywords()          （快通道）
-                        → 自然语言长句     → QaAgent.answer(graph_id, text)
+                        → 自然语言长句     → Service.get_full_graph()（补 graph_id/title）
+                                          → QaAgent.answer(full_graph, text)
                                           → 按 related_nodes 的 ID 调 Service.get_sub_graph()（图谱定位）
                         → Agent 超时/熔断  → Service.search_keywords()          （降级兜底）
 ```
@@ -203,7 +215,7 @@ POST /api/graph/query   → 短关键词        → Service.search_keywords()   
 ## 6. 硬性约束汇总（实现前必读）
 
 - 三个文件各实现一个类，方法签名与第 2/3 节完全一致（async、参数名、返回类型）
-- `AnswerResult.related_nodes[].id` 与 `prediction_html` 的 `data-node-id` 一一对应，且必须是图谱中真实存在的节点 ID
+- `AnswerResult.related_nodes[].id` 与 `prediction_html` 的 `data-node-id` 一一对应，且必须来自本次传入 `graph_data.nodes` 的真实节点 ID
 - `get_sub_graph` 遇到未知 node_id 返回空图而不是抛异常
 - `search_keywords` 不依赖 LLM，无命中返回空图
 - `preload` 幂等、失败不抛异常
@@ -215,7 +227,7 @@ POST /api/graph/query   → 短关键词        → Service.search_keywords()   
 ## 7. 实现清单（写完后自查）
 
 - [ ] `data_service.py` 实现 `GraphService` 三方法（签名不变）
-- [ ] `qa_agent.py` 实现 `QaAgent` 两方法：`preload(graph_id, graph)` / `answer(graph_id, question)`
+- [ ] `qa_agent.py` 实现 `QaAgent` 两方法：`preload(graph_id, graph)` / `answer(graph_data, question)`
 - [ ] `answer` 返回的 `AnswerResult` 与《llm返回输出示例.md》逐字段核对
 - [ ] `related_nodes` 的 id 全部来自图谱真实节点
 - [ ] preload 幂等且内部吞异常
@@ -258,5 +270,5 @@ app.include_router(create_router(YourGraphService(), YourQaAgent()))
 
 > 以下变更与 Agent 层无关，先列出备忘，等 service 层同学对接时一起执行。
 
-1. **GraphNode 补字段**：graph.json 里节点有 `label`（映射为 name）、`type`（concept/formula/chapter/section）、`page`（页码），部分节点还有 `original_ocr`/`quality`，经济综合图谱多了 `source_books`。当前 `GraphNode` 缺 `type` 和 `page` —— Agent 的 `related_nodes` 引用了这两个字段，service 层映射时需补齐（Agent 层目前不受影响：它拿到的 `RelatedNode` 由自己输出）。
+1. **GraphNode 字段契约已定（2026-09-12 按《字段.md》修订）**：`id`/`label`/`type`/`page`/`media`/`extra`，与 graph.json 节点字段一一对应。部分节点的 `original_ocr`/`quality`、经济综合图谱的 `source_books` 等特有字段可放进 `extra` 透传。service 层映射 graph.json 时照此输出即可，契约无需再改。
 2. **节点 ID 跨书重复**：四本书的节点 ID 都是 `concept_0001` 这种本地编号，跨书会重复。service 层支持多图谱后，`get_sub_graph` / `search_keywords` 需要增加按 `graph_id` 过滤（接口签名会同步更新，届时通知大家）。
