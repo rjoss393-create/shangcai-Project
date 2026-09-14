@@ -15,11 +15,13 @@ logger = logging.getLogger(__name__)
 
 # graph_id -> 数据文件名（与 controller/graph_ids.py 的 GRAPH_IDS 编码一致；
 # service 层不 import controller，避免层间依赖，此处维护同一份文件名映射）
+# 数据层分层设计（《数据层分层设计.md》）后，指向 data/layered/ 下的分层文件
 GRAPH_FILES: dict[str, str] = {
-    "ma": "并购与重组_知识图谱.json",
-    "corp_fin": "公司金融_知识图谱.json",
-    "intl_inv": "国际投资学_知识图谱.json",
-    "econ": "经济综合_知识图谱.json",
+    "ma": "layered/ma_layered.json",
+    "corp_fin": "layered/corp_fin_layered.json",
+    "intl_inv": "layered/intl_inv_layered.json",
+    "invest": "layered/invest_layered.json",
+    "econ": "layered/econ_layered.json",
 }
 
 
@@ -112,7 +114,7 @@ class DataService:
         with open(path, "r", encoding="utf-8") as f:
             raw = json.load(f)
 
-        # 节点必填 id / label；type/page/media/extra 可缺省（《字段.md》）
+        # 节点必填 id / label；type/page/layer/media/extra 可缺省（《字段.md》+ 分层设计）
         nodes = []
         for n in raw.get("nodes", []):
             nodes.append(
@@ -121,10 +123,11 @@ class DataService:
                     label=n.get("label") or n.get("name") or str(n["id"]),
                     type=n.get("type") or n.get("category", ""),
                     page=n.get("page"),
+                    layer=n.get("layer", ""),
                     media=n.get("media"),
                     extra={k: v for k, v in n.items()
                            if k not in {"id", "label", "name", "type", "category",
-                                        "page", "media"}},
+                                        "page", "layer", "media"}},
                 )
             )
         edges = [
@@ -132,8 +135,9 @@ class DataService:
                 source=str(e["source"]),
                 target=str(e["target"]),
                 relation=e["relation"],
+                layer=e.get("layer", ""),
                 extra={k: v for k, v in e.items()
-                       if k not in {"source", "target", "relation"}},
+                       if k not in {"source", "target", "relation", "layer"}},
             )
             for e in raw.get("edges", [])
         ]

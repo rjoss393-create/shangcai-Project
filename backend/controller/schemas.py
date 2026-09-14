@@ -20,6 +20,8 @@ class GraphNode(BaseModel):
     label: str                              # 节点显示名（检索与答案上标显示用）
     type: str = ""                          # 节点类型：concept / formula / chapter / section
     page: int | None = None                 # 页码，没有则 null
+    # 分层标识（《数据层分层设计.md》）：macro 章 / meso 节 / micro 概念公式；空串=未分层
+    layer: str = ""
     # 预留富媒体字段（当前无数据）：{"image_url": "...", "video_url": "..."}
     media: dict[str, Any] | None = None
     # 各书特有字段兜底：Agent 不解析，透传给前端
@@ -32,6 +34,8 @@ class GraphEdge(BaseModel):
     source: str                             # 起点节点 ID
     target: str                             # 终点节点 ID
     relation: str                           # 关系名（如 "包含概念" / "相关"）
+    # 边所属层（《数据层分层设计.md》）：hier 原始包含边 / macro / meso / micro 派生相关边
+    layer: str = ""
     extra: dict[str, Any] = Field(default_factory=dict)   # 兜底字段，当前无数据
 
 
