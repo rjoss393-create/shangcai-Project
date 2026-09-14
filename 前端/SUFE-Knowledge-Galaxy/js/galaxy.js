@@ -29,15 +29,6 @@
         '__default__': 335
     };
 
-    // ★ 节点配色：红橙黄绿青蓝紫 7 色，按节点 id 哈希稳定分配（刷新/切书不变色）
-    const NODE_COLORS = ['#c0392b', '#e67e22', '#f0b400', '#27ae60', '#16a085', '#2980b9', '#8e44ad'];
-    function colorIndexOf(node) {
-        let h = 0;
-        const s = String(node.id || '');
-        for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-        return h % NODE_COLORS.length;
-    }
-
     // ★ 新增：缩放分层阈值（对齐需求 40% / 80%）
     const ZOOM_BOUNDS = { macroMax: 0.4, mesoMax: 0.8 };
     const SCALE_MIN = 0.28;
@@ -279,8 +270,7 @@
 
         merged.select('circle')
             .transition().duration(400)
-            .attr('r', visualRadius)
-            .style('fill', d => NODE_COLORS[colorIndexOf(d)]);
+            .attr('r', visualRadius);
 
         merged.select('text')
             .attr('class', d => {
