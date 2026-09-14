@@ -992,6 +992,48 @@ footer{
     font-family: "Times New Roman", serif;
 }
 
+/* 书籍详情 · 知识图谱接入按钮 */
+.graph-box {
+    height: 330px;
+    border-radius: 20px;
+    border: 2px dashed rgba(129, 28, 33, .28);
+    background:
+        radial-gradient(circle at 18% 28%, rgba(129, 28, 33, .06), transparent 55%),
+        radial-gradient(circle at 82% 72%, rgba(129, 28, 33, .06), transparent 55%),
+        #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+}
+
+.detail-graph-btn {
+    padding: 14px 30px;
+    border: none;
+    border-radius: 30px;
+    background: linear-gradient(135deg, #811c21, #a1262c);
+    color: #fff;
+    font-size: 16px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    letter-spacing: 2px;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(129, 28, 33, .25);
+    transition: transform .2s, box-shadow .2s;
+}
+
+.detail-graph-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(129, 28, 33, .35);
+}
+
+.graph-box-hint {
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: rgba(129, 28, 33, .45);
+    font-family: "Times New Roman", serif;
+}
+
 /* 响应式 */
 @media (max-width: 1000px) {
     .book-item { width: 98px; }
@@ -1003,6 +1045,7 @@ footer{
     .detail-title-cn { font-size: 22px; }
     .detail-title-en { font-size: 14px; }
     .graph-placeholder { height: 240px; }
+    .graph-box { height: 240px; }
 }
 
 @media (max-width: 620px) {

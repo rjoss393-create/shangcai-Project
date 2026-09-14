@@ -516,10 +516,10 @@ const BOOK_COVER_DIR = 'assets/books/';
 const BOOK_COVER_EXT = '.png';     // ← 扩展名改成 .png（若改成 .jpg 只需改这里）
 
 const BOOKS = [
-/* 01 */ { id: 1,  titleCn: '投资学（第十版）', titleEn: 'Investments, 10th Edition', author: '滋维·博迪、亚历克斯·凯恩、艾伦·J.马库斯', tags: ['投资学', '经典教材'], intro: '投资学领域公认的经典教材。系统讲解资产类别与金融工具、风险与收益、资产组合理论、证券分析、衍生品及投资业绩评估，是 CFA 等专业考试的核心参考书。', introEn: '' },
-/* 02 */ { id: 2,  titleCn: '公司金融（进阶篇·原书第12版）', titleEn: 'Principles of Corporate Finance, 12th Edition', author: '理查德·A.布雷利 等', tags: ['公司金融', '经典教材'], intro: '公司金融领域经典教材的进阶部分，聚焦资本结构、股利政策、公司治理与并购重组等高级主题，适合已具备金融基础的高年级学生。', introEn: '' },
-/* 03 */ { id: 3,  titleCn: '国际投资学（第二版）', titleEn: '', author: '卢勇进、杜奇华、杨立强', tags: ['国际投资', '教材'], intro: '系统介绍国际直接投资与国际间接投资的基本理论、运作方式与政策法规，结合中国企业"走出去"的实践案例。', introEn: '' },
-/* 04 */ { id: 4,  titleCn: '并购与重组：中国案例', titleEn: '', author: '蔡荣鑫（编著）', tags: ['并购重组', '案例'], intro: '以中国资本市场真实并购重组事件为案例，剖析交易结构设计、估值定价与并购整合的要点。', introEn: '' },
+/* 01 */ { id: 1,  titleCn: '投资学（第十版）', titleEn: 'Investments, 10th Edition', author: '滋维·博迪、亚历克斯·凯恩、艾伦·J.马库斯', tags: ['投资学', '经典教材'], intro: '投资学领域公认的经典教材。系统讲解资产类别与金融工具、风险与收益、资产组合理论、证券分析、衍生品及投资业绩评估，是 CFA 等专业考试的核心参考书。', introEn: '', graphId: 'invest' },
+/* 02 */ { id: 2,  titleCn: '公司金融（进阶篇·原书第12版）', titleEn: 'Principles of Corporate Finance, 12th Edition', author: '理查德·A.布雷利 等', tags: ['公司金融', '经典教材'], intro: '公司金融领域经典教材的进阶部分，聚焦资本结构、股利政策、公司治理与并购重组等高级主题，适合已具备金融基础的高年级学生。', introEn: '', graphId: 'corp_fin' },
+/* 03 */ { id: 3,  titleCn: '国际投资学（第二版）', titleEn: '', author: '卢勇进、杜奇华、杨立强', tags: ['国际投资', '教材'], intro: '系统介绍国际直接投资与国际间接投资的基本理论、运作方式与政策法规，结合中国企业"走出去"的实践案例。', introEn: '', graphId: 'intl_inv' },
+/* 04 */ { id: 4,  titleCn: '并购与重组：中国案例', titleEn: '', author: '蔡荣鑫（编著）', tags: ['并购重组', '案例'], intro: '以中国资本市场真实并购重组事件为案例，剖析交易结构设计、估值定价与并购整合的要点。', introEn: '', graphId: 'ma' },
 /* 05 */ { id: 5,  titleCn: '金融理论（视频课程）', titleEn: 'Finance Theory', author: '安德鲁·罗（Andrew Lo）', tags: ['视频课程', '金融理论'], intro: 'MIT 金融理论课程视频（共 23 讲）：现值关系、固定收益证券、股票、远期与期货、期权、风险与收益、投资组合理论、CAPM 与 APT、资本预算与有效市场。', introEn: '' },
 /* 06 */ { id: 6,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
 /* 07 */ { id: 7,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
@@ -752,8 +752,68 @@ function openBookDetail(id) {
     document.getElementById('detailIntro').textContent = book.intro || '（中文简介待补充）';
     document.getElementById('detailIntroEn').textContent = book.introEn || '';
 
+    renderDetailGraph(book);
+
     mask.classList.add('show');
     document.body.style.overflow = 'hidden';
+}
+
+// ---------- 书籍详情 · 知识图谱区域 ----------
+function renderDetailGraph(book) {
+    const box = document.getElementById('detailGraphBox');
+    if (!box) return;
+
+    if (book.graphId) {
+        box.innerHTML = `
+            <div class="graph-box">
+                <button class="detail-graph-btn" id="detailOpenGraph">
+                    在知识星系中查看《${book.titleCn}》图谱 →
+                </button>
+                <span class="graph-box-hint">将跳转到「知识星系」并自动切换到该书的图谱</span>
+            </div>`;
+        const btn = document.getElementById('detailOpenGraph');
+        if (btn) btn.addEventListener('click', () => {
+            closeBookDetail();
+            openGraphInGalaxy(book.graphId);
+        });
+    } else {
+        box.innerHTML = `
+            <div class="graph-placeholder">
+                <svg viewBox="0 0 24 24" width="42" height="42" fill="none"
+                     stroke="currentColor" stroke-width="1.2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="5" r="2.2"></circle>
+                    <circle cx="5" cy="17" r="2.2"></circle>
+                    <circle cx="19" cy="17" r="2.2"></circle>
+                    <line x1="12" y1="7.2" x2="6.4" y2="15"></line>
+                    <line x1="12" y1="7.2" x2="17.6" y2="15"></line>
+                    <line x1="7.2" y1="17" x2="16.8" y2="17"></line>
+                </svg>
+                <p>知识图谱区域</p>
+                <span>该书籍知识图谱待接入</span>
+            </div>`;
+    }
+}
+
+function openGraphInGalaxy(graphId) {
+    // 同步下拉框选中项
+    const sel = document.getElementById('galaxyBookSelect');
+    if (sel) {
+        for (const opt of sel.options) {
+            if (opt.value === graphId) { sel.value = graphId; break; }
+        }
+    }
+    // 高亮导航
+    document.querySelectorAll('.nav-item').forEach(b => {
+        b.classList.toggle('active', b.dataset.target === 'galaxy');
+    });
+    // 滚动到星系区域
+    const section = document.getElementById('galaxy');
+    if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // 通知图谱引擎切换
+    if (window.GalaxyEngine && typeof window.GalaxyEngine.switchBook === 'function') {
+        window.GalaxyEngine.switchBook(graphId);
+    }
 }
 
 function closeBookDetail() {
