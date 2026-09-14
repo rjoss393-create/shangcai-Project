@@ -44,6 +44,13 @@
     const SCALE_MAX = 2.0;
     const SCALE_DEFAULT = 0.7;   // 初始落在中观层
 
+    // ★ 视野裁剪参数（世界坐标）：
+    //   视野框 + CULL_RENDER_MARGIN 内 → 渲染集（挂 DOM）
+    //   视野框 + CULL_ACTIVE_MARGIN 内 → 活动集（参与力导向，即"附近缓存"，无 DOM）
+    //   超出 → 移出活动集（仅保留在全量缓存 allNodes，接近时按原坐标恢复）
+    const CULL_RENDER_MARGIN = 300;
+    const CULL_ACTIVE_MARGIN = 1200;
+
     // ★ 新增：缩放时用来计算层级名
     function zoomLevelOf(s) {
         if (s <= ZOOM_BOUNDS.macroMax) return 'macro';
@@ -60,8 +67,16 @@
     const state = {
         sessionId:      null,
         graphId:        'econ',        // ★ 当前图谱（对应后端 graph_id，默认经济综合）
+        // ★ 视野裁剪三级结构：
+        //   allNodes/allEdges  全量数据（含 x/y 布局坐标，远端节点仅存这里，接近时恢复）
+        //   nodes/edges        活动集：视野 + 活动缓冲带，参与力导向（"附近缓存"）
+        //   renderNodes/edges  渲染集：视野 + 渲染缓冲带，真正挂 DOM（"视野框内"）
+        allNodes:       [],
+        allEdges:       [],
         nodes:          [],
         edges:          [],
+        renderNodes:    [],
+        renderEdges:    [],
         visibleIds:     new Set(),
         focusedId:      null,
         highlightedIds: new Set(),
@@ -175,38 +190,39 @@
         return 2010 + (h % 15);   // 2010 – 2024
     }
 
-    function resolveEdges() {
-        const nodeMap = new Map(state.nodes.map(n => [n.id, n]));
-        state.edges.forEach(e => {
-            const s = nodeMap.get(srcId(e));
-            const t = nodeMap.get(tgtId(e));
-            if (s) e.source = s;
-            if (t) e.target = t;
+    function resolveEdges(edges) {
+        // 把边的 source/target 字符串解析为全量缓存中的节点对象（供力导向/坐标读取）
+        const nodeMap = new Map(state.allNodes.map(n => [n.id, n]));
+        edges.forEach(e => {
+            if (typeof e.source === 'string' && nodeMap.has(e.source)) e.source = nodeMap.get(e.source);
+            if (typeof e.target === 'string' && nodeMap.has(e.target)) e.target = nodeMap.get(e.target);
         });
     }
 
     function mergeGraph(data) {
         if (!data || !data.nodes) return;
 
-        const nodeMap = new Map(state.nodes.map(n => [n.id, n]));
+        const nodeMap = new Map(state.allNodes.map(n => [n.id, n]));
         data.nodes.forEach(n => {
             const old = nodeMap.get(n.id);
+            // 保留已有布局坐标：合并时不清空 x/y（裁剪恢复依赖历史坐标）
             if (old) Object.assign(old, n);
             else     nodeMap.set(n.id, { ...n, x: 0, y: 0 });
         });
-        state.nodes = Array.from(nodeMap.values());
+        state.allNodes = Array.from(nodeMap.values());
 
-        const edgeMap = new Map(state.edges.map(e => [edgeKey(e), e]));
+        const edgeMap = new Map(state.allEdges.map(e => [edgeKey(e), e]));
         data.edges.forEach(e => {
             const k = edgeKey(e);
             if (!edgeMap.has(k)) edgeMap.set(k, { ...e });
         });
-        state.edges = Array.from(edgeMap.values());
+        state.allEdges = Array.from(edgeMap.values());
+        rebuildDegree();
 
         state.visibleIds = new Set(data.nodes.map(n => n.id));
 
         // ★ 清理失效的选中/路径
-        const idSet = new Set(state.nodes.map(n => n.id));
+        const idSet = new Set(state.allNodes.map(n => n.id));
         state.selectedIds = state.selectedIds.filter(id => idSet.has(id));
         if (state.activePath) {
             state.activePath = state.activePath.filter(id => idSet.has(id));
@@ -218,11 +234,94 @@
             timelineInited = true;
             setupTimeline();
         }
+
+        // ★ 按视野重建活动集/渲染集
+        updateCulling(true);
+    }
+
+    // ---------- ★ 视野裁剪 ----------
+    function worldViewport() {
+        // 计算当前视野在世界坐标系下的 AABB（考虑 translate/scale/rotate）
+        const rect = svg.node().getBoundingClientRect();
+        const cos = Math.cos(-state.rotation * Math.PI / 180);
+        const sin = Math.sin(-state.rotation * Math.PI / 180);
+        const cxr = state.translateX + rect.width / 2;
+        const cyr = state.translateY + rect.height / 2;
+        const corners = [
+            [0, 0], [rect.width, 0], [0, rect.height], [rect.width, rect.height],
+        ].map(([px, py]) => {
+            const dx = (px - cxr) / state.scale;
+            const dy = (py - cyr) / state.scale;
+            return [dx * cos - dy * sin, dx * sin + dy * cos];
+        });
+        const xs = corners.map(c => c[0]), ys = corners.map(c => c[1]);
+        return {
+            minX: Math.min(...xs), maxX: Math.max(...xs),
+            minY: Math.min(...ys), maxY: Math.max(...ys),
+        };
+    }
+
+    let _renderSet = new Set();   // 上一帧渲染集 id（变化检测用）
+    let _cullTick  = 0;
+
+    function updateCulling(forceRender) {
+        if (!state.allNodes.length || !svg) return;
+        const vp = worldViewport();
+        const renderIds = new Set(), activeIds = new Set();
+        const rmx = CULL_RENDER_MARGIN, amx = CULL_ACTIVE_MARGIN;
+
+        for (const n of state.allNodes) {
+            const x = n.x || 0, y = n.y || 0;
+            if (x > vp.minX - rmx && x < vp.maxX + rmx &&
+                y > vp.minY - rmx && y < vp.maxY + rmx) renderIds.add(n.id);
+            if (x > vp.minX - amx && x < vp.maxX + amx &&
+                y > vp.minY - amx && y < vp.maxY + amx) activeIds.add(n.id);
+        }
+
+        // 聚焦/高亮/选中/路径节点强制进入渲染集（后端 actions 可能指向视野外节点）
+        const forceIds = [state.focusedId, ...state.highlightedIds,
+                          ...state.selectedIds, ...(state.activePath || [])];
+        forceIds.forEach(id => { if (id) renderIds.add(id); });
+
+        state.renderNodes = state.allNodes.filter(n => renderIds.has(n.id));
+        state.renderEdges = state.allEdges.filter(e =>
+            renderIds.has(srcId(e)) && renderIds.has(tgtId(e)));
+        state.nodes = state.allNodes.filter(n => activeIds.has(n.id));
+        state.edges = state.allEdges.filter(e =>
+            activeIds.has(srcId(e)) && activeIds.has(tgtId(e)));
+
+        // 渲染集变化检测（仅增删时重建 DOM）
+        let changed = forceRender ||
+            renderIds.size !== _renderSet.size ||
+            state.renderNodes.some(n => !_renderSet.has(n.id));
+        _renderSet = renderIds;
+
+        // 同步力导向（活动集变化时；不重启 alpha，避免平移时抖动）
+        if (simulation) {
+            resolveEdges(state.edges);
+            simulation.nodes(state.nodes);
+            simulation.force('link').links(
+                state.edges.filter(e =>
+                    e.source && typeof e.source === 'object' &&
+                    e.target && typeof e.target === 'object'));
+            if (forceRender) simulation.alpha(0.3).restart();   // 合并新数据时轻量重新布局
+        }
+
+        if (changed) render();
+    }
+
+    function rebuildDegree() {
+        // 度数基于全量边预计算，避免每次渲染都遍历全部边（裁剪后渲染更频繁）
+        state.degree = new Map();
+        state.allEdges.forEach(e => {
+            const s = srcId(e), t = tgtId(e);
+            state.degree.set(s, (state.degree.get(s) || 0) + 1);
+            state.degree.set(t, (state.degree.get(t) || 0) + 1);
+        });
     }
 
     function degreeOf(id) {
-        return state.edges.reduce((acc, e) =>
-            acc + (srcId(e) === id || tgtId(e) === id ? 1 : 0), 0);
+        return state.degree ? (state.degree.get(id) || 0) : 0;
     }
 
     const radiusOf = d => 11 + Math.min(degreeOf(d.id), 5) * 2.0;
@@ -245,12 +344,12 @@
     function render() {
         if (!gRoot) return;
 
-        resolveEdges();
+        resolveEdges(state.renderEdges);
 
         const lvl = state.zoomLevel;
 
-        // ---- 节点 ----
-        const sel = gNodes.selectAll('.g-node').data(state.nodes, d => d.id);
+        // ---- 节点（视野裁剪：只对渲染集挂 DOM）----
+        const sel = gNodes.selectAll('.g-node').data(state.renderNodes, d => d.id);
         sel.exit().remove();
 
         const enter = sel.enter()
@@ -304,7 +403,7 @@
             .attr('dy', d => radiusOf(d) + 16);
 
         // ---- 连线 ----
-        const lsel = gLinks.selectAll('.g-link').data(state.edges, edgeKey);
+        const lsel = gLinks.selectAll('.g-link').data(state.renderEdges, edgeKey);
         lsel.exit().remove();
         lsel.enter().append('path').attr('class', 'g-link');
 
@@ -331,8 +430,8 @@
 
                 // ★ 时间轴过滤（两端都过了当前年份才显示）
                 if (state.timelineEnabled && state.timelineValue != null) {
-                    const sn = state.nodes.find(n => n.id === s);
-                    const tn = state.nodes.find(n => n.id === t);
+                    const sn = state.allNodes.find(n => n.id === s);
+                    const tn = state.allNodes.find(n => n.id === t);
                     const sy = sn ? (getNodeYear(sn) ?? sn._year) : null;
                     const ty = tn ? (getNodeYear(tn) ?? tn._year) : null;
                     if ((sy != null && sy > state.timelineValue) ||
@@ -345,7 +444,7 @@
 
         // ---- 关系标签 ----
         const lls = gLinkLabels.selectAll('.g-link-label')
-            .data(state.edges, edgeKey);
+            .data(state.renderEdges, edgeKey);
         lls.exit().remove();
         lls.enter().append('text').attr('class', 'g-link-label');
 
@@ -361,7 +460,7 @@
             })
             .text(e => e.relation || '');
         syncStageFocusClass();
-        runSimulation();
+        runSimulation(false);   // ★ 渲染不重启 alpha：布局只在首次建图/合并新数据时重启，避免"一直动"
     }
         // ★ 新增
     function syncStageFocusClass() {
@@ -384,9 +483,12 @@
     }
 
     // ---------- 力导向布局 ----------
-    function runSimulation() {
+    function runSimulation(restart) {
+        // ★ 布局更分散：连线距离 110→175、斥力 -420→-560、碰撞间距 +26→+46、
+        //   连线强度 0.08→0.05（弱化聚合，避免节点密集遮挡）
         if (typeof d3 === 'undefined') return;
 
+        resolveEdges(state.edges);
         const links = state.edges.filter(e =>
             e.source && typeof e.source === 'object' &&
             e.target && typeof e.target === 'object'
@@ -394,16 +496,16 @@
 
         if (!simulation) {
             simulation = d3.forceSimulation(state.nodes)
-                .force('radial',  d3.forceRadial(ringOf, 0, 0).strength(0.9))
-                .force('charge',  d3.forceManyBody().strength(-420))
-                .force('collide', d3.forceCollide(d => radiusOf(d) + 26).strength(1))
+                .force('radial',  d3.forceRadial(ringOf, 0, 0).strength(0.85))
+                .force('charge',  d3.forceManyBody().strength(-560))
+                .force('collide', d3.forceCollide(d => radiusOf(d) + 46).strength(1))
                 .force('link',    d3.forceLink(links).id(d => d.id)
-                                    .distance(110).strength(0.08))
+                                    .distance(175).strength(0.05))
                 .on('tick', ticked);
         } else {
             simulation.nodes(state.nodes);
             simulation.force('link').links(links);
-            simulation.alpha(0.6).restart();
+            if (restart) simulation.alpha(0.6).restart();
         }
     }
 
@@ -412,7 +514,8 @@
             ? { x: ref.x || 0, y: ref.y || 0 }
             : { x: 0, y: 0 };
 
-        state.edges.forEach(e => {
+        // 只更新渲染集内的边路径（视野裁剪：DOM 里只有渲染集）
+        state.renderEdges.forEach(e => {
             const s = getXY(e.source), t = getXY(e.target);
             const dx = t.x - s.x, dy = t.y - s.y;
             const len = Math.sqrt(dx * dx + dy * dy) || 1;
@@ -434,6 +537,9 @@
 
         gNodes.selectAll('.g-node')
             .attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
+
+        // ★ 视野裁剪节流：布局推进时每 15 帧重算一次视野内外
+        if ((++_cullTick % 15) === 0) updateCulling(false);
     }
 
     // ---------- 视图变换 ----------
@@ -450,6 +556,9 @@
             `rotate(${state.rotation})`);
 
         updateZoomLevelUI();
+
+        // ★ 视野变化 → 立即重算裁剪（平移/缩放/旋转实时跟手）
+        updateCulling(false);
     }
 
     // ★ 新增：随缩放更新层级指示器 + 触发一次重渲染
@@ -658,7 +767,7 @@ render();
     function findPath(a, b) {
         if (a === b) return [a];
         const adj = new Map();
-        state.edges.forEach(e => {
+        state.allEdges.forEach(e => {
             const s = srcId(e), t = tgtId(e);
             if (!adj.has(s)) adj.set(s, []);
             if (!adj.has(t)) adj.set(t, []);
@@ -698,7 +807,7 @@ render();
 
         // 收集年份（缺省用稳定伪年份）
         const years = [];
-        state.nodes.forEach(n => {
+        state.allNodes.forEach(n => {
             let y = getNodeYear(n);
             if (y == null) { y = fallbackYear(n); n._year = y; }
             years.push(y);
@@ -756,7 +865,7 @@ render();
 
         for (const id of state.activePath) {
             if (state.roamAbort) break;
-            const node = state.nodes.find(n => n.id === id);
+            const node = state.allNodes.find(n => n.id === id);
             if (!node) continue;
 
             await panToNode(node, 1.0, 700);
@@ -818,7 +927,7 @@ render();
         state.highlightedIds = new Set(ids);
 
         // 2) 计算包围盒
-        const targets = state.nodes.filter(n => ids.includes(n.id));
+        const targets = state.allNodes.filter(n => ids.includes(n.id));
         if (!targets.length) return;
 
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -952,8 +1061,14 @@ render();
     async function switchBook(graphId) {
         if (!graphId || graphId === state.graphId) return;
         state.graphId = graphId;
+        state.allNodes = [];
+        state.allEdges = [];
         state.nodes = [];
         state.edges = [];
+        state.renderNodes = [];
+        state.renderEdges = [];
+        state.degree = new Map();
+        _renderSet = new Set();
         state.visibleIds = new Set();
         state.focusedId = null;
         state.highlightedIds.clear();
