@@ -47,15 +47,13 @@
 
     <!-- 导航区域 -->
     <nav class="navigation">
-
         <button class="nav-item active" data-target="finance">财经资讯</button>
         <button class="nav-item" data-target="course">课程</button>
-        <button class="nav-item" data-target="paper">科研论文</button>
         <button class="nav-item" data-target="galaxy">知识星系</button>
         <button class="nav-item" data-target="assistant">知识助手</button>
-        <button class="nav-item" data-target="career">职业发展</button>
         <button class="nav-item" data-target="study">学习资料</button>
-
+        <button class="nav-item" data-target="paper">科学研究</button>
+        <button class="nav-item" data-target="career">职业发展</button>
     </nav>
 
 </header>
@@ -183,10 +181,8 @@
 
 </section>
 
-<!-- ======================
-     其他模块
-====================== -->
-<!-- ========== 替换 index.html 中原有的 course 板块 ========== -->
+
+<!-- ==========  course 板块 ========== -->
 <section class="page-section" id="course">
 
     <div class="section-title">
@@ -237,19 +233,10 @@
 
             <div class="detail-graph">
                 <h3>知识图谱</h3>
-                <div class="graph-placeholder">
-                    <svg viewBox="0 0 24 24" width="42" height="42" fill="none"
-                         stroke="currentColor" stroke-width="1.2"
-                         stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="5" r="2.2"></circle>
-                        <circle cx="5" cy="17" r="2.2"></circle>
-                        <circle cx="19" cy="17" r="2.2"></circle>
-                        <line x1="12" y1="7.2" x2="6.4" y2="15"></line>
-                        <line x1="12" y1="7.2" x2="17.6" y2="15"></line>
-                        <line x1="7.2" y1="17" x2="16.8" y2="17"></line>
-                    </svg>
-                    <p>知识图谱区域</p>
-                    <span>Knowledge Graph Placeholder · 待接入</span>
+                <div class="book-graph" id="bookGraph">
+                    <svg id="bookGraphSvg"></svg>
+                    <div class="book-graph-loading" id="bookGraphLoading">图谱加载中…</div>
+                    <div class="book-graph-hint">示例图谱结构 · 待接入真实数据</div>
                 </div>
             </div>
 
@@ -258,84 +245,7 @@
 
 </section>
 
-<!-- ======================
-     科研论文
-====================== -->
-<section class="page-section" id="paper">
 
-    <div class="section-title">
-        <h1>科研论文</h1>
-    </div>
-
-    <p class="paper-intro">
-        收录课题组近年发表于国内外核心期刊的研究成果 —— 点击卡片查看全文，左右箭头切换论文。
-    </p>
-
-    <!-- 单篇展示区（与新闻面板左右对齐，均为 10% 缩进） -->
-    <div class="paper-wrap">
-
-        <div class="paper-stage" id="paperStage" role="button" tabindex="0" aria-label="查看论文全文"></div>
-
-        <!-- 翻页控制 -->
-        <div class="paper-pager">
-
-            <button class="pager-arrow" id="paperPrev" aria-label="上一篇">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-            </button>
-
-            <div class="pager-info">
-                <span class="pager-current" id="paperCurrentNo">01</span>
-                <span class="pager-divider">/</span>
-                <span class="pager-total" id="paperTotalNo">08</span>
-            </div>
-
-            <button class="pager-arrow" id="paperNext" aria-label="下一篇">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-            </button>
-
-        </div>
-
-        <div class="paper-dots" id="paperDots"></div>
-
-    </div>
-
-    <!-- 论文详情（模态 · 滚轮浏览全文） -->
-    <div class="paper-detail-mask" id="paperDetailMask">
-        <div class="paper-detail" role="dialog" aria-modal="true" aria-label="论文详情">
-
-            <button class="detail-close" id="paperDetailClose" aria-label="关闭">×</button>
-
-            <div class="paper-detail-head">
-                <div class="paper-detail-journal" id="pdJournal"></div>
-                <h2 class="paper-detail-title-cn" id="pdTitleCn"></h2>
-                <h3 class="paper-detail-title-en" id="pdTitleEn"></h3>
-                <div class="paper-detail-meta" id="pdAuthor"></div>
-                <div class="paper-detail-tags" id="pdTags"></div>
-            </div>
-
-            <div class="paper-detail-scroll" id="pdScroll">
-                <div class="paper-detail-block">
-                    <h4>摘要</h4>
-                    <p id="pdAbstract"></p>
-                    <p class="paper-detail-en-text" id="pdAbstractEn"></p>
-                </div>
-                <div id="pdBody"></div>
-            </div>
-
-            <div class="paper-scroll-hint">滚轮浏览全文 · Esc 关闭</div>
-
-        </div>
-    </div>
-
-</section>
 
 <section class="page-section" id="galaxy">
     <div class="section-title"><h1>知识星系</h1></div>
@@ -356,6 +266,7 @@
                 <option value="econ">经济综合</option>
                 <option value="corp_fin">公司金融</option>
                 <option value="intl_inv">国际投资学</option>
+                <option value="invest">投资学</option>
                 <option value="ma">并购与重组</option>
             </select>
         </div>
@@ -487,6 +398,194 @@
         </p>
     </div>
 </section>
+<section class="page-section" id="study">
+
+    <div class="section-title">
+        <h1>学习资料</h1>
+    </div>
+
+    <p class="study-intro">
+        收录投资学相关视频资料 —— 按标签筛选，点击封面进入播放页，支持倍速、全屏与进度拖动。
+    </p>
+
+    <!-- 筛选栏 -->
+    <div class="study-filter-bar">
+        <div class="study-tags" id="studyTags">
+            <button class="study-tag" data-tag="中文">中文</button>
+            <button class="study-tag" data-tag="双语">双语</button>
+            <button class="study-tag" data-tag="外语">外语</button>
+            <button class="study-tag" data-tag="演讲">演讲</button>
+            <button class="study-tag" data-tag="课程">课程</button>
+        </div>
+        <div class="study-actions">
+            <button class="study-reset" id="studyReset" title="清空筛选">清空</button>
+            <div class="study-sort">
+                <button class="study-sort-btn active" data-order="asc">正序 ↑</button>
+                <button class="study-sort-btn" data-order="desc">倒序 ↓</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 视频网格 -->
+    <div class="study-grid" id="studyGrid">
+        <!-- 自翻页推荐板块（占 2 格） -->
+        <div class="study-carousel" id="studyCarousel">
+            <div class="carousel-window" id="carouselWindow">
+                <div class="carousel-track" id="carouselTrack"></div>
+                <div class="carousel-dots" id="carouselDots"></div>
+            </div>
+            <div class="carousel-caption">
+                <div class="carousel-title" id="carouselTitle"></div>
+                <div class="carousel-sub" id="carouselSub"></div>
+            </div>
+        </div>
+        <!-- 视频项目由 JS 生成 -->
+    </div>
+
+    <div class="study-empty" id="studyEmpty" style="display:none;">
+        暂无匹配的视频，试试取消部分标签筛选
+    </div>
+
+    <!-- 播放页（全屏模态） -->
+    <div class="study-player-mask" id="studyPlayerMask">
+        <div class="study-player">
+            <div class="study-player-head">
+                <button class="study-player-back" id="studyPlayerClose" aria-label="返回">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                    <span>返回</span>
+                </button>
+                <div class="study-player-head-title" id="spHeadTitle"></div>
+            </div>
+
+            <div class="study-player-stage">
+                <video id="studyPlayerVideo" controls playsinline preload="metadata"></video>
+                <div class="study-player-placeholder" id="spPlaceholder" style="display:none;">
+                    <svg viewBox="0 0 24 24" width="52" height="52" fill="none"
+                         stroke="currentColor" stroke-width="1.2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="5" width="20" height="14" rx="3"></rect>
+                        <polygon points="10,9 15,12 10,15"></polygon>
+                    </svg>
+                    <span>视频内容待补充</span>
+                </div>
+            </div>
+
+            <div class="study-player-info">
+                <div class="study-player-info-inner">
+                    <h2 class="sp-title" id="spTitle"></h2>
+                    <div class="sp-meta">
+                        <div class="sp-author" id="spAuthor"></div>
+                        <div class="sp-stats" id="spStats"></div>
+                    </div>
+                    <div class="sp-tags" id="spTags"></div>
+
+                    <div class="sp-speed-row">
+                        <span class="sp-speed-label">播放速度</span>
+                        <div class="sp-speed" id="spSpeed">
+                            <button class="speed-btn" data-speed="0.5">0.5×</button>
+                            <button class="speed-btn active" data-speed="1">1.0×</button>
+                            <button class="speed-btn" data-speed="1.25">1.25×</button>
+                            <button class="speed-btn" data-speed="1.5">1.5×</button>
+                            <button class="speed-btn" data-speed="2">2.0×</button>
+                        </div>
+                    </div>
+
+                    <div class="sp-desc-block">
+                        <h4>简介</h4>
+                        <p id="spDesc"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+
+
+<!-- ======================
+     科研论文
+====================== -->
+<section class="page-section" id="paper">
+
+    <div class="section-title">
+        <h1>科学研究</h1>
+    </div>
+
+    <p class="paper-intro">
+        收录课题组近年发表于国内外核心期刊的研究成果 —— 点击卡片查看全文，左右箭头切换论文。
+    </p>
+
+    <!-- 单篇展示区（与新闻面板左右对齐，均为 10% 缩进） -->
+    <div class="paper-wrap">
+
+        <div class="paper-stage" id="paperStage" role="button" tabindex="0" aria-label="查看论文全文"></div>
+
+        <!-- 翻页控制 -->
+        <div class="paper-pager">
+
+            <button class="pager-arrow" id="paperPrev" aria-label="上一篇">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+
+            <div class="pager-info">
+                <span class="pager-current" id="paperCurrentNo">01</span>
+                <span class="pager-divider">/</span>
+                <span class="pager-total" id="paperTotalNo">08</span>
+            </div>
+
+            <button class="pager-arrow" id="paperNext" aria-label="下一篇">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+
+        </div>
+
+        <div class="paper-dots" id="paperDots"></div>
+
+    </div>
+
+    <!-- 论文详情（模态 · 滚轮浏览全文） -->
+    <div class="paper-detail-mask" id="paperDetailMask">
+        <div class="paper-detail" role="dialog" aria-modal="true" aria-label="论文详情">
+
+            <button class="detail-close" id="paperDetailClose" aria-label="关闭">×</button>
+
+            <div class="paper-detail-head">
+                <div class="paper-detail-journal" id="pdJournal"></div>
+                <h2 class="paper-detail-title-cn" id="pdTitleCn"></h2>
+                <h3 class="paper-detail-title-en" id="pdTitleEn"></h3>
+                <div class="paper-detail-meta" id="pdAuthor"></div>
+                <div class="paper-detail-tags" id="pdTags"></div>
+            </div>
+
+            <div class="paper-detail-scroll" id="pdScroll">
+                <div class="paper-detail-block">
+                    <h4>摘要</h4>
+                    <p id="pdAbstract"></p>
+                    <p class="paper-detail-en-text" id="pdAbstractEn"></p>
+                </div>
+                <div id="pdBody"></div>
+            </div>
+
+            <div class="paper-scroll-hint">滚轮浏览全文 · Esc 关闭</div>
+
+        </div>
+    </div>
+
+</section>
+
 
 <section class="page-section" id="career">
     <div class="section-title">
@@ -515,9 +614,7 @@
     </div>
 </section>
 
-<section class="page-section" id="study">
-    <div class="placeholder">学习资料模块<br>后续补充</div>
-</section>
+
 
 </main>
 
@@ -556,6 +653,14 @@
         <button type="submit" class="assistant-send" id="assistantSend">发送</button>
     </form>
 </div>
+<!-- ★ 新增：回到顶部按钮 -->
+<button class="back-top" id="backTop" aria-label="回到顶部" title="回到顶部">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none"
+         stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+</button>
 <script src="js/d3.min.js"></script>
 <script src="js/galaxy.js"></script>
 <script src="js/assistant.js"></script>   <!-- 新增 -->

@@ -4,13 +4,20 @@
 const navItems = document.querySelectorAll(".nav-item");
 navItems.forEach(item => {
     item.addEventListener("click", () => {
+        // 先清掉所有 active，给被点击的加上（视觉反馈）
         navItems.forEach(btn => btn.classList.remove("active"));
         item.classList.add("active");
+
         const targetId = item.dataset.target;
         const targetSection = document.getElementById(targetId);
         if (targetSection) {
             targetSection.scrollIntoView({ behavior: "smooth", block: "start" });
         }
+
+        // ★ 跳转动画结束后，自动回归原色
+        setTimeout(() => {
+            item.classList.remove("active");
+        }, 500);
     });
 });
 
@@ -516,11 +523,11 @@ const BOOK_COVER_DIR = 'assets/books/';
 const BOOK_COVER_EXT = '.png';     // ← 扩展名改成 .png（若改成 .jpg 只需改这里）
 
 const BOOKS = [
-/* 01 */ { id: 1,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 02 */ { id: 2,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 03 */ { id: 3,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 04 */ { id: 4,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 05 */ { id: 5,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
+/* 01 */ { id: 1,  titleCn: '投资学（第十版）', titleEn: 'Investments, 10th Edition', author: '滋维·博迪、亚历克斯·凯恩、艾伦·J.马库斯', tags: ['投资学', '经典教材'], intro: '投资学领域公认的经典教材。系统讲解资产类别与金融工具、风险与收益、资产组合理论、证券分析、衍生品及投资业绩评估，是 CFA 等专业考试的核心参考书。', introEn: '' },
+/* 02 */ { id: 2,  titleCn: '公司金融（进阶篇·原书第12版）', titleEn: 'Principles of Corporate Finance, 12th Edition', author: '理查德·A.布雷利 等', tags: ['公司金融', '经典教材'], intro: '公司金融领域经典教材的进阶部分，聚焦资本结构、股利政策、公司治理与并购重组等高级主题，适合已具备金融基础的高年级学生。', introEn: '' },
+/* 03 */ { id: 3,  titleCn: '国际投资学（第二版）', titleEn: '', author: '卢勇进、杜奇华、杨立强', tags: ['国际投资', '教材'], intro: '系统介绍国际直接投资与国际间接投资的基本理论、运作方式与政策法规，结合中国企业"走出去"的实践案例。', introEn: '' },
+/* 04 */ { id: 4,  titleCn: '并购与重组：中国案例', titleEn: '', author: '蔡荣鑫（编著）', tags: ['并购重组', '案例'], intro: '以中国资本市场真实并购重组事件为案例，剖析交易结构设计、估值定价与并购整合的要点。', introEn: '' },
+/* 05 */ { id: 5,  titleCn: '金融理论（视频课程）', titleEn: 'Finance Theory', author: '安德鲁·罗（Andrew Lo）', tags: ['视频课程', '金融理论'], intro: 'MIT 金融理论课程视频（共 23 讲）：现值关系、固定收益证券、股票、远期与期货、期权、风险与收益、投资组合理论、CAPM 与 APT、资本预算与有效市场。', introEn: '' },
 /* 06 */ { id: 6,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
 /* 07 */ { id: 7,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
 /* 08 */ { id: 8,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
@@ -754,13 +761,287 @@ function openBookDetail(id) {
 
     mask.classList.add('show');
     document.body.style.overflow = 'hidden';
+    setTimeout(() => renderBookGraph(book.id), 60);
 }
+// ===============================
+// 17.6 书籍详情 · 示例知识图谱
+// --------------------------------------------------------------
+// 对接后端时，只需改 fetchBookGraph() 一个函数。
+// 期望返回格式（与 backend/controller/schemas.GraphData 一致）：
+//   {
+//     nodes: [{ id, name, category, media }],
+//     edges: [{ source, target, relation }]
+//   }
+// ===============================
+
+const BOOK_GRAPH_API = '/api/graph/book';   // ★ 后端就绪后启用
+
+let _bgSim = null;
+let _bgSvgSel = null;
+let _bgRoot = null;
+let _bgInited = false;
+
+// ---------- 1. 数据层：本地示例图谱（未命名） ----------
+function _bgSeededRandom(seed) {
+    let s = (seed || 1) * 9301 + 49297;
+    return function () {
+        s = (s * 9301 + 49297) % 233280;
+        return s / 233280;
+    };
+}
+
+function buildSampleBookGraph(bookId) {
+    const rand = _bgSeededRandom(bookId);
+
+    const primaryCount   = 5 + Math.floor(rand() * 3);   // 5 ~ 7
+    const secondaryCount = 3 + Math.floor(rand() * 4);   // 3 ~ 6
+
+    const nodes = [];
+    const edges = [];
+
+    // 中心：当前书籍（name 留空，等后端注入）
+    nodes.push({ id: '__book__', type: 'center', name: '', r: 26 });
+
+    // 一级邻居
+    const primaryIds = [];
+    for (let i = 0; i < primaryCount; i++) {
+        const id = 'p' + i;
+        primaryIds.push(id);
+        nodes.push({ id, type: 'primary', name: '', r: 13 });
+        edges.push({ source: '__book__', target: id, relation: '' });
+    }
+
+    // 二级邻居
+    for (let i = 0; i < secondaryCount; i++) {
+        const id = 's' + i;
+        nodes.push({ id, type: 'secondary', name: '', r: 8 });
+        const parent = primaryIds[Math.floor(rand() * primaryIds.length)];
+        edges.push({ source: parent, target: id, relation: '' });
+    }
+
+    // 一级之间的横向连接（网状感）
+    const crossCount = Math.floor(primaryCount / 2);
+    let added = 0, guard = 0;
+    while (added < crossCount && guard++ < 40) {
+        const a = primaryIds[Math.floor(rand() * primaryIds.length)];
+        const b = primaryIds[Math.floor(rand() * primaryIds.length)];
+        if (a !== b) {
+            edges.push({ source: a, target: b, relation: '', weak: true });
+            added++;
+        }
+    }
+
+    return { nodes, edges };
+}
+
+// ---------- 2. 数据层：真实接口（后端就绪后启用） ----------
+async function fetchBookGraph(bookId) {
+    // ★ 已接后端 /api/graph/book/{bookId}（返回该书的宏观章层小图）
+    try {
+        const res  = await fetch(`${BOOK_GRAPH_API}/${bookId}`);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const json = await res.json();
+        if (json.code !== 0) throw new Error(json.message || '后端错误');
+        const g = json.data || {};
+        // 后端契约字段为 label/type；补齐渲染所需 r
+        return {
+            nodes: (g.nodes || []).map(n => ({ ...n, r: 14 })),
+            edges: g.edges || [],
+        };
+    } catch (e) {
+        console.warn('[BookGraph] 接口失败，降级为示例数据', e);
+        return buildSampleBookGraph(bookId);
+    }
+}
+
+// ---------- 3. 渲染层 ----------
+let _bgZoomBehavior = null;      // ★ 新增：保存 zoom 行为
+let _bgLastSize = { w: 0, h: 0 }; // ★ 新增：用于 resize 时保持视图中心
+
+function _bgEnsureSvg() {
+    const svgEl = document.getElementById('bookGraphSvg');
+    if (!svgEl || typeof d3 === 'undefined') return false;
+
+    if (!_bgInited) {
+        _bgSvgSel = d3.select(svgEl);
+        _bgSvgSel.selectAll('*').remove();
+        _bgRoot = _bgSvgSel.append('g').attr('class', 'bg-root');
+        _bgRoot.append('g').attr('class', 'bg-links');
+        _bgRoot.append('g').attr('class', 'bg-nodes');
+
+        // ★ 新增：缩放行为
+        _bgZoomBehavior = d3.zoom()
+            .scaleExtent([0.4, 3])          // 缩放范围 40% ~ 300%
+            .on('zoom', (evt) => {
+                if (_bgRoot) _bgRoot.attr('transform', evt.transform);
+            })
+            // ★ 关键：拖节点时不触发缩放/平移
+            .filter((evt) => {
+                if (evt.type === 'dblclick') return false;
+                const t = evt.target;
+                return !(t && t.closest && t.closest('.bg-node'));
+            });
+
+        _bgSvgSel.call(_bgZoomBehavior)
+            // 双击空白：重置视图
+            .on('dblclick.zoom', null)
+            .on('dblclick.reset', () => {
+                const { w, h } = _bgLastSize;
+                _bgSvgSel.transition().duration(450).call(
+                    _bgZoomBehavior.transform,
+                    d3.zoomIdentity.translate(w / 2, h / 2).scale(1)
+                );
+            });
+
+        _bgInited = true;
+    }
+    _bgResize();
+    return true;
+}
+
+function _bgResize() {
+    if (!_bgSvgSel || !_bgZoomBehavior) return;
+
+    const box = _bgSvgSel.node().parentElement.getBoundingClientRect();
+    if (box.width < 2 || box.height < 2) return;
+
+    const prevW = _bgLastSize.w;
+    const prevH = _bgLastSize.h;
+    _bgLastSize = { w: box.width, h: box.height };
+
+    _bgSvgSel
+        .attr('viewBox', `0 0 ${box.width} ${box.height}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet');
+
+    const curT = d3.zoomTransform(_bgSvgSel.node());
+
+    if (prevW === 0 || prevH === 0) {
+        // 首次：把 (0,0) 平移到画布中心
+        _bgSvgSel.call(
+            _bgZoomBehavior.transform,
+            d3.zoomIdentity.translate(box.width / 2, box.height / 2).scale(1)
+        );
+    } else if (prevW !== box.width || prevH !== box.height) {
+        // 尺寸变化：保持 k 不变，仅补偿中心位移
+        const dx = (box.width  - prevW) / 2;
+        const dy = (box.height - prevH) / 2;
+        _bgSvgSel.call(_bgZoomBehavior.transform, curT.translate(dx, dy));
+    }
+}
+
+async function renderBookGraph(bookId) {
+    if (!_bgEnsureSvg()) return;
+
+       // ★ 新增：每打开一本书，把视图重置到中心 scale=1
+    if (_bgZoomBehavior && _bgSvgSel) {
+        const { w, h } = _bgLastSize;
+        _bgSvgSel.call(
+            _bgZoomBehavior.transform,
+            d3.zoomIdentity.translate(w / 2, h / 2).scale(1)
+        );
+    }
+
+
+    if (_bgSim) { _bgSim.stop(); _bgSim = null; }
+
+    const loadingEl = document.getElementById('bookGraphLoading');
+    if (loadingEl) loadingEl.classList.add('show');
+
+    const data = await fetchBookGraph(bookId);
+
+    if (loadingEl) loadingEl.classList.remove('show');
+    if (!data || !data.nodes) return;
+
+    // 复制一份，避免污染源数据
+    const nodes = data.nodes.map(n => ({ ...n }));
+    const links = data.edges.map(e => ({ ...e }));
+
+    _bgSim = d3.forceSimulation(nodes)
+        .force('link',    d3.forceLink(links).id(d => d.id)
+                            .distance(l => l.weak ? 90 : 70)
+                            .strength(l => l.weak ? 0.15 : 0.6))
+        .force('charge',  d3.forceManyBody().strength(-220))
+        .force('collide', d3.forceCollide(d => d.r + 10))
+        .force('center',  d3.forceCenter(0, 0));
+
+    // ---- 连线 ----
+    const linkSel = _bgRoot.select('.bg-links')
+        .selectAll('.bg-link')
+        .data(links, d => `${d.source.id || d.source}|${d.target.id || d.target}`);
+    linkSel.exit().remove();
+    const linkMerged = linkSel.enter().append('line')
+        .attr('class', 'bg-link')
+        .merge(linkSel)
+        .attr('class', d => 'bg-link' + (d.weak ? ' weak' : ''));
+
+    // ---- 节点 ----
+    const nodeSel = _bgRoot.select('.bg-nodes')
+        .selectAll('.bg-node')
+        .data(nodes, d => d.id);
+    nodeSel.exit().remove();
+
+    const nodeEnter = nodeSel.enter()
+        .append('g')
+        .attr('class', d => `bg-node ${d.type}`);
+
+    nodeEnter.append('circle').attr('r', d => d.r);
+    nodeEnter.append('text')
+        .attr('class', d => `bg-label ${d.type}`)
+        .attr('dy', d => d.r + 14)
+        .text(d => d.label || '');
+
+    const nodeMerged = nodeEnter.merge(nodeSel);
+    nodeMerged.select('circle').attr('r', d => d.r);
+    nodeMerged.select('text').text(d => d.label || '');
+
+    // ---- 拖拽节点 ----
+    nodeMerged.call(
+        d3.drag()
+            .on('start', (evt, d) => {
+                if (!evt.active) _bgSim.alphaTarget(0.3).restart();
+                d.fx = d.x; d.fy = d.y;
+            })
+            .on('drag', (evt, d) => { d.fx = evt.x; d.fy = evt.y; })
+            .on('end', (evt, d) => {
+                if (!evt.active) _bgSim.alphaTarget(0);
+                d.fx = null; d.fy = null;
+            })
+    );
+
+    // ---- tick ----
+    _bgSim.on('tick', () => {
+        linkMerged
+            .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+            .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+        nodeMerged.attr('transform', d => `translate(${d.x},${d.y})`);
+    });
+}
+
+function clearBookGraph() {
+    if (_bgSim) { _bgSim.stop(); _bgSim = null; }
+    // ★ 关键：把初始化状态也一并复位，
+    //   下次打开新书时 _bgEnsureSvg 会重新建 <g class="bg-links"> / <g class="bg-nodes">
+    if (_bgSvgSel) _bgSvgSel.selectAll('*').remove();
+
+    _bgRoot        = null;
+    _bgInited      = false;
+    _bgZoomBehavior = null;
+    _bgLastSize    = { w: 0, h: 0 };
+    
+}
+
+// 窗口缩放时重算 SVG 尺寸（仅当详情页打开时）
+window.addEventListener('resize', () => {
+    const mask = document.getElementById('bookDetailMask');
+    if (mask && mask.classList.contains('show')) _bgResize();
+});
 
 function closeBookDetail() {
     const mask = document.getElementById('bookDetailMask');
     if (!mask || !mask.classList.contains('show')) return;
     mask.classList.remove('show');
     document.body.style.overflow = '';
+    clearBookGraph();   // ★ 新增
 }
 
 // 书架初始化（独立于其他模块，防止被别处的 return 提前中断）
@@ -1258,6 +1539,575 @@ function closePaperDetail() {
 
             if (e.key === 'ArrowLeft') switchPaper(currentPaperIndex - 1, -1);
             if (e.key === 'ArrowRight') switchPaper(currentPaperIndex + 1, 1);
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', run);
+    } else {
+        run();
+    }
+})();
+// ---------- 时长工具 ----------
+function formatDuration(sec) {
+    if (!Number.isFinite(sec) || sec <= 0) return '';
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = Math.floor(sec % 60);
+    if (h > 0) {
+        return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+    return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+// 同一 src 只探测一次（同页面内缓存）
+const _durationCache = new Map();
+
+// 探测单个视频的真实时长（只加载元数据，不下载整个文件）
+function probeVideoDuration(v) {
+    if (!v || !v.src) return Promise.resolve(null);
+
+    // 命中缓存
+    if (_durationCache.has(v.src)) {
+        const cached = _durationCache.get(v.src);
+        if (cached) {
+            v.duration = cached;
+            updateDurationInDOM(v);
+        }
+        return Promise.resolve(cached);
+    }
+
+    return new Promise(resolve => {
+        const el = document.createElement('video');
+        el.preload = 'metadata';
+        el.muted = true;
+        el.src = v.src;
+
+        let finished = false;
+        const finish = (dur) => {
+            if (finished) return;
+            finished = true;
+
+            // 清理，避免内存占用
+            try {
+                el.removeAttribute('src');
+                el.load();
+            } catch (_) {}
+
+            if (dur) {
+                v.duration = dur;
+                _durationCache.set(v.src, dur);
+                updateDurationInDOM(v);
+            } else {
+                // 探测失败：保留 JSON 里的 duration（如果有）或留空
+                _durationCache.set(v.src, null);
+            }
+            resolve(dur);
+        };
+
+        el.addEventListener('loadedmetadata', () => {
+            finish(formatDuration(el.duration));
+        });
+        el.addEventListener('error', () => finish(null));
+
+        // 兜底超时（8 秒还没加载出元数据就放弃）
+        setTimeout(() => finish(null), 8000);
+    });
+}
+
+// 探测成功后同步刷新页面上的时长显示
+function updateDurationInDOM(v) {
+    // 网格封面角标
+    const badge = document.querySelector(
+        `.study-item[data-id="${v.id}"] .study-duration`
+    );
+    if (badge) badge.textContent = v.duration || '';
+
+    // 播放页标题下方的统计信息（如果里面有写时长）
+    const statsEl = document.getElementById('spStats');
+    if (statsEl && statsEl.dataset.videoId === String(v.id)) {
+        // 假设 spStats 里包含了时长，可以在这里重绘
+        // 目前的实现里 spStats 只有 views + date，不用改；预留
+    }
+}
+// ===============================
+// 21. 学习资料 · 视频清单加载（外置 JSON 版）
+// ===============================
+// 约定：
+//   清单 → data/videos.json
+//   视频 → assets/videos/01.mp4 ~ NN.mp4
+//   封面 → assets/videos/01-cover.jpg（可选，自动探测 .jpg/.png/.jpeg/.webp）
+//
+// 加新视频只需：
+//   ① 丢视频进 assets/videos/，命名为下一个编号
+//   ② 在 data/videos.json 的 videos 数组末尾追加一条
+// ===============================
+const VIDEO_MANIFEST_URL = 'data/videos.json';
+const LOCAL_VIDEO_DIR    = 'assets/videos/';
+const LOCAL_VIDEO_EXT    = '.mp4';
+const LOCAL_COVER_EXTS   = ['.jpg', '.png', '.jpeg', '.webp'];
+
+let VIDEO_DATA   = [];    // 由 loadVideoManifest 填充
+let CAROUSEL_IDS = [];    // 轮播推荐的视频 id
+
+// 清单加载失败时的兜底（假设目录里有 N 个视频，信息用占位）
+const FALLBACK_VIDEO_COUNT = 23;
+
+function buildFallbackData() {
+    return Array.from({ length: FALLBACK_VIDEO_COUNT }, (_, i) => {
+        const id = i + 1;
+        const no = String(id).padStart(2, '0');
+        return {
+            id,
+            title: `视频 ${no}`,
+            author: '待补充',
+            tags: [],
+            duration: '',
+            views: '',
+            date: '',
+            desc: '（该视频信息待补充，请检查 data/videos.json 是否可正常访问）',
+            src: `${LOCAL_VIDEO_DIR}${no}${LOCAL_VIDEO_EXT}`,
+            cover: '',
+            _no: no
+        };
+    });
+}
+
+async function loadVideoManifest() {
+    try {
+        const res = await fetch(VIDEO_MANIFEST_URL, { cache: 'no-cache' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const manifest = await res.json();
+
+        const list = Array.isArray(manifest) ? manifest : (manifest.videos || []);
+        if (!list.length) throw new Error('videos 数组为空');
+
+        VIDEO_DATA = list.map((raw, idx) => {
+            const id = Number.isFinite(raw.id) ? raw.id : (idx + 1);
+            const no = String(id).padStart(2, '0');
+            return {
+                id,
+                title:    raw.title    || `视频 ${no}`,
+                author:   raw.author   || '未署名',
+                tags:     Array.isArray(raw.tags) ? raw.tags : [],
+                duration: raw.duration || '',
+                views:    raw.views    || '',
+                date:     raw.date     || '',
+                desc:     raw.desc     || '',
+                src:      raw.src || `${LOCAL_VIDEO_DIR}${no}${LOCAL_VIDEO_EXT}`,
+                cover:    raw.cover || '',
+                _no:      no
+            };
+        });
+
+        if (Array.isArray(manifest.carousel) && manifest.carousel.length) {
+            CAROUSEL_IDS = manifest.carousel;
+        } else {
+            CAROUSEL_IDS = VIDEO_DATA.slice(0, 5).map(v => v.id);
+        }
+
+        VIDEO_DATA.forEach(probeCover);
+        console.log(`✅ 学习资料：已加载 ${VIDEO_DATA.length} 个视频`);
+        return true;
+
+    } catch (e) {
+        console.warn('[学习资料] 清单加载失败，使用兜底数据：', e.message);
+        VIDEO_DATA = buildFallbackData();
+        CAROUSEL_IDS = VIDEO_DATA.slice(0, 5).map(v => v.id);
+        VIDEO_DATA.forEach(probeCover);
+        return false;
+    }
+}
+
+// 探测本地封面
+function probeCover(v) {
+    if (v.cover) return;
+    tryCover(`${LOCAL_VIDEO_DIR}${v._no}-cover`, 0, v);
+}
+function tryCover(base, idx, v) {
+    if (idx >= LOCAL_COVER_EXTS.length) {
+        v.cover = `https://picsum.photos/seed/sufe-video-${v.id}/640/360`;
+        return;
+    }
+    const url = base + LOCAL_COVER_EXTS[idx];
+    const img = new Image();
+    img.onload = () => { v.cover = url; refreshVideoCover(v.id); };
+    img.onerror = () => tryCover(base, idx + 1, v);
+    img.src = url;
+}
+function refreshVideoCover(id) {
+    const v = VIDEO_DATA.find(x => x.id === id);
+    if (!v) return;
+    const gridImg = document.querySelector(`.study-item[data-id="${id}"] .study-item-cover img`);
+    if (gridImg) gridImg.src = v.cover;
+    const cIdx = CAROUSEL_IDS.indexOf(id);
+    if (cIdx >= 0) {
+        const slideImg = document.querySelector(`.carousel-slide:nth-child(${cIdx + 1}) img`);
+        if (slideImg) slideImg.src = v.cover;
+    }
+}
+
+// 依次探测 .jpg → .png → .jpeg → .webp
+function tryNextCover(base, idx, videoObj) {
+    if (idx >= LOCAL_COVER_EXTS.length) return;   // 全都不存在，保留 picsum 占位
+    const probe = new Image();
+    probe.onload = () => { videoObj.cover = base + LOCAL_COVER_EXTS[idx]; refreshVideoCover(videoObj.id); };
+    probe.onerror = () => tryNextCover(base, idx + 1, videoObj);
+    probe.src = base + LOCAL_COVER_EXTS[idx];
+}
+
+// 封面异步更新后，同步刷新已渲染的 DOM
+function refreshVideoCover(id) {
+    const v = VIDEO_DATA.find(x => x.id === id);
+    if (!v) return;
+
+    // 网格里的封面
+    const gridImg = document.querySelector(`.study-item[data-id="${id}"] .study-item-cover img`);
+    if (gridImg) gridImg.src = v.cover;
+
+    // 轮播里的封面
+    carouselItems.forEach((item, i) => {
+        if (item.id === id) {
+            const slideImg = document.querySelector(`.carousel-slide:nth-child(${i + 1}) img`);
+            if (slideImg) slideImg.src = v.cover;
+        }
+    });
+}
+
+// ===============================
+// 22. 学习资料 · 状态
+// ===============================
+let studyActiveTags = new Set();
+let studySortAsc = true;
+
+// ===============================
+// 23. 学习资料 · 筛选与排序
+// ===============================
+function getFilteredVideos() {
+    let list = VIDEO_DATA.slice();
+    if (studyActiveTags.size > 0) {
+        list = list.filter(v => v.tags.some(t => studyActiveTags.has(t)));
+    }
+    list.sort((a, b) => studySortAsc ? a.id - b.id : b.id - a.id);
+    return list;
+}
+
+// ===============================
+// 24. 学习资料 · 渲染视频网格
+// ===============================
+function renderStudyVideos() {
+    const grid = document.getElementById('studyGrid');
+    const emptyEl = document.getElementById('studyEmpty');
+    if (!grid) return;
+
+    // 清除旧视频项（保留轮播）
+    grid.querySelectorAll('.study-item').forEach(el => el.remove());
+
+    const list = getFilteredVideos();
+
+    if (list.length === 0) {
+        if (emptyEl) emptyEl.style.display = 'block';
+        return;
+    }
+    if (emptyEl) emptyEl.style.display = 'none';
+
+    const frag = document.createDocumentFragment();
+    list.forEach(v => {
+        const el = document.createElement('div');
+        el.className = 'study-item';
+        el.dataset.id = v.id;
+        el.innerHTML = `
+            <div class="study-item-cover">
+                <img src="${v.cover}" alt="${v.title}" loading="lazy" draggable="false">
+                ${v.duration ? `<span class="study-duration">${v.duration}</span>` : ''}
+            </div>
+            <div class="study-item-title">${v.title}</div>
+            <div class="study-item-author">${v.author}</div>
+        `;
+        el.addEventListener('click', () => openStudyPlayer(v));
+        frag.appendChild(el);
+    });
+    grid.appendChild(frag);
+}
+
+// ===============================
+// 25. 学习资料 · 自翻页轮播
+// ===============================
+let carouselTimer = null;
+let carouselIdx = 0;
+let carouselItems = [];
+
+function initStudyCarousel() {
+    const carousel = document.getElementById('studyCarousel');
+    const track = document.getElementById('carouselTrack');
+    const dotsEl = document.getElementById('carouselDots');
+    const titleEl = document.getElementById('carouselTitle');
+    const subEl = document.getElementById('carouselSub');
+    if (!carousel || !track) return;
+
+    carouselItems = CAROUSEL_IDS
+        .map(id => VIDEO_DATA.find(v => v.id === id))
+        .filter(Boolean);
+    if (!carouselItems.length) carouselItems = VIDEO_DATA.slice(0, 5);
+    if (!carouselItems.length) return;
+
+    track.innerHTML = carouselItems.map(v => `
+        <div class="carousel-slide">
+            <img src="${v.cover}" alt="${v.title}" draggable="false">
+        </div>
+    `).join('');
+
+    dotsEl.innerHTML = carouselItems.map((_, i) =>
+        `<button class="carousel-dot${i === 0 ? ' active' : ''}" data-index="${i}" aria-label="第 ${i + 1} 张"></button>`
+    ).join('');
+
+    function goTo(i) {
+        carouselIdx = ((i % carouselItems.length) + carouselItems.length) % carouselItems.length;
+        track.style.transform = `translateX(-${carouselIdx * 100}%)`;
+        titleEl.textContent = carouselItems[carouselIdx].title;
+        subEl.textContent = carouselItems[carouselIdx].author;
+        dotsEl.querySelectorAll('.carousel-dot').forEach((d, di) =>
+            d.classList.toggle('active', di === carouselIdx));
+    }
+
+    function startAuto() {
+        clearInterval(carouselTimer);
+        carouselTimer = setInterval(() => goTo(carouselIdx + 1), 4000);
+    }
+    function stopAuto() { clearInterval(carouselTimer); }
+
+    // 圆点点击
+    dotsEl.addEventListener('click', (e) => {
+        const dot = e.target.closest('.carousel-dot');
+        if (!dot) return;
+        e.stopPropagation();
+        goTo(Number(dot.dataset.index));
+        startAuto();
+    });
+
+    // 悬停暂停
+    carousel.addEventListener('mouseenter', stopAuto);
+    carousel.addEventListener('mouseleave', startAuto);
+
+    // 点击轮播 → 打开当前视频
+    carousel.addEventListener('click', () => openStudyPlayer(carouselItems[carouselIdx]));
+
+    goTo(0);
+    startAuto();
+}
+
+// ===============================
+// 26. 学习资料 · 播放页
+// ===============================
+function openStudyPlayer(video) {
+    const mask = document.getElementById('studyPlayerMask');
+    const videoEl = document.getElementById('studyPlayerVideo');
+    const placeholder = document.getElementById('spPlaceholder');
+    if (!mask || !videoEl) return;
+
+    document.getElementById('spHeadTitle').textContent = video.title;
+    document.getElementById('spTitle').textContent = video.title;
+    document.getElementById('spAuthor').textContent = video.author;
+    document.getElementById('spStats').textContent = `${video.views} 次播放 · ${video.date}`;
+    document.getElementById('spTags').innerHTML = video.tags.map(t => `<span>${t}</span>`).join('');
+    document.getElementById('spDesc').textContent = video.desc;
+
+    // 重置倍速
+    videoEl.playbackRate = 1;
+    document.querySelectorAll('#spSpeed .speed-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.speed === '1');
+    });
+
+        // 清理旧的事件监听（防止多次打开时叠加）
+    videoEl.onerror = null;
+    videoEl.onloadeddata = null;
+
+    if (video.src) {
+        videoEl.style.display = '';
+        placeholder.style.display = 'none';
+        videoEl.poster = video.cover;
+        videoEl.src = video.src;
+
+        // ★ 加载失败（404 / 格式不支持）→ 显示占位提示
+        videoEl.onerror = () => {
+            videoEl.style.display = 'none';
+            placeholder.style.display = 'flex';
+            // 顺手把占位文案改成更有信息的
+            const tipEl = placeholder.querySelector('span');
+            if (tipEl) tipEl.textContent = '视频尚未上传 · 请联系管理员';
+        };
+
+        // ★ 加载成功 → 确保占位隐藏
+        videoEl.onloadeddata = () => {
+            videoEl.style.display = '';
+            placeholder.style.display = 'none';
+        };
+    } else {
+        videoEl.style.display = 'none';
+        placeholder.style.display = 'flex';
+        videoEl.removeAttribute('src');
+        videoEl.load();
+        const tipEl = placeholder.querySelector('span');
+        if (tipEl) tipEl.textContent = '视频内容待补充';
+    }
+
+    // 滚动区回到顶部
+    const info = mask.querySelector('.study-player-info');
+    if (info) info.scrollTop = 0;
+
+    mask.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeStudyPlayer() {
+    const mask = document.getElementById('studyPlayerMask');
+    const videoEl = document.getElementById('studyPlayerVideo');
+    if (!mask || !mask.classList.contains('show')) return;
+
+    if (videoEl) {
+        try { videoEl.pause(); } catch (_) {}
+        videoEl.currentTime = 0;
+    }
+    mask.classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+// ===============================
+// 27. 学习资料 · 模块初始化（异步加载清单版）
+// ===============================
+(function initStudyModule() {
+
+    // ---------- 事件绑定（和数据无关，先绑上） ----------
+    function bindStudyEvents() {
+
+        // ① 标签筛选（可叠加多选）
+        const tagsWrap = document.getElementById('studyTags');
+        if (tagsWrap) {
+            tagsWrap.addEventListener('click', (e) => {
+                const btn = e.target.closest('.study-tag');
+                if (!btn) return;
+                const tag = btn.dataset.tag;
+                if (studyActiveTags.has(tag)) {
+                    studyActiveTags.delete(tag);
+                    btn.classList.remove('active');
+                } else {
+                    studyActiveTags.add(tag);
+                    btn.classList.add('active');
+                }
+                renderStudyVideos();
+            });
+        }
+
+        // ② 清空所有标签
+        const resetBtn = document.getElementById('studyReset');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                studyActiveTags.clear();
+                if (tagsWrap) {
+                    tagsWrap.querySelectorAll('.study-tag')
+                        .forEach(b => b.classList.remove('active'));
+                }
+                renderStudyVideos();
+            });
+        }
+
+        // ③ 正序 / 倒序切换
+        document.querySelectorAll('.study-sort-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.study-sort-btn')
+                    .forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                studySortAsc = btn.dataset.order === 'asc';
+                renderStudyVideos();
+            });
+        });
+
+        // ④ 播放页倍速按钮
+        const speedWrap = document.getElementById('spSpeed');
+        if (speedWrap) {
+            speedWrap.addEventListener('click', (e) => {
+                const btn = e.target.closest('.speed-btn');
+                if (!btn) return;
+                const videoEl = document.getElementById('studyPlayerVideo');
+                const speed = parseFloat(btn.dataset.speed);
+                if (videoEl) videoEl.playbackRate = speed;
+                speedWrap.querySelectorAll('.speed-btn')
+                    .forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        }
+
+        // ⑤ 关闭播放页（按钮 / 点遮罩 / Esc）
+        const closeBtn = document.getElementById('studyPlayerClose');
+        const mask = document.getElementById('studyPlayerMask');
+        if (closeBtn) closeBtn.addEventListener('click', closeStudyPlayer);
+        if (mask) {
+            mask.addEventListener('click', (e) => {
+                if (e.target === mask) closeStudyPlayer();
+            });
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeStudyPlayer();
+        });
+    }
+
+    // ---------- 主流程（异步） ----------
+    async function run() {
+        const grid = document.getElementById('studyGrid');
+        if (!grid) return;
+
+        // 1) 绑事件
+        bindStudyEvents();
+
+        // 2) 加载清单
+        await loadVideoManifest();
+
+        // 3) 先渲染（此时时长可能是 JSON 里的旧值或空）
+        initStudyCarousel();
+        renderStudyVideos();
+
+        // 4) ★ 异步探测所有视频的真实时长，逐个刷新角标
+        //    不 await，让页面先显示出来；时长探测完会自动更新
+        probeAllDurations();
+    }
+
+    // 探测全部视频时长（串行 + 小间隔，避免瞬间打出太多请求）
+    async function probeAllDurations() {
+        for (const v of VIDEO_DATA) {
+            await probeVideoDuration(v);
+            // 每个之间留 30ms，减少并发压力，也让 UI 更新更顺滑
+            await new Promise(r => setTimeout(r, 30));
+        }
+    }
+    // ★ 缺失了这一段 ★
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', run);
+    } else {
+        run();
+    }
+})();
+// ===============================
+// 28. 回到顶部按钮
+// ===============================
+(function initBackTop() {
+    function run() {
+        const btn = document.getElementById('backTop');
+        if (!btn) return;
+
+        // 滚动超过 400px 才显示
+        function onScroll() {
+            if (window.scrollY > 400) {
+                btn.classList.add('show');
+            } else {
+                btn.classList.remove('show');
+            }
+        }
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();   // 初始状态
+
+        btn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     }
 

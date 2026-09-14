@@ -103,6 +103,15 @@ class FakeGraphService:
             edges=matched_edges,
         )
 
+    async def get_layer(self, graph_id: str, layer: str) -> GraphData:
+        nodes = [n for n in self.nodes.values() if n.layer == layer]
+        ids = {n.id for n in nodes}
+        edges = [
+            e for e in self.edges
+            if e.layer == layer and e.source in ids and e.target in ids
+        ]
+        return GraphData(nodes=nodes, edges=edges)
+
 
 class FakeQaAgent:
     """可配置的假智能问答（preload + answer）"""

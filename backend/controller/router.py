@@ -9,11 +9,24 @@
     app = FastAPI()
     app.include_router(create_router(service, qa_agent))
 """
+import logging
+
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
 from .orchestrator import Orchestrator
-from .schemas import UnifiedResponse
+from .schemas import GraphData, UnifiedResponse
+
+logger = logging.getLogger(__name__)
+
+# 书架书号 -> graph_id（与前端 BOOKS 数组第 1~4 本对应；
+# 书号 5（金融理论视频课程）及 6~35 暂未建图谱，返回空图由前端显示"待接入"占位）
+BOOK_GRAPH_MAP: dict[int, str] = {
+    1: "invest",
+    2: "corp_fin",
+    3: "intl_inv",
+    4: "ma",
+}
 
 
 class LoadRequest(BaseModel):
@@ -52,6 +65,20 @@ def create_router(service, qa_agent=None, **orchestrator_kwargs) -> APIRouter:
     async def query(req: QueryRequest):
         """场景2/3：文本查询（自然语言走 Agent 慢通道，关键词走快通道，超时自动降级）"""
         return await orchestrator.handle_query(req.text, req.session_id, req.graph_id)
+
+    @router.get("/book/{book_id}", response_model=UnifiedResponse)
+    async def book_graph(book_id: int):
+        """书籍详情小图：返回该书的宏观章层节点 + 章间相关边。
+        未建图谱的书号返回空图（code 仍为 0，前端据此显示占位而非示例图）。"""
+        graph_id = BOOK_GRAPH_MAP.get(book_id)
+        if graph_id is None:
+            return UnifiedResponse(message="该书籍暂无图谱", data=GraphData())
+        try:
+            graph = await service.get_layer(graph_id, "macro")
+        except Exception:
+            logger.exception("书详情小图获取失败: book_id=%s", book_id)
+            return UnifiedResponse(message="图谱数据暂不可用", data=GraphData())
+        return UnifiedResponse(data=graph)
 
     @router.get("/session/{session_id}")
     async def session_info(session_id: str):

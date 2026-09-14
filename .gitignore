@@ -22,3 +22,6 @@ backend/dataset_files/
 
 # 数据层原始交付文件（大书 JSON 约 2GB + 视频，不进版本库；分层产物在 data/layered/）
 知识图谱和书和视频/
+
+# 前端视频文件（约 2GB+，本地静态托管；清单 data/videos.json 进库）
+前端/SUFE-Knowledge-Galaxy/assets/videos/*.mp4

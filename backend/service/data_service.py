@@ -96,6 +96,17 @@ class DataService:
             graph_id=graph.graph_id, title=graph.title, nodes=nodes, edges=matched_edges
         )
 
+    async def get_layer(self, graph_id: str, layer: str) -> GraphData:
+        """按分层取子集：该层节点 + 该层派生边（供书籍详情小图等轻量场景）"""
+        graph = self._require(graph_id)
+        nodes = [n for n in graph.nodes if n.layer == layer]
+        node_ids = {n.id for n in nodes}
+        edges = [
+            e for e in graph.edges
+            if e.layer == layer and e.source in node_ids and e.target in node_ids
+        ]
+        return GraphData(graph_id=graph.graph_id, title=graph.title, nodes=nodes, edges=edges)
+
     # ---------- 内部 ----------
 
     def _require(self, graph_id: str | None) -> GraphData:

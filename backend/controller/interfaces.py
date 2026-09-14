@@ -32,6 +32,11 @@ class GraphService(Protocol):
         """关键词模糊搜索（降级兜底通道）"""
         ...
 
+    async def get_layer(self, graph_id: str, layer: str) -> GraphData:
+        """按分层取子集（《数据层分层设计.md》）：返回该层节点 + 该层派生边。
+        供书籍详情小图等轻量场景使用。"""
+        ...
+
 
 class QaAgent(Protocol):
     """智能问答 Agent（对应 agent/qa_agent.py，检索 + 回答都在内部完成）

@@ -1,0 +1,506 @@
+{
+  "carousel": [
+    1,
+    3,
+    7,
+    11,
+    14
+  ],
+  "videos": [
+    {
+      "title": "第1讲 Ses 1_ Introduction and Course Overview",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 1 讲：Ses 1_ Introduction and Course Overview"
+    },
+    {
+      "title": "第2讲 Ses 2_ Present Value Relations I",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 2 讲：Ses 2_ Present Value Relations I"
+    },
+    {
+      "title": "第3讲 Ses 3_ Present Value Relations II",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 3 讲：Ses 3_ Present Value Relations II"
+    },
+    {
+      "title": "第4讲 Ses 4_ Present Value Relations III",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 4 讲：Ses 4_ Present Value Relations III"
+    },
+    {
+      "title": "第5讲 Ses 5_ Fixed-Income Securities II",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 5 讲：Ses 5_ Fixed-Income Securities II"
+    },
+    {
+      "title": "第6讲 Ses 6_ Fixed-Income Securities III",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 6 讲：Ses 6_ Fixed-Income Securities III"
+    },
+    {
+      "title": "第7讲 Ses 7_ Fixed-Income Securities IV",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 7 讲：Ses 7_ Fixed-Income Securities IV"
+    },
+    {
+      "title": "第8讲 Ses 8_ Equities",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 8 讲：Ses 8_ Equities"
+    },
+    {
+      "title": "第9讲 Ses 9_ Forward and Futures Contracts I",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 9 讲：Ses 9_ Forward and Futures Contracts I"
+    },
+    {
+      "title": "第10讲 Ses 10_ Forward and Futures Contracts II",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 10 讲：Ses 10_ Forward and Futures Contracts II"
+    },
+    {
+      "title": "第11讲 Ses 11_ Options II",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 11 讲：Ses 11_ Options II"
+    },
+    {
+      "title": "第12讲 Ses 12_ Options III",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 12 讲：Ses 12_ Options III"
+    },
+    {
+      "title": "第13讲 Ses 13_ Risk and Return II",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 13 讲：Ses 13_ Risk and Return II"
+    },
+    {
+      "title": "第14讲 Ses 14_ Portfolio Theory II",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 14 讲：Ses 14_ Portfolio Theory II"
+    },
+    {
+      "title": "第15讲 Ses 15_ Portfolio Theory III",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 15 讲：Ses 15_ Portfolio Theory III"
+    },
+    {
+      "title": "第16讲 Ses 16_ The CAPM and APT II",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 16 讲：Ses 16_ The CAPM and APT II"
+    },
+    {
+      "title": "第17讲 Ses 17_ The CAPM and APT III",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 17 讲：Ses 17_ The CAPM and APT III"
+    },
+    {
+      "title": "第18讲 Ses 18_ Capital Budgeting II",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 18 讲：Ses 18_ Capital Budgeting II"
+    },
+    {
+      "title": "第19讲 Ses 19_ Efficient Markets II",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 19 讲：Ses 19_ Efficient Markets II"
+    },
+    {
+      "title": "第20讲 Ses 20_ Efficient Markets III",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 20 讲：Ses 20_ Efficient Markets III"
+    },
+    {
+      "title": "第21讲 MIT Sloan Online Andrew Lo",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 21 讲：MIT Sloan Online Andrew Lo"
+    },
+    {
+      "title": "第22讲 Andrew Lo - Financial Innovation",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 22 讲：Andrew Lo - Financial Innovation"
+    },
+    {
+      "title": "第23讲 C C Mei Distinguished Speaker Series Fall 2018 Prof An",
+      "author": "安德鲁·罗（Andrew Lo）",
+      "tags": [
+        "课程",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "MIT 金融理论课程第 23 讲：C C Mei Distinguished Speaker Series Fall 2018 Prof An"
+    },
+    {
+      "title": "第1课 金融市场简",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 1 课：金融市场简"
+    },
+    {
+      "title": "第2课 在险价值、",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 2 课：在险价值、"
+    },
+    {
+      "title": "第3课 金融市场之",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 3 课：金融市场之"
+    },
+    {
+      "title": "第4课 资产定价模",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 4 课：资产定价模"
+    },
+    {
+      "title": "第5课 金融创新、",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 5 课：金融创新、"
+    },
+    {
+      "title": "第6课 有效市场只",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 6 课：有效市场只"
+    },
+    {
+      "title": "第7课 行为金融学",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 7 课：行为金融学"
+    },
+    {
+      "title": "第9课 优先股、普",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 9 课：优先股、普"
+    },
+    {
+      "title": "第10课 金融市",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 10 课：金融市"
+    },
+    {
+      "title": "第11课 金融市",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 11 课：金融市"
+    },
+    {
+      "title": "第12课 金融市",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 12 课：金融市"
+    },
+    {
+      "title": "第13课 金融市",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 13 课：金融市"
+    },
+    {
+      "title": "第14课 金融市",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 14 课：金融市"
+    },
+    {
+      "title": "第15课 金融市",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 15 课：金融市"
+    },
+    {
+      "title": "第16课 金融市",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 16 课：金融市"
+    },
+    {
+      "title": "第17课 非营利",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 17 课：非营利"
+    },
+    {
+      "title": "第18课 金融与",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 18 课：金融与"
+    },
+    {
+      "title": "第19课 采访罗杰-弗格森",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 19 课：采访罗杰-弗格森"
+    },
+    {
+      "title": "第20课 采访张磊 - B",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 20 课：采访张磊 - B"
+    },
+    {
+      "title": "第21课 访客 乔治亚-基",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 21 课：访客 乔治亚-基"
+    },
+    {
+      "title": "第22课 舒立时间：席勒和",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 22 课：舒立时间：席勒和"
+    },
+    {
+      "title": "第23课 席勒回答中国粉丝",
+      "author": "罗伯特·希勒（Robert J. Shiller）",
+      "tags": [
+        "演讲",
+        "外语"
+      ],
+      "views": "",
+      "date": "",
+      "desc": "耶鲁大学公开课《金融市场》第 23 课：席勒回答中国粉丝"
+    }
+  ]
+}

@@ -123,11 +123,20 @@
     }
 
     // ---------- 数据 ----------
-    const ringOf = n => RING_RADIUS[n.category] ?? RING_RADIUS.__default__;
+    // ★ 后端契约字段为 type（concept/chapter/section/formula），原前端读 category（课程/概念）。
+    //   统一改为按 type 映射：章/节视为"课程"核心节点（宏观层突出），概念为概念节点。
+    function categoryOf(node) {
+        if (node.category) return node.category;
+        if (node.type === 'chapter' || node.type === 'section') return '课程';
+        if (node.type === 'concept') return '概念';
+        return '';
+    }
+    const ringOf = n => RING_RADIUS[categoryOf(n)] ?? RING_RADIUS.__default__;
 
     function classOf(node) {
-        if (node.category === '课程') return 'course';
-        if (node.category === '概念') return 'concept';
+        const c = categoryOf(node);
+        if (c === '课程') return 'course';
+        if (c === '概念') return 'concept';
         return 'other';
     }
 
@@ -151,7 +160,7 @@
         return null;
     }
     function fallbackYear(node) {
-        const s = String(node.id) + String(node.name || '');
+        const s = String(node.id) + String(node.label || '');
         let h = 0;
         for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
         return 2010 + (h % 15);   // 2010 – 2024
@@ -281,7 +290,7 @@
                 if (lvl !== 'macro' && r > 200) cls += ' hidden';
                 return cls;
             })
-            .text(d => lvl === 'macro' ? shortName(d.name) : d.name)
+            .text(d => lvl === 'macro' ? shortName(d.label) : d.label)
             .attr('dy', d => radiusOf(d) + 16);
 
         // ---- 连线 ----
@@ -587,7 +596,7 @@ render();
         const text = (d.media && d.media.text) || '';
         if (!text) { hideTooltip(); return; }
         tooltipEl.innerHTML =
-            `<div class="tt-title">${d.name}</div>` +
+            `<div class="tt-title">${d.label}</div>` +
             `<div class="tt-body">${text}</div>`;
         tooltipEl.classList.add('show');
         moveTooltip(evt);
@@ -764,7 +773,7 @@ render();
         if (!nodePopupEl) return;
         const text = (node.media && node.media.text) || '（暂无说明）';
         nodePopupEl.innerHTML =
-            `<div class="popup-title">${node.name}</div>` +
+            `<div class="popup-title">${node.label}</div>` +
             `<div class="popup-body">${text}</div>`;
         nodePopupEl.classList.add('show');
     }

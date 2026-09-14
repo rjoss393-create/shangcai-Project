@@ -1010,6 +1010,134 @@ footer{
     .detail-cover-box { width: 150px; margin: 0 auto; }
 }
 /* =====================
+   书籍详情 · 知识图谱（轻量版）
+===================== */
+.book-graph {
+    position: relative;
+    height: 340px;
+    border-radius: 20px;
+    background:
+        radial-gradient(circle at 18% 28%, rgba(129, 28, 33, .05), transparent 55%),
+        radial-gradient(circle at 82% 72%, rgba(129, 28, 33, .05), transparent 55%),
+        #fff;
+    border: 1px solid rgba(129, 28, 33, .12);
+    overflow: hidden;
+    cursor: grab;
+}
+.book-graph.grabbing { cursor: grabbing; }
+
+.book-graph svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* --- 节点 --- */
+.bg-node circle {
+    transition: r .3s ease, stroke-width .3s ease;
+    cursor: pointer;
+}
+.bg-node.center circle {
+    fill: var(--main-red);
+    stroke: #fff;
+    stroke-width: 3;
+    filter: drop-shadow(0 2px 10px rgba(129, 28, 33, .35));
+}
+.bg-node.primary circle {
+    fill: #fff;
+    stroke: var(--main-red);
+    stroke-width: 2;
+}
+.bg-node.secondary circle {
+    fill: #e8e6df;
+    stroke: #b8b3a8;
+    stroke-width: 1.5;
+}
+/* 真实数据按 type 上色（后端契约字段 type：chapter/section/concept/formula） */
+.bg-node.chapter circle {
+    fill: var(--main-red);
+    stroke: #fff;
+    stroke-width: 2;
+}
+.bg-node.section circle {
+    fill: #fff;
+    stroke: var(--main-red);
+    stroke-width: 2;
+}
+.bg-node.concept circle,
+.bg-node.formula circle {
+    fill: #e8e6df;
+    stroke: #b8b3a8;
+    stroke-width: 1.5;
+}
+.bg-node:hover circle {
+    stroke-width: 3.5;
+    filter: drop-shadow(0 3px 12px rgba(129, 28, 33, .38));
+}
+
+/* --- 连线 --- */
+.bg-link {
+    stroke: rgba(129, 28, 33, .28);
+    stroke-width: 1.2;
+    fill: none;
+    transition: stroke .3s;
+}
+.bg-link.weak {
+    stroke: rgba(129, 28, 33, .13);
+    stroke-dasharray: 4 5;
+}
+
+/* --- 节点标签（暂空，等后端注入） --- */
+.bg-label {
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 11px;
+    fill: #4a4a4a;
+    text-anchor: middle;
+    pointer-events: none;
+    user-select: none;
+}
+.bg-label.center {
+    font-size: 13px;
+    font-weight: bold;
+    fill: #fff;
+}
+
+/* --- 底部提示 --- */
+.book-graph-hint {
+    position: absolute;
+    left: 50%;
+    bottom: 10px;
+    transform: translateX(-50%);
+    font-size: 11.5px;
+    letter-spacing: 1px;
+    color: rgba(129, 28, 33, .38);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+/* --- 加载遮罩 --- */
+.book-graph-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(241, 240, 233, .75);
+    color: var(--main-red);
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s;
+}
+.book-graph-loading.show { opacity: 1; }
+
+@media (max-width: 620px) {
+    .book-graph { height: 260px; }
+}
+/* =====================
    科研论文板块
 ===================== */
 .paper-intro {
@@ -2624,4 +2752,696 @@ body.immersive .galaxy-immersive-exit{
     }
     .inline-ask-icon { display: none; }
     .inline-ask-tip  { margin-left: 4px; }
+}
+/* =====================
+   学习资料 · 视频板块
+===================== */
+.study-intro {
+    margin: 18px 10% 0 10%;
+    font-size: 15px;
+    line-height: 1.8;
+    color: #8a8a8a;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+/* ---------- 筛选栏 ---------- */
+.study-filter-bar {
+    margin: 26px 10% 0 10%;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px 24px;
+    padding: 14px 26px;
+    background: var(--paper);
+    border-radius: 30px;
+}
+
+.study-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    flex: 1;
+}
+
+.study-tag {
+    border: 1px solid rgba(129, 28, 33, .22);
+    background: rgba(129, 28, 33, .06);
+    color: var(--main-red);
+    padding: 7px 22px;
+    border-radius: 22px;
+    cursor: pointer;
+    font-size: 14.5px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    letter-spacing: .5px;
+    transition: background .25s, color .25s, border-color .25s, transform .25s, box-shadow .25s;
+}
+
+.study-tag:hover {
+    background: rgba(129, 28, 33, .14);
+    transform: translateY(-1px);
+}
+
+/* 点击后颜色变深 */
+.study-tag.active {
+    background: var(--main-red);
+    color: #fff;
+    border-color: var(--main-red);
+    box-shadow: 0 4px 14px rgba(129, 28, 33, .28);
+}
+
+.study-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.study-reset {
+    border: none;
+    background: transparent;
+    color: #b1aca6;
+    font-size: 13px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    letter-spacing: 1px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 14px;
+    transition: .25s;
+}
+.study-reset:hover {
+    color: var(--main-red);
+    background: rgba(129, 28, 33, .07);
+}
+
+.study-sort {
+    display: flex;
+    gap: 6px;
+    padding: 3px;
+    border-radius: 22px;
+    background: rgba(129, 28, 33, .06);
+}
+
+.study-sort-btn {
+    border: none;
+    background: transparent;
+    color: var(--main-red);
+    padding: 6px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13.5px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    letter-spacing: .5px;
+    transition: .25s;
+}
+
+.study-sort-btn.active {
+    background: var(--main-red);
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(129, 28, 33, .25);
+}
+
+/* ---------- 视频网格 ---------- */
+.study-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 26px 16px;
+    margin: 26px 10% 70px 10%;
+    align-items: start;
+}
+
+/* ---------- 自翻页推荐 ---------- */
+.study-carousel {
+    grid-column: span 2;
+    display: flex;
+    flex-direction: column;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--paper);
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .06);
+    transition: transform .3s, box-shadow .3s;
+    aspect-ratio: 2.45 / 1;
+}
+
+.study-carousel:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 34px rgba(129, 28, 33, .16);
+}
+
+.carousel-window {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+    background: #1a1a1a;
+}
+
+.carousel-track {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    transition: transform .9s cubic-bezier(.4, 0, .2, 1);
+    will-change: transform;
+}
+
+.carousel-slide {
+    flex: 0 0 100%;
+    height: 100%;
+    position: relative;
+}
+
+.carousel-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.carousel-dots {
+    position: absolute;
+    left: 50%;
+    bottom: 10px;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 2;
+}
+
+.carousel-dot {
+    width: 6px;
+    height: 6px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .5);
+    cursor: pointer;
+    transition: .3s;
+}
+.carousel-dot.active {
+    width: 18px;
+    border-radius: 3px;
+    background: #fff;
+}
+
+.carousel-caption {
+    flex-shrink: 0;
+    padding: 10px 16px 12px 16px;
+    background: var(--paper);
+}
+
+.carousel-title {
+    font-size: 14.5px;
+    color: var(--main-red);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.4;
+    letter-spacing: .3px;
+}
+
+.carousel-sub {
+    margin-top: 3px;
+    font-size: 12px;
+    color: #a3a09a;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ---------- 视频项目 ---------- */
+.study-item {
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: transform .3s;
+    min-width: 0;
+}
+
+.study-item:hover {
+    transform: translateY(-2px);
+}
+
+.study-item-cover {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: 14px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #e8e6df, #d8d5cc);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .06);
+    transition: box-shadow .35s;
+}
+
+.study-item:hover .study-item-cover {
+    box-shadow: 0 12px 28px rgba(129, 28, 33, .20);
+}
+
+.study-item-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform .45s cubic-bezier(.2, .8, .3, 1);
+}
+
+.study-item:hover .study-item-cover img {
+    transform: scale(1.06);
+}
+
+.study-duration {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, .68);
+    color: #fff;
+    font-size: 11px;
+    font-family: "Times New Roman", serif;
+    letter-spacing: .5px;
+}
+
+.study-item-title {
+    margin-top: 10px;
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: #333;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: calc(1.5em * 2);
+    transition: color .25s;
+}
+
+.study-item:hover .study-item-title {
+    color: var(--main-red);
+}
+
+.study-item-author {
+    margin-top: 5px;
+    font-size: 12.5px;
+    color: #9a9a9a;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.study-item-author::before {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(129, 28, 33, .28), rgba(129, 28, 33, .12));
+    flex-shrink: 0;
+}
+
+.study-empty {
+    margin: 40px 10% 80px 10%;
+    text-align: center;
+    color: #b1aca6;
+    font-size: 15px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    letter-spacing: 1px;
+}
+
+/* =====================
+   学习资料 · 播放页
+===================== */
+.study-player-mask {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: #14100f;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .35s ease, visibility .35s;
+}
+
+.study-player-mask.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.study-player {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transform: scale(.97);
+    transition: transform .35s cubic-bezier(.2, .8, .3, 1);
+}
+
+.study-player-mask.show .study-player {
+    transform: scale(1);
+}
+
+.study-player-head {
+    flex-shrink: 0;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    padding: 0 26px;
+    gap: 20px;
+    color: #fff;
+    background: rgba(0, 0, 0, .45);
+    border-bottom: 1px solid rgba(255, 255, 255, .06);
+}
+
+.study-player-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    background: rgba(255, 255, 255, .08);
+    color: #fff;
+    padding: 8px 16px 8px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 14px;
+    letter-spacing: 1px;
+    transition: .25s;
+}
+
+.study-player-back:hover {
+    background: rgba(255, 255, 255, .18);
+}
+
+.study-player-head-title {
+    flex: 1;
+    min-width: 0;
+    color: rgba(255, 255, 255, .78);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 14px;
+    letter-spacing: .5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.study-player-stage {
+    flex-shrink: 0;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 58vh;
+    min-height: 280px;
+    position: relative;
+}
+
+.study-player-stage video {
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+    background: #000;
+    outline: none;
+}
+
+.study-player-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    color: rgba(255, 255, 255, .35);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 14px;
+    letter-spacing: 2px;
+}
+
+.study-player-info {
+    flex: 1;
+    overflow-y: auto;
+    background: #1a1615;
+    color: #e8e6e3;
+    padding: 32px 0 60px 0;
+    scroll-behavior: smooth;
+}
+
+.study-player-info::-webkit-scrollbar { width: 8px; }
+.study-player-info::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, .14);
+    border-radius: 4px;
+}
+.study-player-info::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, .28);
+}
+
+.study-player-info-inner {
+    max-width: min(1180px, 88%);
+    margin: 0 auto;
+}
+
+.sp-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: normal;
+    line-height: 1.45;
+    color: #fff;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    letter-spacing: .5px;
+}
+
+.sp-meta {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 26px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, .68);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+.sp-author {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #e8b4b8;
+    font-weight: bold;
+}
+
+.sp-author::before {
+    content: '';
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #a12e34, #5A1818);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, .12);
+}
+
+.sp-stats {
+    font-family: "Times New Roman", "Microsoft YaHei", sans-serif;
+    letter-spacing: .3px;
+}
+
+.sp-tags {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.sp-tags span {
+    font-size: 12px;
+    padding: 4px 14px;
+    border-radius: 14px;
+    background: rgba(129, 28, 33, .35);
+    color: #f0c8cb;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    border: 1px solid rgba(232, 180, 184, .18);
+}
+
+.sp-speed-row {
+    margin-top: 28px;
+    padding: 18px 22px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, .04);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px 20px;
+    border: 1px solid rgba(255, 255, 255, .06);
+}
+
+.sp-speed-label {
+    font-size: 13.5px;
+    color: rgba(255, 255, 255, .6);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+}
+
+.sp-speed {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.speed-btn {
+    border: 1px solid rgba(255, 255, 255, .16);
+    background: transparent;
+    color: rgba(255, 255, 255, .78);
+    padding: 6px 18px;
+    border-radius: 16px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: "Times New Roman", serif;
+    letter-spacing: .5px;
+    transition: .25s;
+}
+
+.speed-btn:hover {
+    background: rgba(255, 255, 255, .08);
+    border-color: rgba(255, 255, 255, .32);
+}
+
+.speed-btn.active {
+    background: var(--main-red);
+    border-color: var(--main-red);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(129, 28, 33, .5);
+}
+
+.sp-desc-block {
+    margin-top: 30px;
+}
+
+.sp-desc-block h4 {
+    margin: 0 0 12px 0;
+    font-size: 15px;
+    font-weight: normal;
+    color: #e8b4b8;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    letter-spacing: 2px;
+}
+
+.sp-desc-block p {
+    margin: 0;
+    font-size: 14.5px;
+    line-height: 2;
+    color: rgba(255, 255, 255, .72);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    text-align: justify;
+    text-indent: 2em;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 1200px) {
+    .study-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px 14px;
+    }
+}
+
+@media (max-width: 900px) {
+    .study-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .study-carousel {
+        grid-column: span 2;
+    }
+    .study-filter-bar {
+        padding: 12px 18px;
+    }
+    .sp-title { font-size: 20px; }
+}
+
+@media (max-width: 640px) {
+    .study-grid {
+        grid-template-columns: repeat(2, 1fr);
+        margin: 20px 6% 60px 6%;
+    }
+    .study-carousel {
+        grid-column: span 2;
+        aspect-ratio: 16 / 9;
+    }
+    .study-filter-bar {
+        margin: 20px 6% 0 6%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    .study-actions {
+        justify-content: space-between;
+    }
+    .study-intro { margin: 16px 6% 0 6%; }
+    .study-empty { margin: 30px 6% 60px 6%; }
+
+    .study-player-head { padding: 0 16px; height: 50px; }
+    .study-player-stage { height: 42vh; min-height: 200px; }
+    .study-player-info { padding: 22px 0 50px 0; }
+    .study-player-info-inner { max-width: 92%; }
+    .sp-title { font-size: 18px; }
+    .sp-speed-row { padding: 14px 16px; gap: 10px 14px; }
+    .speed-btn { padding: 5px 14px; font-size: 12px; }
+}
+/* =====================
+   回到顶部按钮
+===================== */
+.back-top {
+    position: fixed;
+    right: 36px;
+    bottom: 130px;              /* 在助手悬浮球（bottom:36px）正上方 */
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1px solid rgba(129, 28, 33, .16);
+    background: rgba(255, 255, 255, .96);
+    color: var(--main-red);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 20px rgba(129, 28, 33, .18);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(14px);
+    transition: opacity .32s, visibility .32s, transform .32s,
+                background .25s, color .25s, box-shadow .25s;
+    z-index: 9985;
+    padding: 0;
+}
+
+.back-top.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.back-top:hover {
+    background: var(--main-red);
+    color: #fff;
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(129, 28, 33, .38);
+}
+
+.back-top:active {
+    transform: translateY(-1px) scale(.95);
+}
+
+.back-top svg {
+    display: block;
+    pointer-events: none;
+}
+
+@media (max-width: 1000px) {
+    .back-top {
+        right: 20px;
+        bottom: 100px;
+        width: 46px;
+        height: 46px;
+    }
 }

@@ -48,6 +48,29 @@ class TestRouter:
         assert body["code"] == 0
         assert [a["type"] for a in body["actions"]] == ["highlight", "zoom"]
 
+    def test_book_graph_returns_macro_layer(self):
+        from controller.router import create_router as _create
+        from fakes import FakeGraphService, FakeQaAgent
+        svc = FakeGraphService()
+        svc.nodes["n1"].layer = "macro"
+        svc.nodes["n3"].layer = "macro"          # 只有 macro 节点可见
+        svc.edges[0].layer = "macro"             # n1-n2 相关边两端不都在宏观层 → 被过滤
+        app = FastAPI()
+        app.include_router(_create(svc, FakeQaAgent()))
+        client = TestClient(app)
+        r = client.get("/api/graph/book/1")
+        body = r.json()
+        assert body["code"] == 0
+        assert {n["id"] for n in body["data"]["nodes"]} == {"n1", "n3"}
+        assert [e["relation"] for e in body["data"]["edges"]] == []
+
+    def test_book_graph_unknown_book_returns_empty(self):
+        client = make_client()
+        r = client.get("/api/graph/book/999")
+        body = r.json()
+        assert body["code"] == 0
+        assert body["data"]["nodes"] == []
+
     def test_query_nl_with_session_flow(self):
         client = make_client()
         sid = client.post("/api/graph/load",
