@@ -1016,11 +1016,12 @@ footer{
     position: relative;
     height: 340px;
     border-radius: 20px;
+    /* 深色背景（与星系主题一致），保证浅色文字标签可读 */
     background:
-        radial-gradient(circle at 18% 28%, rgba(129, 28, 33, .05), transparent 55%),
-        radial-gradient(circle at 82% 72%, rgba(129, 28, 33, .05), transparent 55%),
-        #fff;
-    border: 1px solid rgba(129, 28, 33, .12);
+        radial-gradient(circle at 18% 28%, rgba(129, 28, 33, .28), transparent 55%),
+        radial-gradient(circle at 82% 72%, rgba(129, 28, 33, .28), transparent 55%),
+        #141a26;
+    border: 1px solid rgba(129, 28, 33, .4);
     overflow: hidden;
     cursor: grab;
 }
@@ -1060,13 +1061,13 @@ footer{
 
 /* --- 连线 --- */
 .bg-link {
-    stroke: rgba(129, 28, 33, .28);
+    stroke: rgba(201, 209, 217, .4);
     stroke-width: 1.2;
     fill: none;
     transition: stroke .3s;
 }
 .bg-link.weak {
-    stroke: rgba(129, 28, 33, .13);
+    stroke: rgba(201, 209, 217, .2);
     stroke-dasharray: 4 5;
 }
 
@@ -1074,7 +1075,7 @@ footer{
 .bg-label {
     font-family: "Source Han Serif SC", "思源宋体", serif;
     font-size: 11px;
-    fill: #4a4a4a;
+    fill: #c9d1d9;
     text-anchor: middle;
     pointer-events: none;
     user-select: none;
@@ -1093,7 +1094,7 @@ footer{
     transform: translateX(-50%);
     font-size: 11.5px;
     letter-spacing: 1px;
-    color: rgba(129, 28, 33, .38);
+    color: rgba(201, 209, 217, .55);
     font-family: "Source Han Serif SC", "思源宋体", serif;
     pointer-events: none;
     white-space: nowrap;
@@ -1106,8 +1107,8 @@ footer{
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(241, 240, 233, .75);
-    color: var(--main-red);
+    background: rgba(20, 26, 38, .8);
+    color: #e5c9cb;
     font-size: 13px;
     letter-spacing: 1.5px;
     font-family: "Source Han Serif SC", "思源宋体", serif;
