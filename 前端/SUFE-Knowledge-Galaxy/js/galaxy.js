@@ -266,7 +266,25 @@
 
     function updateCulling(forceRender) {
         if (!state.allNodes.length || !svg) return;
-        const vp = worldViewport();
+
+        let vp;
+        try { vp = worldViewport(); } catch (e) { vp = null; }
+
+        // ★ 兜底：画布尺寸未就绪（0 尺寸 / NaN）时全量渲染，保证图谱可见
+        if (!vp || !isFinite(vp.minX) || !isFinite(vp.maxX) ||
+            !isFinite(vp.minY) || !isFinite(vp.maxY) ||
+            vp.maxX - vp.minX < 2 || vp.maxY - vp.minY < 2) {
+            state.renderNodes = state.allNodes;
+            state.nodes = state.allNodes;
+            state.renderEdges = state.allEdges;
+            state.edges = state.allEdges;
+            resolveEdges(state.edges);
+            if (simulation) simulation.nodes(state.nodes);
+            _renderSet = new Set(state.allNodes.map(n => n.id));
+            render();
+            return;
+        }
+
         const renderIds = new Set(), activeIds = new Set();
         const rmx = CULL_RENDER_MARGIN, amx = CULL_ACTIVE_MARGIN;
 
@@ -1209,6 +1227,14 @@ render();
         toggleImmersive,
         pulseNodes,      // ★ 新增
         focusOnNodes,    // ★ 新增
+        // ★ 调试辅助：控制台执行 GalaxyEngine.debug() 查看裁剪三级数量
+        debug: () => ({
+            allNodes:   state.allNodes.length,
+            active:     state.nodes.length,
+            rendered:   state.renderNodes.length,
+            edges:      { all: state.allEdges.length, active: state.edges.length, rendered: state.renderEdges.length },
+            view:       { tx: state.translateX, ty: state.translateY, scale: state.scale, rot: state.rotation },
+        }),
         get state() { return state; }
     };
 
