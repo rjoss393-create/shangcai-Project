@@ -19,3 +19,6 @@ backend/dataset_files/
 
 # 前端依赖
 前端/proxy-server/node_modules/
+
+# 数据层交付原始文件（大书 JSON 约 2GB + 视频，不进版本库；图谱 JSON 已复制到 data/）
+知识图谱和书和视频/
