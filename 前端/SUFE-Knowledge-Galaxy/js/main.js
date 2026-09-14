@@ -774,7 +774,18 @@ function openBookDetail(id) {
 //   }
 // ===============================
 
-const BOOK_GRAPH_API = '/api/graph/book';   // ★ 后端就绪后启用
+// ★ 后端地址与 galaxy.js 的 API_BASE 一致（前端由 3000 端口托管，必须用绝对地址，
+//   否则相对路径会打到 proxy-server 上，proxy-server 没有 /api/graph 代理）
+const BOOK_GRAPH_API = 'http://localhost:8000/api/graph/book';
+
+// ★ 节点七色配色：红橙黄绿青蓝紫，按节点 id 哈希稳定分配（与 galaxy.js 规则一致）
+const NODE_COLORS = ['#c0392b', '#e67e22', '#f0b400', '#27ae60', '#16a085', '#2980b9', '#8e44ad'];
+function nodeColorOf(node) {
+    let h = 0;
+    const s = String(node.id || '');
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    return NODE_COLORS[h % NODE_COLORS.length];
+}
 
 let _bgSim = null;
 let _bgSvgSel = null;
@@ -999,7 +1010,9 @@ async function renderBookGraph(bookId) {
         .text(d => d.label || '');
 
     const nodeMerged = nodeEnter.merge(nodeSel);
-    nodeMerged.select('circle').attr('r', d => d.r);
+    nodeMerged.select('circle')
+        .attr('r', d => d.r)
+        .style('fill', d => nodeColorOf(d));   // ★ 七色配色（id 哈希稳定分配）
     nodeMerged.select('text').text(d => d.label || '');
 
     // ---- 拖拽节点 ----
