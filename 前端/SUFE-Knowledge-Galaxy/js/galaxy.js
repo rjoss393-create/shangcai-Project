@@ -202,6 +202,7 @@
     function mergeGraph(data) {
         if (!data || !data.nodes) return;
 
+        const firstLoad = state.allNodes.length === 0;
         const nodeMap = new Map(state.allNodes.map(n => [n.id, n]));
         data.nodes.forEach(n => {
             const old = nodeMap.get(n.id);
@@ -237,6 +238,9 @@
 
         // ★ 按视野重建活动集/渲染集
         updateCulling(true);
+
+        // ★ 首次载入：布局稳定后自动缩放视图到内容包围盒（防止散开后视野中心空白）
+        if (firstLoad) _pendingFit = true;
     }
 
     // ---------- ★ 视野裁剪 ----------
@@ -502,8 +506,10 @@
 
     // ---------- 力导向布局 ----------
     function runSimulation(restart) {
-        // ★ 布局更分散：连线距离 110→175、斥力 -420→-560、碰撞间距 +26→+46、
-        //   连线强度 0.08→0.05（弱化聚合，避免节点密集遮挡）
+        // ★ 布局适度分散（比原版宽松但不过度）：连线距离 110→150、斥力 -420→-460、
+        //   碰撞间距 +26→+34、连线强度 0.08→0.06。
+        //   注意：斥力过强（如 -560）会让 5000 节点级图谱散得比默认视野还大，
+        //   视野中心反而空白——布局范围须配合 fitViewToContent 使用。
         if (typeof d3 === 'undefined') return;
 
         resolveEdges(state.edges);
@@ -515,10 +521,10 @@
         if (!simulation) {
             simulation = d3.forceSimulation(state.nodes)
                 .force('radial',  d3.forceRadial(ringOf, 0, 0).strength(0.85))
-                .force('charge',  d3.forceManyBody().strength(-560))
-                .force('collide', d3.forceCollide(d => radiusOf(d) + 46).strength(1))
+                .force('charge',  d3.forceManyBody().strength(-460))
+                .force('collide', d3.forceCollide(d => radiusOf(d) + 34).strength(1))
                 .force('link',    d3.forceLink(links).id(d => d.id)
-                                    .distance(175).strength(0.05))
+                                    .distance(150).strength(0.06))
                 .on('tick', ticked);
         } else {
             simulation.nodes(state.nodes);
@@ -558,6 +564,12 @@
 
         // ★ 视野裁剪节流：布局推进时每 15 帧重算一次视野内外
         if ((++_cullTick % 15) === 0) updateCulling(false);
+
+        // ★ 首次载入布局稳定后：自动适配视图（一次性）
+        if (_pendingFit && simulation && simulation.alpha() < 0.06) {
+            _pendingFit = false;
+            fitViewToContent(500);
+        }
     }
 
     // ---------- 视图变换 ----------
@@ -623,6 +635,29 @@ render();
             }
             requestAnimationFrame(step);
         });
+    }
+
+    // ---------- ★ 视图适配内容 ----------
+    let _pendingFit = false;   // 加载/切换后等待布局稳定再适配一次
+
+    function fitViewToContent(duration) {
+        if (!svg) return;
+        const pts = state.allNodes.filter(n => n.x != null && n.y != null && isFinite(n.x) && isFinite(n.y));
+        if (!pts.length) return;
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        pts.forEach(n => {
+            if (n.x < minX) minX = n.x;
+            if (n.x > maxX) maxX = n.x;
+            if (n.y < minY) minY = n.y;
+            if (n.y > maxY) maxY = n.y;
+        });
+        const w = Math.max(maxX - minX, 1), h = Math.max(maxY - minY, 1);
+        const rect = svg.node().getBoundingClientRect();
+        const pad = 90;
+        const s = Math.max(SCALE_MIN,
+            Math.min(1.2, Math.min(rect.width / (w + pad * 2), rect.height / (h + pad * 2))));
+        const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+        animateTo(s, -cx * s, -cy * s, state.rotation, duration || 600);
     }
 
     // ---------- 交互 ----------
@@ -1024,8 +1059,8 @@ render();
                     render(); await sleep(dur); break;
                 case 'zoom':
                     if (act.params && act.params.mode === 'fit') {
-                        // fit 到中观层
-                        animateTo(SCALE_DEFAULT, 0, 0, state.rotation, 600);
+                        // ★ fit 改为按内容包围盒适配（原实现固定回中观层，节点散开后视野中心可能空白）
+                        fitViewToContent(600);
                     }
                     await sleep((act.params && act.params.duration) || 600);
                     break;
