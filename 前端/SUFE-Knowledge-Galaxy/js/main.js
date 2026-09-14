@@ -975,6 +975,14 @@ async function renderBookGraph(bookId) {
         .attr('class', d => 'bg-link' + (d.weak ? ' weak' : ''));
 
     // ---- 节点 ----
+    // ★ 字段契约统一：后端 type 值域为 concept/chapter/section/formula（《字段.md》，Agent 层依赖），
+    //   前端样式类为 center/primary/secondary —— 此处做一层映射，不改后端契约。
+    const TYPE_TO_CLS = { chapter: 'center', section: 'primary', concept: 'secondary', formula: 'secondary' };
+    const bgClassOf = d => {
+        if (d.type === 'center' || d.type === 'primary' || d.type === 'secondary') return d.type; // 兼容示例数据
+        return TYPE_TO_CLS[d.type] || 'secondary';
+    };
+
     const nodeSel = _bgRoot.select('.bg-nodes')
         .selectAll('.bg-node')
         .data(nodes, d => d.id);
@@ -982,11 +990,11 @@ async function renderBookGraph(bookId) {
 
     const nodeEnter = nodeSel.enter()
         .append('g')
-        .attr('class', d => `bg-node ${d.type}`);
+        .attr('class', d => `bg-node ${bgClassOf(d)}`);
 
     nodeEnter.append('circle').attr('r', d => d.r);
     nodeEnter.append('text')
-        .attr('class', d => `bg-label ${d.type}`)
+        .attr('class', d => `bg-label ${bgClassOf(d)}`)
         .attr('dy', d => d.r + 14)
         .text(d => d.label || '');
 

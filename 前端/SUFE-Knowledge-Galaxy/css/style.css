@@ -1053,23 +1053,6 @@ footer{
     stroke: #b8b3a8;
     stroke-width: 1.5;
 }
-/* 真实数据按 type 上色（后端契约字段 type：chapter/section/concept/formula） */
-.bg-node.chapter circle {
-    fill: var(--main-red);
-    stroke: #fff;
-    stroke-width: 2;
-}
-.bg-node.section circle {
-    fill: #fff;
-    stroke: var(--main-red);
-    stroke-width: 2;
-}
-.bg-node.concept circle,
-.bg-node.formula circle {
-    fill: #e8e6df;
-    stroke: #b8b3a8;
-    stroke-width: 1.5;
-}
 .bg-node:hover circle {
     stroke-width: 3.5;
     filter: drop-shadow(0 3px 12px rgba(129, 28, 33, .38));
