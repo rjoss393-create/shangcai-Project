@@ -240,7 +240,16 @@
         updateCulling(true);
 
         // ★ 首次载入：布局稳定后自动缩放视图到内容包围盒（防止散开后视野中心空白）
-        if (firstLoad) _pendingFit = true;
+        if (firstLoad) {
+            _pendingFit = true;
+            // 兜底：6 秒后若仍未自动适配（如布局异常停滞），强制适配一次
+            setTimeout(() => {
+                if (_pendingFit) {
+                    _pendingFit = false;
+                    fitViewToContent(500);
+                }
+            }, 6000);
+        }
     }
 
     // ---------- ★ 视野裁剪 ----------
@@ -319,13 +328,15 @@
         _renderSet = renderIds;
 
         // 同步力导向（活动集变化时；不重启 alpha，避免平移时抖动）
+        // ★ 顺序关键：必须先换 links 再换 nodes —— d3 的 simulation.nodes() 会按当前
+        //   links 重新初始化力，若 links 还指向刚被移出活动集的节点会抛异常杀死模拟器
         if (simulation) {
             resolveEdges(state.edges);
+            const activeLinks = state.edges.filter(e =>
+                e.source && typeof e.source === 'object' &&
+                e.target && typeof e.target === 'object');
+            simulation.force('link').links(activeLinks);
             simulation.nodes(state.nodes);
-            simulation.force('link').links(
-                state.edges.filter(e =>
-                    e.source && typeof e.source === 'object' &&
-                    e.target && typeof e.target === 'object'));
             if (forceRender) simulation.alpha(0.3).restart();   // 合并新数据时轻量重新布局
         }
 
@@ -527,8 +538,9 @@
                                     .distance(150).strength(0.06))
                 .on('tick', ticked);
         } else {
-            simulation.nodes(state.nodes);
+            // ★ 顺序关键：先换 links 再换 nodes（同 updateCulling，防 d3 用旧 links 初始化抛异常）
             simulation.force('link').links(links);
+            simulation.nodes(state.nodes);
             if (restart) simulation.alpha(0.6).restart();
         }
     }
