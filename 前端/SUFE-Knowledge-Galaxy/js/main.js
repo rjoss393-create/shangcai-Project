@@ -516,11 +516,11 @@ const BOOK_COVER_DIR = 'assets/books/';
 const BOOK_COVER_EXT = '.png';     // ← 扩展名改成 .png（若改成 .jpg 只需改这里）
 
 const BOOKS = [
-/* 01 */ { id: 1,  titleCn: '投资学（第十版）', titleEn: 'Investments, 10th Edition', author: '滋维·博迪、亚历克斯·凯恩、艾伦·J.马库斯', tags: ['投资学', '经典教材'], intro: '投资学领域公认的经典教材。系统讲解资产类别与金融工具、风险与收益、资产组合理论、证券分析、衍生品及投资业绩评估，是 CFA 等专业考试的核心参考书。', introEn: '' },
-/* 02 */ { id: 2,  titleCn: '公司金融（进阶篇·原书第12版）', titleEn: 'Principles of Corporate Finance, 12th Edition', author: '理查德·A.布雷利 等', tags: ['公司金融', '经典教材'], intro: '公司金融领域经典教材的进阶部分，聚焦资本结构、股利政策、公司治理与并购重组等高级主题，适合已具备金融基础的高年级学生。', introEn: '' },
-/* 03 */ { id: 3,  titleCn: '国际投资学（第二版）', titleEn: '', author: '卢勇进、杜奇华、杨立强', tags: ['国际投资', '教材'], intro: '系统介绍国际直接投资与国际间接投资的基本理论、运作方式与政策法规，结合中国企业"走出去"的实践案例。', introEn: '' },
-/* 04 */ { id: 4,  titleCn: '并购与重组：中国案例', titleEn: '', author: '蔡荣鑫（编著）', tags: ['并购重组', '案例'], intro: '以中国资本市场真实并购重组事件为案例，剖析交易结构设计、估值定价与并购整合的要点。', introEn: '' },
-/* 05 */ { id: 5,  titleCn: '金融理论（视频课程）', titleEn: 'Finance Theory', author: '安德鲁·罗（Andrew Lo）', tags: ['视频课程', '金融理论'], intro: 'MIT 金融理论课程视频（共 23 讲）：现值关系、固定收益证券、股票、远期与期货、期权、风险与收益、投资组合理论、CAPM 与 APT、资本预算与有效市场。', introEn: '' },
+/* 01 */ { id: 1,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
+/* 02 */ { id: 2,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
+/* 03 */ { id: 3,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
+/* 04 */ { id: 4,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
+/* 05 */ { id: 5,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
 /* 06 */ { id: 6,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
 /* 07 */ { id: 7,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
 /* 08 */ { id: 8,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
