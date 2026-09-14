@@ -1916,7 +1916,10 @@ footer{
     fill:rgba(129,28,33,.85);
     opacity:.9;
 }
-/* 中观：展示全部节点文字（后端数据无"课程"核心节点，不再隐藏） */
+/* 中观：次级节点展示，外环隐藏文字 */
+.g-node.zoom-meso.other .g-label{
+    opacity:0;
+}
 /* 微观：中心节点放大 + 卡片脉冲 */
 .g-node.zoom-micro.focused circle{
     filter:drop-shadow(0 0 18px rgba(129,28,33,.65));

@@ -281,7 +281,7 @@
                 if (lvl !== 'macro' && r > 200) cls += ' hidden';
                 return cls;
             })
-            .text(d => lvl === 'macro' ? shortName(d.name || d.label) : (d.name || d.label))
+            .text(d => lvl === 'macro' ? shortName(d.name) : d.name)
             .attr('dy', d => radiusOf(d) + 16);
 
         // ---- 连线 ----
@@ -587,7 +587,7 @@ render();
         const text = (d.media && d.media.text) || '';
         if (!text) { hideTooltip(); return; }
         tooltipEl.innerHTML =
-            `<div class="tt-title">${d.name || d.label}</div>` +
+            `<div class="tt-title">${d.name}</div>` +
             `<div class="tt-body">${text}</div>`;
         tooltipEl.classList.add('show');
         moveTooltip(evt);
@@ -764,7 +764,7 @@ render();
         if (!nodePopupEl) return;
         const text = (node.media && node.media.text) || '（暂无说明）';
         nodePopupEl.innerHTML =
-            `<div class="popup-title">${node.name || node.label}</div>` +
+            `<div class="popup-title">${node.name}</div>` +
             `<div class="popup-body">${text}</div>`;
         nodePopupEl.classList.add('show');
     }
