@@ -9,12 +9,10 @@
 from typing import Final
 
 # graph_id -> 图谱名称（展示/日志用）
-# 4 本书 + 经济综合（经济综合为四书融合图谱，数据层合并生成）
 GRAPH_IDS: Final[dict[str, str]] = {
     "ma": "并购与重组",
     "corp_fin": "公司金融",
     "intl_inv": "国际投资学",
-    "invest": "投资学",
     "econ": "经济综合",
 }
 
@@ -23,7 +21,6 @@ GRAPH_FILES: Final[dict[str, str]] = {
     "ma": "并购与重组_知识图谱.json",
     "corp_fin": "公司金融_知识图谱.json",
     "intl_inv": "国际投资学_知识图谱.json",
-    "invest": "投资学_知识图谱.json",
     "econ": "经济综合_知识图谱.json",
 }
 

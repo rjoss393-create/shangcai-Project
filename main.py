@@ -5,8 +5,8 @@
 
 装配：DataService（数据层） + QaAgentImpl(LLM_Navigator)（Agent 层）
      + create_router（控制层）
-启动事件：后台按顺序预热 5 个图谱（4 本书 + 经济综合，
-         建图 + 加载/生成 embedding），把首次提问的冷启动成本转移到服务启动阶段。
+启动事件：后台按顺序预热 4 本书（建图 + 加载/生成 embedding），
+         把首次提问的冷启动成本转移到服务启动阶段。
 
 分层约定：
 - backend/controller  控制层（本仓库既有代码）
@@ -90,7 +90,7 @@ qa_agent = _build_qa_agent()
 
 
 async def _preload_all_books() -> None:
-    """启动后台任务：按顺序预热 5 个图谱（4 本书 + 经济综合）。单本失败只记日志，不影响服务。"""
+    """启动后台任务：按顺序预热 4 本书。单本失败只记日志，不影响服务。"""
     for graph_id in GRAPH_IDS:
         if qa_agent is None:
             return
@@ -107,7 +107,7 @@ async def _preload_all_books() -> None:
 async def lifespan(app: FastAPI):
     if qa_agent is not None:
         task = asyncio.create_task(_preload_all_books())
-        logger.info("已在后台启动 5 个图谱的 embedding 预热任务")
+        logger.info("已在后台启动 4 本书的 embedding 预热任务")
         yield
         task.cancel()
     else:
