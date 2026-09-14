@@ -536,6 +536,7 @@
                 .force('collide', d3.forceCollide(d => radiusOf(d) + 34).strength(1))
                 .force('link',    d3.forceLink(links).id(d => d.id)
                                     .distance(150).strength(0.06))
+                .force('confine', confineForce(CULL_CONFINE_RADIUS))
                 .on('tick', ticked);
         } else {
             // ★ 顺序关键：先换 links 再换 nodes（同 updateCulling，防 d3 用旧 links 初始化抛异常）
@@ -577,10 +578,14 @@
         // ★ 视野裁剪节流：布局推进时每 15 帧重算一次视野内外
         if ((++_cullTick % 15) === 0) updateCulling(false);
 
-        // ★ 首次载入布局稳定后：自动适配视图（一次性）
-        if (_pendingFit && simulation && simulation.alpha() < 0.06) {
-            _pendingFit = false;
-            fitViewToContent(500);
+        // ★ 首次载入自动适配：布局推进期间每 40 tick 跟随适配一次，稳定后最终适配一次
+        if (_pendingFit && simulation) {
+            if (simulation.alpha() < 0.06) {
+                _pendingFit = false;
+                fitViewToContent(500);
+            } else if ((++_fitTick % 40) === 0) {
+                fitViewToContent(350);
+            }
         }
     }
 
@@ -649,8 +654,31 @@ render();
         });
     }
 
+    // ---------- ★ 布局围墙（限制整体直径，保证任何缩放下都装得进视野） ----------
+    function confineForce(maxR) {
+        let nodes = [];
+        function force(alpha) {
+            for (const n of nodes) {
+                const r = Math.hypot(n.x || 0, n.y || 0);
+                if (r > maxR && r > 0) {
+                    const k = ((r - maxR) / r) * alpha * 3;
+                    n.vx -= n.x * k;
+                    n.vy -= n.y * k;
+                    if (r > maxR * 1.6) {          // 严重越界直接钳位回墙内
+                        const s = maxR / r;
+                        n.x *= s; n.y *= s;
+                    }
+                }
+            }
+        }
+        force.initialize = ns => { nodes = ns; };
+        return force;
+    }
+    const CULL_CONFINE_RADIUS = 1400;   // 布局最大半径（世界坐标）
+
     // ---------- ★ 视图适配内容 ----------
     let _pendingFit = false;   // 加载/切换后等待布局稳定再适配一次
+    let _fitTick    = 0;
 
     function fitViewToContent(duration) {
         if (!svg) return;
@@ -687,6 +715,7 @@ render();
         });
 
         svgNode.addEventListener('pointerdown', e => {
+            _pendingFit = false;   // 用户介入，停止自动适配
             if (e.target.closest && e.target.closest('.g-node')) return;
 
             // ★ 旋转：右键 或 Shift/Alt + 左键（备选交互）
@@ -744,6 +773,7 @@ render();
         // ★ 滚轮缩放：以画布中心为锚点（tx/ty 按比例缩放，锚点不动）
         svgNode.addEventListener('wheel', e => {
             e.preventDefault();
+            _pendingFit = false;   // 用户介入，停止自动适配
             const k = e.deltaY > 0 ? 0.94 : 1.06;
             const next = Math.max(SCALE_MIN, Math.min(SCALE_MAX, state.scale * k));
             if (next === state.scale) return;
