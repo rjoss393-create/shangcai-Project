@@ -8,6 +8,7 @@ __pycache__/
 
 # 打包备份（不进版本库）
 *.zip
+*.tar.gz
 
 # API 密钥（明文 key 严禁入库，改用环境变量 AGNES_API_KEY / AGNES_BASE_URL）
 backend/config.json
@@ -25,6 +26,7 @@ backend/dataset_files/
 
 # 前端交付副本（已合并进 SUFE-Knowledge-Galaxy，验证后由用户删除）
 前端/SUFE-Knowledge-Galaxy(新)/
+前端/SUFE-Knowledge-Galaxy最新版/
 
 # 前端视频文件与封面（约 2GB+，本地静态托管；清单 data/videos.json 进库）
 前端/SUFE-Knowledge-Galaxy/assets/videos/

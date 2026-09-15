@@ -1346,6 +1346,13 @@
         const resetBtn = document.getElementById('galaxyReset');
         if (resetBtn) resetBtn.addEventListener('click', resetView);
 
+        // ★ 切换图谱：新版 index.html 用"知识星系"顶部 5 个 tab（data-graph-id）切换，
+        //   取代原来右上角的下拉框（#galaxyBookSelect，若在则仍兼容）
+        const graphTabs = document.querySelectorAll('.galaxy-tab[data-graph-id]');
+        graphTabs.forEach(btn => btn.addEventListener('click', () => {
+            graphTabs.forEach(b => b.classList.toggle('active', b === btn));
+            switchBook(btn.dataset.graphId);
+        }));
         const bookSelect = document.getElementById('galaxyBookSelect');
         if (bookSelect) bookSelect.addEventListener('change', () => switchBook(bookSelect.value));
 

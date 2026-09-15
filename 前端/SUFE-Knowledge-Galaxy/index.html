@@ -256,20 +256,11 @@
     </p>
 
     <div class="galaxy-tabs" id="galaxyTabs">
-        <button class="galaxy-tab active" data-galaxy-page="main">投资学总览</button>
-        <button class="galaxy-tab" data-galaxy-page="branch-a">拓展星系一</button>
-        <button class="galaxy-tab" data-galaxy-page="branch-b">拓展星系二</button>
-
-        <div class="galaxy-book-bar" style="margin-left:auto;display:flex;align-items:center;gap:8px;">
-            <label for="galaxyBookSelect" style="font-size:13px;color:#9aa3b2;">当前图谱</label>
-            <select id="galaxyBookSelect" style="padding:6px 10px;border-radius:8px;border:1px solid #3a4150;background:#141a26;color:#dfe5ef;font-size:13px;cursor:pointer;">
-                <option value="econ">经济综合</option>
-                <option value="corp_fin">公司金融</option>
-                <option value="intl_inv">国际投资学</option>
-                <option value="invest">投资学</option>
-                <option value="ma">并购与重组</option>
-            </select>
-        </div>
+        <button class="galaxy-tab active" data-graph-id="econ">经济综合</button>
+        <button class="galaxy-tab" data-graph-id="corp_fin">公司金融</button>
+        <button class="galaxy-tab" data-graph-id="intl_inv">国际投资学</button>
+        <button class="galaxy-tab" data-graph-id="ma">并购与重组</button>
+        <button class="galaxy-tab" data-graph-id="invest">投资学</button>
     </div>
 
     <div class="galaxy-page active" data-galaxy-page-content="main" data-zoom-level="meso">
@@ -323,12 +314,7 @@
         </div>
     </div>
 
-    <div class="galaxy-page" data-galaxy-page-content="branch-a">
-        <div class="galaxy-placeholder">拓展星系一 · 待建设</div>
-    </div>
-    <div class="galaxy-page" data-galaxy-page-content="branch-b">
-        <div class="galaxy-placeholder">拓展星系二 · 待建设</div>
-    </div>
+    
 </section>
 
 <section class="page-section" id="assistant">
@@ -508,7 +494,7 @@
 
 
 <!-- ======================
-     科研论文
+     科学研究 · 三大金融顶刊
 ====================== -->
 <section class="page-section" id="paper">
 
@@ -517,70 +503,124 @@
     </div>
 
     <p class="paper-intro">
-        收录课题组近年发表于国内外核心期刊的研究成果 —— 点击卡片查看全文，左右箭头切换论文。
+        收录金融学三大顶级期刊的代表性研究成果 —— 点击三角区域进入期刊列表，
+        点击论文标题即可在线阅读原文 PDF。
     </p>
 
-    <!-- 单篇展示区（与新闻面板左右对齐，均为 10% 缩进） -->
-    <div class="paper-wrap">
+    <!-- ============ 视图一：三刊总览（三角分割） ============ -->
+    <div class="journal-overview" id="journalOverview">
 
-        <div class="paper-stage" id="paperStage" role="button" tabindex="0" aria-label="查看论文全文"></div>
+        <div class="journal-triangle-wrap">
 
-        <!-- 翻页控制 -->
-        <div class="paper-pager">
+            <svg class="journal-triangle" viewBox="0 0 1200 1100"
+                preserveAspectRatio="xMidYMid meet" role="group"
+                aria-label="金融学三大顶级期刊">
 
-            <button class="pager-arrow" id="paperPrev" aria-label="上一篇">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-            </button>
+                <!-- ① 扇区（实心浅红填充） -->
+                <g class="jt-sector" data-journal="jf" tabindex="0"
+                role="button" aria-label="Journal of Finance">
+                    <path class="jt-shape" d="M600,190 L200,890 L600,656.67 Z"></path>
+                </g>
+                <g class="jt-sector" data-journal="rfs" tabindex="0"
+                role="button" aria-label="Review of Financial Studies">
+                    <path class="jt-shape" d="M600,190 L1000,890 L600,656.67 Z"></path>
+                </g>
+                <g class="jt-sector" data-journal="jfe" tabindex="0"
+                role="button" aria-label="Journal of Financial Economics">
+                    <path class="jt-shape" d="M200,890 L1000,890 L600,656.67 Z"></path>
+                </g>
 
-            <div class="pager-info">
-                <span class="pager-current" id="paperCurrentNo">01</span>
-                <span class="pager-divider">/</span>
-                <span class="pager-total" id="paperTotalNo">08</span>
+                <!-- ② 外框 + 三条中线 -->
+                <g class="jt-lines">
+                    <path class="jt-outline" d="M600,190 L200,890 L1000,890 Z"></path>
+                    <line class="jt-divider" x1="600"  y1="190" x2="600" y2="656.67"></line>
+                    <line class="jt-divider" x1="200"  y1="890" x2="600" y2="656.67"></line>
+                    <line class="jt-divider" x1="1000" y1="890" x2="600" y2="656.67"></line>
+                </g>
+
+                <!-- ③ 中轴水印（三角形内部唯一内容） -->
+                <text class="jt-watermark" x="600" y="680">ECONOMICS</text>
+
+                <!-- ④ 外部标签：简称 + 英文全称 + 中文名 -->
+                <g class="jt-labels">
+                    <!-- 左上 · JF -->
+                    <text class="jt-abbr"    x="180" y="386">JF</text>
+                    <text class="jt-name"    x="180" y="434">Journal of Finance</text>
+                    <text class="jt-name-cn" x="180" y="468">《金融学杂志》</text>
+
+                    <!-- 右上 · RFS -->
+                    <text class="jt-abbr"    x="1020" y="386">RFS</text>
+                    <text class="jt-name"    x="1020" y="434">Review of Financial Studies</text>
+                    <text class="jt-name-cn" x="1020" y="468">《金融研究评论》</text>
+
+                    <!-- 正下 · JFE -->
+                    <text class="jt-abbr"    x="600" y="978">JFE</text>
+                    <text class="jt-name"    x="600" y="1026">Journal of Financial Economics</text>
+                    <text class="jt-name-cn" x="600" y="1060">《金融经济学杂志》</text>
+                </g>
+
+            </svg>
+
+            <div class="journal-triangle-hint">
+                点击任一板块 · 进入该期刊论文列表
             </div>
-
-            <button class="pager-arrow" id="paperNext" aria-label="下一篇">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-            </button>
-
         </div>
-
-        <div class="paper-dots" id="paperDots"></div>
 
     </div>
 
-    <!-- 论文详情（模态 · 滚轮浏览全文） -->
-    <div class="paper-detail-mask" id="paperDetailMask">
-        <div class="paper-detail" role="dialog" aria-modal="true" aria-label="论文详情">
+    <!-- ============ 视图二：期刊论文列表（Google Scholar 风格） ============ -->
+    <div class="journal-detail" id="journalDetail" style="display:none;">
 
-            <button class="detail-close" id="paperDetailClose" aria-label="关闭">×</button>
+        <button class="journal-back" id="journalBack">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>返回三刊总览</span>
+        </button>
 
-            <div class="paper-detail-head">
-                <div class="paper-detail-journal" id="pdJournal"></div>
-                <h2 class="paper-detail-title-cn" id="pdTitleCn"></h2>
-                <h3 class="paper-detail-title-en" id="pdTitleEn"></h3>
-                <div class="paper-detail-meta" id="pdAuthor"></div>
-                <div class="paper-detail-tags" id="pdTags"></div>
+        <div class="journal-head">
+            <div class="journal-head-abbr" id="jdAbbr">JF</div>
+            <div class="journal-head-right">
+                <h2 class="journal-head-name" id="jdName">The Journal of Finance</h2>
+                <div class="journal-head-cn" id="jdNameCn">《金融学杂志》</div>
+                <div class="journal-head-meta" id="jdMeta"></div>
+                <p class="journal-head-desc" id="jdDesc"></p>
             </div>
+        </div>
 
-            <div class="paper-detail-scroll" id="pdScroll">
-                <div class="paper-detail-block">
-                    <h4>摘要</h4>
-                    <p id="pdAbstract"></p>
-                    <p class="paper-detail-en-text" id="pdAbstractEn"></p>
+        <div class="scholar-bar">
+            <span class="scholar-count" id="jdCount">共 0 篇文献</span>
+            <span class="scholar-sort">按引用次数排序</span>
+        </div>
+
+        <div class="scholar-list" id="scholarList"></div>
+
+    </div>
+
+    <!-- ============ PDF 阅读模态 ============ -->
+    <div class="pdf-mask" id="pdfMask">
+        <div class="pdf-panel" role="dialog" aria-modal="true" aria-label="论文原文">
+            <div class="pdf-head">
+                <div class="pdf-head-title" id="pdfTitle"></div>
+                <div class="pdf-head-actions">
+                    <a class="pdf-open" id="pdfOpenNew" target="_blank" rel="noopener">新窗口打开</a>
+                    <button class="pdf-close" id="pdfClose" aria-label="关闭">×</button>
                 </div>
-                <div id="pdBody"></div>
             </div>
-
-            <div class="paper-scroll-hint">滚轮浏览全文 · Esc 关闭</div>
-
+            <div class="pdf-body">
+                <iframe id="pdfFrame" title="论文原文"></iframe>
+                <div class="pdf-fallback" id="pdfFallback" style="display:none;">
+                    <svg viewBox="0 0 24 24" width="52" height="52" fill="none"
+                         stroke="currentColor" stroke-width="1.2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    <span id="pdfFallbackText">原文 PDF 待补充</span>
+                </div>
+            </div>
         </div>
     </div>
 
