@@ -1428,6 +1428,9 @@ async function openPdf(paper) {
     if (!mask || !frame) return;
 
     const url = encodeURI(paper.pdf);
+    // ★ 2026-09-15：每次打开都用带时间戳的新地址 + #page=1，关掉浏览器内置 PDF 阅读器的
+    //   "回到上次阅读位置"（同一 URL 会被它记住上次滚动位置）
+    const viewUrl = url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now() + '#page=1';
 
     titleEl.textContent = paper.title;
     openLink.href = url;
@@ -1443,7 +1446,7 @@ async function openPdf(paper) {
     const exists = await checkPdfExists(paper.pdf);
 
     if (exists) {
-        frame.src = url;
+        frame.src = viewUrl;
     } else {
         frame.style.display = 'none';
         fallback.style.display = 'flex';
