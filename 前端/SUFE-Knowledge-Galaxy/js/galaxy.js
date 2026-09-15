@@ -110,6 +110,7 @@
         dragMode:        null,         // 'pan' | 'rotate'
         dragStartX:      0,
         dragStartY:      0,
+        downAt:          null,         // 按下位置（区分"点击空白"与"拖拽后松手"）
         dragStartTX:     0,
         dragStartTY:     0,
         dragStartRot:    0,
@@ -769,6 +770,8 @@
 
         svgNode.addEventListener('pointerdown', e => {
             _pendingFit = false;   // 用户介入，停止自动适配
+            // 记录按下位置：拖拽（平移/旋转）松手也会触发 click，用它区分"点击"与"拖拽"
+            state.downAt = { x: e.clientX, y: e.clientY };
             if (e.target.closest && e.target.closest('.g-node')) return;
 
             // ★ 旋转：右键 或 Shift/Alt + 左键（备选交互）
@@ -847,6 +850,10 @@
         // 点击空白 → 退出"只看邻域"：清路径/焦点/高亮，并恢复全量节点可见
         svgNode.addEventListener('click', e => {
             if (e.target.closest && e.target.closest('.g-node')) return;
+            // ★ 拖拽后松手也会触发 click：位移超过 5px 就当成拖拽，不退出"只看邻域"
+            //   （否则用户想拖动画面看当前高亮的子图，一松手就被退出了）
+            const d = state.downAt;
+            if (d && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 5) return;
             const had = state.selectedIds.length || state.activePath ||
                         state.focusedId || state.highlightedIds.size;
             state.selectedIds = [];
