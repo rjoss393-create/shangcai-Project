@@ -1102,19 +1102,19 @@ function closeBookDetail() {
 // 字段说明：
 //   title     论文标题（英文，蓝色链接）
 //   authors   作者（黑色）
+//   source    实际出处（可选；不填则显示所属期刊名）
 //   year      年份
 //   volume    卷号
 //   issue     期号
 //   pages     页码
-//   cited     引用次数（红色）
+//   cited     引用次数（红色，暂缺填 0 → 显示"—"）
 //   tags      关键词（红色小标签）
 //   pdf       PDF 路径（相对根目录）
 //
 // ★ PDF 命名约定：
-//     JFE 第一篇 = 组长提供的原件（已放在 assets/papers/）
-//     其余论文请按 assets/papers/{期刊}-{序号}.pdf 命名放入
-//     例：jf-02.pdf、jfe-03.pdf、rfs-04.pdf
-//     文件不存在时，点击会自动提示"待补充"，不会报错
+//     按 assets/papers/{期刊}-{序号}.pdf 命名，全部 13 篇已放入（2026-09-15）
+//     例：jf-01.pdf、jfe-03.pdf、rfs-04.pdf
+//     rfs 共 5 篇；文件不存在时，点击会自动提示"待补充"，不会报错
 // ===============================
 
 const JOURNALS = {
@@ -1130,35 +1130,39 @@ const JOURNALS = {
               '是金融学界公认的三大顶刊之一。',
         papers: [
             {
-                title: 'The Cross-Section of Expected Stock Returns',
-                authors: 'Fama, E. F., & French, K. R.',
-                year: 1992, volume: '47', issue: '2', pages: '427–465',
-                cited: 20184,
-                tags: ['资产定价', '规模因子', '价值因子'],
+                title: 'Interest Rates and Return on Equity of Deposit Money Banks in Nigeria (1990–2024)',
+                authors: 'Ekujereonye, B., Ndugbu, M. O., & Otiwu, K. C.',
+                source: 'Journal of Finance, Governance and Strategic Studies',
+                year: 2026, volume: '9', issue: '1', pages: '',
+                cited: 0,
+                tags: ['利率', '银行盈利', '尼日利亚'],
                 pdf: 'assets/papers/jf-01.pdf'
             },
             {
-                title: 'Returns to Buying Winners and Selling Losers: Implications for Stock Market Efficiency',
-                authors: 'Jegadeesh, N., & Titman, S.',
-                year: 1993, volume: '48', issue: '1', pages: '65–91',
-                cited: 12437,
-                tags: ['动量效应', '市场有效性'],
+                title: 'An Empirical Study on Implementation of AI & ML in Stock Market Prediction',
+                authors: 'Venkatarathnam, N., & Goranta, L. R.',
+                source: 'Indian Journal of Information Sources and Services',
+                year: 2024, volume: '14', issue: '4', pages: '165–174',
+                cited: 0,
+                tags: ['人工智能', '机器学习', '股票预测'],
                 pdf: 'assets/papers/jf-02.pdf'
             },
             {
-                title: 'The Limits of Arbitrage',
-                authors: 'Shleifer, A., & Vishny, R. W.',
-                year: 1997, volume: '52', issue: '1', pages: '35–55',
-                cited: 8526,
-                tags: ['套利限制', '行为金融'],
+                title: 'Presidential Address: Corporate Finance and Reality',
+                authors: 'Graham, J. R.',
+                source: 'The Journal of Finance',
+                year: 2022, volume: '', issue: '', pages: '',
+                cited: 0,
+                tags: ['公司金融', '资本配置', '实地调研'],
                 pdf: 'assets/papers/jf-03.pdf'
             },
             {
-                title: 'Investor Sentiment and the Cross-Section of Stock Returns',
-                authors: 'Baker, M., & Wurgler, J.',
-                year: 2006, volume: '61', issue: '4', pages: '1645–1680',
-                cited: 6214,
-                tags: ['投资者情绪', '横截面收益'],
+                title: 'From Prediction to Decision: AI-Augmented Risk Systems and Capital Allocation in Regulated Financial Institutions',
+                authors: 'Shivakumar, S.',
+                source: 'Working Paper (BridgeYield)',
+                year: '', volume: '', issue: '', pages: '',
+                cited: 0,
+                tags: ['AI 风控', '资本配置', '合规'],
                 pdf: 'assets/papers/jf-04.pdf'
             }
         ]
@@ -1175,36 +1179,39 @@ const JOURNALS = {
               '多首发于此。',
         papers: [
             {
-                // ★ 组长提供的 PDF 原件
-                title: 'Agency Costs of Free Cash Flow, Capital Allocation, and Payouts',
-                authors: 'Jensen, M. C.',
-                year: 1986, volume: '', issue: '', pages: '',
-                cited: 6842,
-                tags: ['代理成本', '自由现金流', '公司金融'],
-                pdf: 'assets/papers/Agency cost of free cash flow, capital allocation, and payouts.pdf'
+                title: 'Dual Peer Effects and Cross-Stock Predictability',
+                authors: 'Avramov, D., Ge, S., Li, S., & Linton, O.',
+                source: 'Working Paper (Jan 2026)',
+                year: 2026, volume: '', issue: '', pages: '',
+                cited: 0,
+                tags: ['同行效应', '横截面预测'],
+                pdf: 'assets/papers/jfe-01.pdf'
             },
             {
-                title: 'Theory of the Firm: Managerial Behavior, Agency Costs and Ownership Structure',
-                authors: 'Jensen, M. C., & Meckling, W. H.',
-                year: 1976, volume: '3', issue: '4', pages: '305–360',
-                cited: 68215,
-                tags: ['代理理论', '公司治理'],
+                title: 'Agency Cost of Free Cash Flow, Capital Allocation, and Payouts',
+                authors: 'DeAngelo, H., Kahle, K., & Skinner, D. J.',
+                source: 'Working Paper (May 2025)',
+                year: 2025, volume: '', issue: '', pages: '',
+                cited: 0,
+                tags: ['代理成本', '自由现金流', '股利政策'],
                 pdf: 'assets/papers/jfe-02.pdf'
             },
             {
-                title: 'Corporate Financing and Investment Decisions When Firms Have Information That Investors Do Not Have',
-                authors: 'Myers, S. C., & Majluf, N. S.',
-                year: 1984, volume: '13', issue: '2', pages: '187–221',
-                cited: 21093,
-                tags: ['信息不对称', '融资决策'],
+                title: 'Policy Uncertainty Reduces Green Innovation',
+                authors: 'Wang, M., Wurgler, J., & Zhang, H.',
+                source: 'Working Paper (Oct 2025)',
+                year: 2025, volume: '', issue: '', pages: '',
+                cited: 0,
+                tags: ['政策不确定性', '绿色创新'],
                 pdf: 'assets/papers/jfe-03.pdf'
             },
             {
-                title: 'A Five-Factor Asset Pricing Model',
-                authors: 'Fama, E. F., & French, K. R.',
-                year: 2015, volume: '116', issue: '1', pages: '1–22',
-                cited: 9547,
-                tags: ['五因子模型', '资产定价'],
+                title: 'The Invention of Corporate Governance',
+                authors: 'Ma, Y., & Shleifer, A.',
+                source: 'NBER Working Paper 33710',
+                year: 2025, volume: '', issue: '', pages: '',
+                cited: 0,
+                tags: ['公司治理', '金融史'],
                 pdf: 'assets/papers/jfe-04.pdf'
             }
         ]
@@ -1221,36 +1228,49 @@ const JOURNALS = {
               '方向持续产出高影响力成果。',
         papers: [
             {
-                title: 'What Matters in Corporate Governance?',
-                authors: 'Bebchuk, L., Cohen, A., & Ferrell, A.',
-                year: 2009, volume: '22', issue: '2', pages: '783–827',
-                cited: 5316,
-                tags: ['公司治理', '反收购条款'],
+                title: 'Long Rates, Life Insurers, and Credit Spreads',
+                authors: 'Li, Z.',
+                source: 'Working Paper (Aug 2026)',
+                year: 2026, volume: '', issue: '', pages: '',
+                cited: 0,
+                tags: ['长期利率', '信用利差', '保险公司'],
                 pdf: 'assets/papers/rfs-01.pdf'
             },
             {
-                title: 'International Asset Allocation with Regime Shifts',
-                authors: 'Ang, A., & Bekaert, G.',
-                year: 2002, volume: '15', issue: '4', pages: '1137–1187',
-                cited: 2841,
-                tags: ['资产配置', '区制转换'],
+                title: 'Beliefs and Portfolios: Causal Evidence',
+                authors: 'Beutel, J., & Weber, M.',
+                source: 'NBER Working Paper 34489',
+                year: 2025, volume: '', issue: '', pages: '',
+                cited: 0,
+                tags: ['信念', '资产组合'],
                 pdf: 'assets/papers/rfs-02.pdf'
             },
             {
-                title: 'How Different Is Japanese Corporate Finance? An Investigation of the Information Content of New Security Issues',
-                authors: 'Kang, J.-K., & Stulz, R. M.',
-                year: 1996, volume: '9', issue: '1', pages: '109–139',
-                cited: 1596,
-                tags: ['国际金融', '公司融资'],
+                title: 'Government Intervention in the Financial Market',
+                authors: 'Wang, J.',
+                source: 'NBER Working Paper 33827',
+                year: 2025, volume: '', issue: '', pages: '',
+                cited: 0,
+                tags: ['政府干预', '金融市场'],
                 pdf: 'assets/papers/rfs-03.pdf'
             },
             {
-                title: 'Heterogeneous Expectations and Bond Markets',
-                authors: 'Xiong, W., & Yan, H.',
-                year: 2010, volume: '23', issue: '4', pages: '1433–1466',
-                cited: 927,
-                tags: ['异质预期', '债券市场'],
+                title: 'In Safe Hands: The Financial and Real Impact of Investor Composition Over the Credit Cycle',
+                authors: 'Coppola, A.',
+                source: 'Working Paper (Jun 2024)',
+                year: 2024, volume: '', issue: '', pages: '',
+                cited: 0,
+                tags: ['投资者结构', '信用周期', '债券'],
                 pdf: 'assets/papers/rfs-04.pdf'
+            },
+            {
+                title: 'Effects of Credit Expansions on Stock Market Booms and Busts',
+                authors: 'Hansman, C., Hong, H., Jiang, W., Liu, Y.-J., & Meng, J.-J.',
+                source: 'NBER Working Paper 24586',
+                year: 2018, volume: '', issue: '', pages: '',
+                cited: 0,
+                tags: ['信贷扩张', '股市泡沫'],
+                pdf: 'assets/papers/rfs-05.pdf'
             }
         ]
     }
@@ -1296,9 +1316,11 @@ function renderJournal(key) {
         if (p.issue)  srcParts.push(`No. ${escHtml(p.issue)}`);
         if (p.pages)  srcParts.push(`pp. ${escHtml(p.pages)}`);
 
+        // ★ source 字段：论文实际出处（多数是工作论文/其他期刊，非三大顶刊，避免误导）
+        const srcName = p.source || j.nameEn;
         const srcLine = srcParts.length
-            ? `<div class="si-source"><span class="si-journal">${escHtml(j.nameEn)}</span>，${srcParts.join('，')}</div>`
-            : `<div class="si-source"><span class="si-journal">${escHtml(j.nameEn)}</span></div>`;
+            ? `<div class="si-source"><span class="si-journal">${escHtml(srcName)}</span>，${srcParts.join('，')}</div>`
+            : `<div class="si-source"><span class="si-journal">${escHtml(srcName)}</span></div>`;
 
         const tagsHtml = (p.tags && p.tags.length)
             ? `<div class="si-tags">${p.tags.map(t => `<span>${escHtml(t)}</span>`).join('')}</div>`
