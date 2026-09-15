@@ -1981,13 +1981,27 @@ footer{
     stroke-width:2.5;
 }
 .g-node.zoom-macro.course .g-label{
-    font-size:11px;
-    fill:rgba(129,28,33,.85);
-    opacity:.9;
+    /* ★ 2026-09-15：宏观层缩放 ≤0.4，标签字号按层级补偿（30 × 0.4 ≈ 12px 屏上可读） */
+    font-size:30px;
+    fill:rgba(129,28,33,.9);
+    opacity:.95;
+    font-weight:bold;
 }
 /* 中观：次级节点展示，外环隐藏文字 */
 .g-node.zoom-meso.other .g-label{
     opacity:0;
+}
+/* ★ 2026-09-15：中观标签字号补偿（20 × 0.4~0.8 ≈ 8~16px 屏上可读） */
+.g-node.zoom-meso .g-label{
+    font-size:20px;
+}
+/* ★ 2026-09-15：清洗标记 quality=low 的短概念（表格小标题类）标签默认不显示，hover 才出 */
+.g-label.low-q{
+    opacity:0;
+    transition:opacity .2s;
+}
+.g-node:hover .g-label.low-q{
+    opacity:1;
 }
 /* 微观：中心节点放大 + 卡片脉冲 */
 .g-node.zoom-micro.focused circle{

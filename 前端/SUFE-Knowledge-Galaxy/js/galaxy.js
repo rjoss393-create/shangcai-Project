@@ -23,11 +23,18 @@
         'https://lib.baomitu.com/d3/7.9.0/d3.min.js'
     ];
 
+    // ★ 2026-09-15：环形半径按"数据层级"排布（宏观章在内圈、中观节居中、微观概念/公式在外圈），
+    //   取代原来按 category 的 155/250/335——那次的目标只是"散开一点"，层级语义没体现。
+    //   半径取值配合下方 LEVEL_SCALE_BAND：宏观层在 0.4 缩放下直径约 400px，标签仍可读。
     const RING_RADIUS = {
-        '课程':       155,
-        '概念':       250,
-        '__default__': 335
+        'macro':       500,
+        'meso':        800,
+        'micro':      1100,
+        '__default__': 1100
     };
+    // 层级序号：数值越小越"宏观"，用于按当前缩放层级过滤渲染集
+    const LAYER_RANK = { macro: 0, meso: 1, micro: 2 };
+    const EDGE_RANK  = { hier: 0, macro: 0, meso: 1, micro: 2 };
 
     // ★ 节点配色：红橙黄绿青蓝紫 7 色，按节点 id 哈希稳定分配（刷新/切书不变色）
     const NODE_COLORS = ['#c0392b', '#e67e22', '#f0b400', '#27ae60', '#16a085', '#2980b9', '#8e44ad'];
@@ -45,6 +52,14 @@
     const SCALE_MIN = 0.12;
     const SCALE_MAX = 2.0;
     const SCALE_DEFAULT = 0.7;   // 初始落在中观层
+
+    // 每个缩放层级允许的缩放带（fitViewToContent 会把结果夹到带内，
+    // 避免"适配这一层的内容 → 缩放跨到另一层 → 渲染集又变"的来回抖动）
+    const LEVEL_SCALE_BAND = {
+        macro: [SCALE_MIN, ZOOM_BOUNDS.macroMax],
+        meso:  [ZOOM_BOUNDS.macroMax, ZOOM_BOUNDS.mesoMax],
+        micro: [ZOOM_BOUNDS.mesoMax, SCALE_MAX]
+    };
 
     // ★ 视野裁剪参数（世界坐标）：
     //   视野框 + CULL_RENDER_MARGIN 内 → 渲染集（挂 DOM）
@@ -157,7 +172,10 @@
         if (node.type === 'concept') return '概念';
         return '';
     }
-    const ringOf = n => RING_RADIUS[categoryOf(n)] ?? RING_RADIUS.__default__;
+    const ringOf = n => RING_RADIUS[n.layer] ?? RING_RADIUS.__default__;
+    // 当前缩放层级下"可见"的数据层级（宏观=只看章；中观=章+节；微观=全部）
+    const layerRankOf = n => LAYER_RANK[n.layer] ?? 2;
+    const rankAtLevel = () => LAYER_RANK[state.zoomLevel] ?? 2;
 
     function classOf(node) {
         const c = categoryOf(node);
@@ -165,6 +183,9 @@
         if (c === '概念') return 'concept';
         return 'other';
     }
+
+    // ★ 清洗质量标记：low = 短词/表格小标题类（后端放在 extra.quality 里）
+    const qualityOf = n => n.quality || (n.extra && n.extra.quality) || '';
 
     const srcId   = e => (e.source && typeof e.source === 'object') ? e.source.id : e.source;
     const tgtId   = e => (e.target && typeof e.target === 'object') ? e.target.id : e.target;
@@ -310,10 +331,14 @@
 
         const renderIds = new Set(), activeIds = new Set();
         const rmx = CULL_RENDER_MARGIN, amx = CULL_ACTIVE_MARGIN;
+        // ★ 层级过滤只作用于"渲染集"：活动集（参与力导向）保持全量，
+        //   这样放大到更深层级时，下层级节点已经在正确位置，不会挤成一团。
+        const lvlRank = rankAtLevel();
 
         for (const n of state.allNodes) {
             const x = n.x || 0, y = n.y || 0;
-            if (x > vp.minX - rmx && x < vp.maxX + rmx &&
+            if (layerRankOf(n) <= lvlRank &&
+                x > vp.minX - rmx && x < vp.maxX + rmx &&
                 y > vp.minY - rmx && y < vp.maxY + rmx) renderIds.add(n.id);
             if (x > vp.minX - amx && x < vp.maxX + amx &&
                 y > vp.minY - amx && y < vp.maxY + amx) activeIds.add(n.id);
@@ -325,7 +350,10 @@
         forceIds.forEach(id => { if (id) renderIds.add(id); });
 
         state.renderNodes = state.allNodes.filter(n => renderIds.has(n.id));
+        // 边同样按层级过滤：hier（父子）与 macro 恒显，meso/micro 的相关边只在自己层级出现，
+        // 避免宏观层被几千条"概念-概念相关"边糊成毛线球
         state.renderEdges = state.allEdges.filter(e =>
+            (EDGE_RANK[e.layer] ?? 2) <= lvlRank &&
             renderIds.has(srcId(e)) && renderIds.has(tgtId(e)));
         state.nodes = state.allNodes.filter(n => activeIds.has(n.id));
         state.edges = state.allEdges.filter(e =>
@@ -433,16 +461,11 @@
             .attr('r', visualRadius)
             .style('fill', d => NODE_COLORS[colorIndexOf(d)]);
 
+        // 标签：宏观层节点少时用全名（多了才截断）；清洗标记为 quality=low 的短概念默认不显示标签，hover 才出
+        const macroFew = state.renderNodes.length <= 30;
         merged.select('text')
-            .attr('class', d => {
-                const r = ringOf(d);
-                let cls = 'g-label';
-                if (r <= 140) cls += ' ring-core';
-                // 中观以上：外环隐藏文字（对齐现有待办）
-                if (lvl !== 'macro' && r > 200) cls += ' hidden';
-                return cls;
-            })
-            .text(d => lvl === 'macro' ? shortName(d.label) : d.label)
+            .attr('class', d => 'g-label' + (qualityOf(d) === 'low' ? ' low-q' : ''))
+            .text(d => (lvl === 'macro' && !macroFew) ? shortName(d.label) : d.label)
             .attr('dy', d => radiusOf(d) + 16);
 
         // ---- 连线 ----
@@ -634,7 +657,8 @@
         if (stage) stage.setAttribute('data-zoom-level', lvl);
         const page = stage && stage.closest('.galaxy-page');
         if (page) page.setAttribute('data-zoom-level', lvl);
-render();
+        // ★ 层级变化 = 渲染集变化（宏观只画章、中观加节、微观全画），交给裁剪重算
+        updateCulling(false);
     }
 
     // ★ 新增：动画插值到目标变换（用于自动漫游 / 回到宏观 / 重置）
@@ -684,7 +708,7 @@ render();
         force.initialize = ns => { nodes = ns; };
         return force;
     }
-    const CULL_CONFINE_RADIUS = 1400;   // 布局最大半径（世界坐标）
+    const CULL_CONFINE_RADIUS = 1500;   // 布局最大半径（世界坐标，需 ≥ 最外圈 micro 的 1100）
 
     // ---------- ★ 视图适配内容 ----------
     let _pendingFit = false;   // 加载/切换后等待布局稳定再适配一次
@@ -692,7 +716,11 @@ render();
 
     function fitViewToContent(duration) {
         if (!svg) return;
-        const pts = state.allNodes.filter(n => n.x != null && n.y != null && isFinite(n.x) && isFinite(n.y));
+        // ★ 只按"当前层级可见的节点"适配：隐藏层级（如宏观下的节/概念）不参与包围盒，
+        //   否则会为了塞下看不见的节点把视图拉得过远
+        const lvlRank = rankAtLevel();
+        const pts = state.allNodes.filter(n => layerRankOf(n) <= lvlRank &&
+            n.x != null && n.y != null && isFinite(n.x) && isFinite(n.y));
         if (!pts.length) return;
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
         pts.forEach(n => {
@@ -704,8 +732,10 @@ render();
         const w = Math.max(maxX - minX, 1), h = Math.max(maxY - minY, 1);
         const rect = svg.node().getBoundingClientRect();
         const pad = 90;
-        const s = Math.max(SCALE_MIN,
-            Math.min(1.2, Math.min(rect.width / (w + pad * 2), rect.height / (h + pad * 2))));
+        const raw = Math.min(rect.width / (w + pad * 2), rect.height / (h + pad * 2));
+        // ★ 夹到当前层级的缩放带：适配结果一旦跨层，渲染集就会跟着跳变（来回抖动）
+        const band = LEVEL_SCALE_BAND[state.zoomLevel] || [SCALE_MIN, SCALE_MAX];
+        const s = Math.max(band[0], Math.min(band[1], raw));
         const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
         animateTo(s, -cx * s, -cy * s, state.rotation, duration || 600);
     }
