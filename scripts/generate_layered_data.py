@@ -46,7 +46,7 @@ DERIVED_EDGE_CAP = 8       # 每个节点派生相关边上限
 #   ① 同一章的页眉在连续页上被抽成多个章节点（"第21章期权估值"×12）
 #   ② 目录页整页变成章节点  ③ 表格数字变成"节"（90.75%、139.66）
 #   ④ 正文句子、版权页信息变成"概念"
-# 这里按规则清洗，命中情况全部写进《数据清洗报告.md》供人工审阅；
+# 这里按规则清洗，命中情况全部写进《文档/记录/数据清洗报告.md》供人工审阅；
 # 原始交付文件不改，只影响分层产物。
 # ============================================================
 R_SEC_NUM    = re.compile(r"^[\d.,]+\s*%?[yY]?$")                         # 90.75% / 43.80 / 139.66
@@ -402,9 +402,10 @@ def main() -> None:
 
     if not args.no_clean:
         root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        with open(os.path.join(root, "数据清洗报告.md"), "w", encoding="utf-8") as f:
+        report_path = os.path.join(root, "文档", "记录", "数据清洗报告.md")
+        with open(report_path, "w", encoding="utf-8") as f:
             f.write("\n".join(report_md))
-        print(f"\n清洗报告已写入 数据清洗报告.md" + ("（dry-run，未改分层文件）" if args.dry_run else ""))
+        print(f"\n清洗报告已写入 文档/记录/数据清洗报告.md" + ("（dry-run，未改分层文件）" if args.dry_run else ""))
 
 
 def build_layered(raw: dict, graph_id: str):

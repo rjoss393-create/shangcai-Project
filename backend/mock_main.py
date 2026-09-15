@@ -111,7 +111,7 @@ class MockGraphService:
 class MockQaAgent:
     """假智能问答：匹配文本中出现过的节点名，按 Agent 层 AnswerResult 格式输出。
 
-    输出格式与根目录《llm返回输出示例.md》一致：
+    输出格式与《文档/协议/llm返回输出示例.md》一致：
     prediction_html 带 <sup><a class="kg-node-link" data-node-id=...> 上标。
     """
 

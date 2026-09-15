@@ -75,7 +75,7 @@ class AnimationAction(BaseModel):
 class RelatedNode(BaseModel):
     """答案中引用的图谱节点（与 prediction_html 中 data-node-id 一一对应）
 
-    格式由 Agent 层提供（见根目录 llm返回输出示例.md）。
+    格式由 Agent 层提供（见《文档/协议/llm返回输出示例.md》）。
     """
 
     id: str                            # 节点唯一 ID，与图谱一致

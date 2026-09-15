@@ -39,7 +39,7 @@ POST /api/graph/load 带 graph_id 时，控制层在后台调用 Agent.preload(g
 
   - GraphService: get_full_graph() / get_sub_graph(node_id, depth) / search_keywords(keywords, limit)
   - QaAgent.preload(graph_id, graph) -> None：页面打开时预热（幂等，失败不抛异常）
-  - QaAgent.answer(graph_data, question) -> AnswerResult：检索+回答，graph_data 字段格式见根目录《字段.md》（必填 graph_id/nodes/edges；节点必填 id/label；边必填 source/target/relation），related_nodes 的 id 与 prediction_html 的 data-node-id 一一对应（格式见根目录 llm返回输出示例.md）
+  - QaAgent.answer(graph_data, question) -> AnswerResult：检索+回答，graph_data 字段格式见同目录《字段.md》（必填 graph_id/nodes/edges；节点必填 id/label；边必填 source/target/relation），related_nodes 的 id 与 prediction_html 的 data-node-id 一一对应（格式见同目录 llm返回输出示例.md）
 
   两点说明：
 

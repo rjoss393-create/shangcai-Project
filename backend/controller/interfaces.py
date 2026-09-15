@@ -41,7 +41,7 @@ class GraphService(Protocol):
 class QaAgent(Protocol):
     """智能问答 Agent（对应 agent/qa_agent.py，检索 + 回答都在内部完成）
 
-    传给 Agent 的 GraphData 字段格式见根目录《字段.md》（Agent 层给定的必要
+    传给 Agent 的 GraphData 字段格式见《文档/协议/字段.md》（Agent 层给定的必要
     字段文档）：图级必填 graph_id / nodes / edges；节点必填 id / label；
     边必填 source / target / relation。
     """

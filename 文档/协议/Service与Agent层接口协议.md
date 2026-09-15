@@ -69,11 +69,11 @@ class GraphData(BaseModel):
     edges: list[GraphEdge] = []
 ```
 
-完整格式说明见根目录《字段.md》（Agent 层给定的必要字段文档）。
+完整格式说明见同目录《字段.md》（Agent 层给定的必要字段文档）。
 
 ### AnswerResult（QaAgent.answer 必须返回的结构，Agent 层必读）
 
-格式与根目录《llm返回输出示例.md》一致：
+格式与同目录《llm返回输出示例.md》一致：
 
 ```python
 class RelatedNode(BaseModel):
