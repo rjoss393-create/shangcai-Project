@@ -40,7 +40,9 @@
 
     // ★ 新增：缩放分层阈值（对齐需求 40% / 80%）
     const ZOOM_BOUNDS = { macroMax: 0.4, mesoMax: 0.8 };
-    const SCALE_MIN = 0.28;
+    // 缩放下限须低于"最大图谱的适配缩放"，否则 fitViewToContent 被卡住、装不进视野。
+    // 实测最大图谱（经济综合 5437 节点）跨度约 4500 世界单位，660px 高画布需 ~0.14，取 0.12 留余量。
+    const SCALE_MIN = 0.12;
     const SCALE_MAX = 2.0;
     const SCALE_DEFAULT = 0.7;   // 初始落在中观层
 
@@ -208,7 +210,15 @@
             const old = nodeMap.get(n.id);
             // 保留已有布局坐标：合并时不清空 x/y（裁剪恢复依赖历史坐标）
             if (old) Object.assign(old, n);
-            else     nodeMap.set(n.id, { ...n, x: 0, y: 0 });
+            else {
+                // ★ 新节点必须给"不重合"的初始坐标：全部落在 (0,0) 会让 d3 四叉树的
+                //   斥力在零距离处产生数值爆炸（实测 1 tick 冲到 146 万世界单位，节点
+                //   飞出视野后被裁剪冻结，图谱永久空白）。用 d3 同款费马螺旋撒点。
+                const i = nodeMap.size;
+                const r = 10 * Math.sqrt(0.5 + i);
+                const a = i * Math.PI * (3 - Math.sqrt(5));
+                nodeMap.set(n.id, { ...n, x: r * Math.cos(a), y: r * Math.sin(a) });
+            }
         });
         state.allNodes = Array.from(nodeMap.values());
 
@@ -654,7 +664,7 @@ render();
         });
     }
 
-    // ---------- ★ 布局围墙（限制整体直径，保证任何缩放下都装得进视野） ----------
+    // ---------- ★ 布局围墙（把布局半径收在可视范围附近，实测 econ 跨度 5847→4513） ----------
     function confineForce(maxR) {
         let nodes = [];
         function force(alpha) {
