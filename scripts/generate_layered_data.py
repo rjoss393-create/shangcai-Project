@@ -16,7 +16,7 @@
 
 用法：
     python scripts/generate_layered_data.py [--src 源目录] [--out 输出目录]
-默认源目录 知识图谱和书和视频/，输出 data/layered/。
+默认源目录 数据/（书页图谱 JSON + 视频等原始交付文件），输出 data/layered/。
 """
 import argparse
 import json
@@ -42,7 +42,7 @@ DERIVED_EDGE_CAP = 8       # 每个节点派生相关边上限
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="生成分层知识图谱")
-    parser.add_argument("--src", default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "知识图谱和书和视频"))
+    parser.add_argument("--src", default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "数据"))
     parser.add_argument("--out", default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "layered"))
     args = parser.parse_args()
 

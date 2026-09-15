@@ -1,6 +1,6 @@
 """数据层 · 视频导入脚本
 
-把 知识图谱和书和视频/ 下的课程视频复制到前端静态目录并生成清单：
+把 数据/ 下的课程视频复制到前端静态目录并生成清单：
 
 - 视频 -> 前端/SUFE-Knowledge-Galaxy/assets/videos/01.mp4 ~ NN.mp4
   （金融理论 Andrew Lo P1-P23 = 01-23；耶鲁公开课 Shiller = 24-45）
@@ -17,7 +17,7 @@ import re
 import shutil
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC_DEFAULT = os.path.join(ROOT, "知识图谱和书和视频")
+SRC_DEFAULT = os.path.join(ROOT, "数据")
 OUT_DIR = os.path.join(ROOT, "前端", "SUFE-Knowledge-Galaxy", "assets", "videos")
 MANIFEST_PATH = os.path.join(ROOT, "前端", "SUFE-Knowledge-Galaxy", "data", "videos.json")
 
