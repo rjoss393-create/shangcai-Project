@@ -60,6 +60,7 @@ R_FRONT      = re.compile(r"ISBN|定价|www\.|上架建议|编著|出版社|印�
                           r"责任编辑|责任校对|责任印制|封面设计|装订|经销|开\s*本|印张|字数|"
                           r"社总机|邮\s*编|产品编号")
 R_EN_FRAG    = re.compile(r"^[A-Za-z][A-Za-z\s.\-]{0,5}$")                # Graw / WQBOK
+R_TAIL_NOISE = re.compile(r"[\s①②③④⑤⑥⑦⑧⑨⑩0-9]+$")                      # 标题尾部的页码/序号残留
 
 FRONT_PAGES = 5        # 前置页（封面/版权/目录）页码范围
 SHORT_LABEL = 6        # 概念短于该长度 → 可能是表格小标题，标 quality=low 而不删
@@ -100,6 +101,12 @@ def collapse_repeat(lab: str):
     return None
 
 
+def strip_tail_noise(lab: str) -> str:
+    """去掉标题尾部的页码/序号残留（"6.4 武商联：在疲于奔命中成长 4" → 去掉" 4"）。"""
+    core = R_TAIL_NOISE.sub("", lab).strip()
+    return core if len(core) >= 6 else lab
+
+
 def title_echo(lab: str, title: str) -> bool:
     """前置页里出现的"书名回声"（如 "并购与重组一 中国案例"），判为封面/版权页残留。"""
     for i in range(len(lab) - 3):
@@ -126,7 +133,7 @@ def clean_raw(raw: dict, graph_id: str):
     # 章号连续性上限：裸节号的章号不得超过"已知最大章号 + 2"（挡掉 14.5 这类表格小数值）
     max_ch = (max(chapter_nums) + 2) if chapter_nums else 0
 
-    dropped, renamed, flags, fixed_repeat = {}, {}, {}, {}
+    dropped, renamed, flags, fixed_repeat, trimmed = {}, {}, {}, {}, {}
     for n in nodes:
         t = n.get("type")
         lab = str(n.get("label") or "").strip()
@@ -151,6 +158,11 @@ def clean_raw(raw: dict, graph_id: str):
                 dropped[n["id"]] = "节·表格数字/金额/日期"
             elif is_sentence_fragment(lab):
                 dropped[n["id"]] = "节·正文句子碎片"
+            else:
+                stripped = strip_tail_noise(lab)
+                if stripped != lab:
+                    renamed[n["id"]] = stripped
+                    trimmed[n["id"]] = stripped
         elif t == "concept":
             if R_FRONT.search(lab):
                 dropped[n["id"]] = "概念·版权页字段"
@@ -225,7 +237,7 @@ def clean_raw(raw: dict, graph_id: str):
         "原始节点": len(nodes), "原始边": len(edges),
         "清洗后节点": len(kept_nodes), "清洗后边": len(out_edges),
         "删除": dropped, "改名": renamed, "标记low": flags, "推导章": derived,
-        "修复标题重复": fixed_repeat,
+        "修复标题重复": fixed_repeat, "清理尾部杂讯": trimmed,
     }
     cleaned = dict(raw)
     cleaned["nodes"] = kept_nodes

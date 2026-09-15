@@ -6,2359 +6,2459 @@
  "source": "并购与重组 中国案例 (蔡荣鑫编著, 蔡荣鑫编著）.json",
  "nodes": [
   {
-   "id": "concept_0021",
-   "label": "经 销：全国新华书店",
-   "type": "concept",
-   "page": 4,
-   "layer": "micro",
-   "parents": [
-    "section_0032"
-   ]
-  },
-  {
-   "id": "concept_0023",
-   "label": "字 数：266千字",
-   "type": "concept",
-   "page": 4,
-   "layer": "micro",
-   "parents": [
-    "section_0032"
-   ]
-  },
-  {
-   "id": "concept_0024",
-   "label": "版 次：2015年6月第1版",
-   "type": "concept",
-   "page": 4,
-   "layer": "micro",
-   "parents": [
-    "section_0032"
-   ]
-  },
-  {
-   "id": "concept_0030",
+   "id": "concept_0009",
    "label": "并购与重组中国案例",
    "type": "concept",
    "page": 9,
    "layer": "micro",
    "parents": [
-    "section_0397"
+    "chapter_0054",
+    "chapter_0143"
    ]
   },
   {
-   "id": "concept_0031",
+   "id": "concept_0010",
    "label": "并购基础知识",
    "type": "concept",
    "page": 11,
    "layer": "micro",
    "parents": [
-    "section_0032"
+    "section_0011"
    ],
    "quality": "low"
   },
   {
-   "id": "section_0032",
+   "id": "section_0011",
    "label": "1.1 定 义",
    "type": "section",
    "page": 11,
    "layer": "meso",
    "parents": [
-    "chapter_derived_01"
+    "chapter_0022"
    ]
   },
   {
-   "id": "formula_0033",
+   "id": "formula_0012",
    "label": "NAV = [VAB − (VA +VB)]- (P + E)",
    "type": "formula",
    "page": 11,
    "layer": "micro",
    "parents": [
-    "section_0032"
+    "section_0011"
    ],
    "quality": "medium"
   },
   {
-   "id": "concept_0034",
+   "id": "concept_0013",
    "label": "交易前",
    "type": "concept",
    "page": 13,
    "layer": "micro",
    "parents": [
-    "section_0032"
+    "section_0011"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0035",
+   "id": "concept_0014",
    "label": "交易内容",
    "type": "concept",
    "page": 13,
    "layer": "micro",
    "parents": [
-    "section_0032"
+    "section_0011"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0036",
+   "id": "concept_0015",
    "label": "交易后",
    "type": "concept",
    "page": 13,
    "layer": "micro",
    "parents": [
-    "section_0032"
+    "section_0011"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0037",
+   "id": "concept_0016",
    "label": "中国平安",
    "type": "concept",
    "page": 13,
    "layer": "micro",
    "parents": [
-    "section_0032",
-    "section_0040"
+    "section_0011"
    ],
    "quality": "low"
   },
   {
-   "id": "section_0038",
+   "id": "concept_0017",
    "label": "1.深发展向中国平安定",
-   "type": "section",
-   "page": 13,
-   "layer": "meso",
-   "parents": [
-    "chapter_derived_01"
-   ]
-  },
-  {
-   "id": "section_0040",
-   "label": "2.中国平安以其所持有",
-   "type": "section",
-   "page": 13,
-   "layer": "meso",
-   "parents": [
-    "chapter_derived_01"
-   ]
-  },
-  {
-   "id": "concept_0043",
-   "label": "的平安银行约90.75%的",
    "type": "concept",
    "page": 13,
    "layer": "micro",
    "parents": [
-    "section_0040"
+    "section_0011"
    ]
   },
   {
-   "id": "concept_0044",
+   "id": "concept_0018",
+   "label": "2.中国平安以其所持有",
+   "type": "concept",
+   "page": 13,
+   "layer": "micro",
+   "parents": [
+    "section_0011"
+   ]
+  },
+  {
+   "id": "concept_0019",
    "label": "股份和现金对价认购深",
    "type": "concept",
    "page": 13,
    "layer": "micro",
    "parents": [
-    "section_0040"
+    "section_0011"
    ]
   },
   {
-   "id": "concept_0045",
+   "id": "concept_0020",
    "label": "平安银行",
    "type": "concept",
    "page": 13,
    "layer": "micro",
    "parents": [
-    "section_0040"
+    "section_0011"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0046",
+   "id": "concept_0021",
    "label": "深发展",
    "type": "concept",
    "page": 13,
    "layer": "micro",
    "parents": [
-    "section_0040"
+    "section_0011"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0049",
-   "label": "并购类型 1.2",
-   "type": "concept",
+   "id": "chapter_0022",
+   "label": "第1章 并购基础知识",
+   "type": "chapter",
+   "page": 13,
+   "layer": "macro",
+   "parents": []
+  },
+  {
+   "id": "section_0023",
+   "label": "1.2 并购类型",
+   "type": "section",
    "page": 14,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0052"
+    "chapter_0022"
    ]
   },
   {
-   "id": "section_0052",
+   "id": "concept_0024",
    "label": "1. 横向并购(horizontalmerger)",
-   "type": "section",
+   "type": "concept",
    "page": 14,
-   "layer": "meso",
+   "layer": "micro",
    "parents": [
-    "chapter_derived_01"
+    "section_0023"
    ]
   },
   {
-   "id": "section_0054",
+   "id": "concept_0025",
    "label": "2. 纵向并购(verticalmerger)",
-   "type": "section",
+   "type": "concept",
    "page": 15,
-   "layer": "meso",
+   "layer": "micro",
    "parents": [
-    "chapter_derived_01"
+    "section_0023"
    ]
   },
   {
-   "id": "section_0057",
+   "id": "concept_0026",
    "label": "3.混合并购(conglomerate merger)",
-   "type": "section",
+   "type": "concept",
    "page": 16,
-   "layer": "meso",
+   "layer": "micro",
    "parents": [
-    "chapter_derived_01"
+    "chapter_0022"
    ]
   },
   {
-   "id": "concept_0058",
-   "label": "并购发展过程简介",
-   "type": "concept",
+   "id": "section_0027",
+   "label": "1.3 并购发展过程简介",
+   "type": "section",
    "page": 17,
-   "layer": "micro",
-   "parents": [
-    "section_0057"
-   ]
-  },
-  {
-   "id": "section_0064",
-   "label": "1. 萌芽阶段：1990—1993年",
-   "type": "section",
-   "page": 18,
    "layer": "meso",
    "parents": [
-    "chapter_derived_01"
+    "chapter_0022"
    ]
   },
   {
-   "id": "section_0065",
-   "label": "2. 高速发展阶段：1994—1998年",
+   "id": "section_0028",
+   "label": "1.4 并购重组与内幕交易",
    "type": "section",
-   "page": 18,
-   "layer": "meso",
-   "parents": [
-    "chapter_derived_01"
-   ]
-  },
-  {
-   "id": "section_0066",
-   "label": "3. 规范发展阶段：1999—2005年",
-   "type": "section",
-   "page": 18,
-   "layer": "meso",
-   "parents": [
-    "chapter_derived_01"
-   ]
-  },
-  {
-   "id": "section_0067",
-   "label": "4. 产业并购日渐成为主流：2005年至今",
-   "type": "section",
-   "page": 19,
-   "layer": "meso",
-   "parents": [
-    "chapter_derived_01"
-   ]
-  },
-  {
-   "id": "concept_0070",
-   "label": "并购重组与内幕交易 1.4",
-   "type": "concept",
    "page": 20,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0067"
+    "chapter_0022"
    ]
   },
   {
-   "id": "concept_0072",
-   "label": "股价27",
-   "type": "concept",
-   "page": 22,
-   "layer": "micro",
-   "parents": [
-    "section_0067"
-   ],
-   "quality": "low"
-  },
-  {
-   "id": "concept_0075",
+   "id": "concept_0029",
    "label": "时间",
    "type": "concept",
    "page": 22,
    "layer": "micro",
    "parents": [
-    "section_0076"
+    "chapter_0022",
+    "section_0042",
+    "chapter_0033",
+    "chapter_0047",
+    "section_0053",
+    "chapter_0054"
    ],
    "quality": "low"
   },
   {
-   "id": "section_0076",
+   "id": "section_0030",
    "label": "1.5 注册制： 我们准备好了 吗",
    "type": "section",
    "page": 22,
    "layer": "meso",
    "parents": [
-    "chapter_derived_01"
+    "chapter_0022"
    ]
   },
   {
-   "id": "concept_0080",
+   "id": "concept_0031",
    "label": "企业并购基本动因",
    "type": "concept",
    "page": 26,
    "layer": "micro",
    "parents": [
-    "section_0076"
+    "chapter_0022"
    ]
   },
   {
-   "id": "concept_0081",
-   "label": "前瞻布局，防止落伍或被颠覆 2.1",
-   "type": "concept",
+   "id": "section_0032",
+   "label": "2.1 前瞻布局，防止落伍或被颠覆",
+   "type": "section",
    "page": 26,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0076"
+    "chapter_0022"
    ]
   },
   {
-   "id": "concept_0083",
-   "label": "领先企业战略调整，变现资源与优势 2.2",
-   "type": "concept",
+   "id": "chapter_0033",
+   "label": "第2章 企业并购基本动因",
+   "type": "chapter",
+   "page": 27,
+   "layer": "macro",
+   "parents": []
+  },
+  {
+   "id": "section_0034",
+   "label": "2.2 领先企业战略调整，变现资源与优势",
+   "type": "section",
    "page": 30,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0076"
+    "chapter_0033"
    ]
   },
   {
-   "id": "concept_0097",
-   "label": "扩大企业规模，实现规模经济",
-   "type": "concept",
-   "page": 37,
-   "layer": "micro",
-   "parents": [
-    "section_0076"
-   ]
-  },
-  {
-   "id": "formula_0098",
+   "id": "formula_0035",
    "label": "C(Q1+ Q2) <C(Q1) + C(Q2)",
    "type": "formula",
    "page": 37,
    "layer": "micro",
    "parents": [
-    "section_0076"
+    "chapter_0033"
    ],
    "quality": "medium"
   },
   {
-   "id": "concept_0101",
-   "label": "化敌为己， 一统江湖 ①",
-   "type": "concept",
-   "page": 39,
-   "layer": "micro",
+   "id": "section_0036",
+   "label": "2.4 融资",
+   "type": "section",
+   "page": 40,
+   "layer": "meso",
    "parents": [
-    "section_0076"
+    "chapter_0033"
    ]
   },
   {
-   "id": "concept_0103",
-   "label": "融资",
-   "type": "concept",
-   "page": 40,
-   "layer": "micro",
-   "parents": [
-    "section_0076"
-   ],
-   "quality": "low"
-  },
-  {
-   "id": "concept_0104",
+   "id": "concept_0037",
    "label": "与竞争对手的",
    "type": "concept",
    "page": 40,
    "layer": "micro",
    "parents": [
-    "section_0076"
+    "section_0036"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0105",
+   "id": "concept_0038",
    "label": "差距拉大",
    "type": "concept",
    "page": 40,
    "layer": "micro",
    "parents": [
-    "section_0076"
+    "section_0036"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0106",
+   "id": "concept_0039",
    "label": "市场份额",
    "type": "concept",
    "page": 40,
    "layer": "micro",
    "parents": [
-    "section_0076"
+    "section_0036"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0107",
+   "id": "concept_0040",
    "label": "圈地",
    "type": "concept",
    "page": 40,
    "layer": "micro",
    "parents": [
-    "section_0076"
+    "section_0036"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0111",
-   "label": "整合生产要素，实现资源共享或互补 2.5",
-   "type": "concept",
+   "id": "section_0041",
+   "label": "2.5 整合生产要素，实现资源共享或互补",
+   "type": "section",
    "page": 43,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0076"
+    "chapter_0033"
    ]
   },
   {
-   "id": "section_0112",
+   "id": "section_0042",
    "label": "2.6 补齐缺失环节、完善产业链条",
    "type": "section",
    "page": 44,
    "layer": "meso",
    "parents": [
-    "chapter_derived_02"
+    "chapter_0033"
    ]
   },
   {
-   "id": "concept_0114",
-   "label": "股价 45",
-   "type": "concept",
-   "page": 45,
-   "layer": "micro",
-   "parents": [
-    "section_0112"
-   ],
-   "quality": "low"
-  },
-  {
-   "id": "concept_0116",
-   "label": "资料来源：苏龙飞(2014)",
-   "type": "concept",
-   "page": 47,
-   "layer": "micro",
-   "parents": [
-    "section_0112"
-   ]
-  },
-  {
-   "id": "section_0119",
+   "id": "section_0043",
    "label": "2.7 应对商业模式剧烈变迁，通过并购快速转型",
    "type": "section",
    "page": 49,
    "layer": "meso",
    "parents": [
-    "chapter_derived_02"
+    "chapter_0033"
    ]
   },
   {
-   "id": "concept_0129",
+   "id": "concept_0044",
    "label": "股价",
    "type": "concept",
    "page": 54,
    "layer": "micro",
    "parents": [
-    "section_0119"
+    "chapter_0033",
+    "chapter_0047",
+    "section_0053",
+    "chapter_0054"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0136",
+   "id": "concept_0045",
    "label": "国家战略 与并购重组 国",
    "type": "concept",
    "page": 56,
    "layer": "micro",
    "parents": [
-    "section_0119"
+    "chapter_0033"
    ]
   },
   {
-   "id": "concept_0137",
-   "label": "行政色彩浓厚的电信业重组 3.1",
-   "type": "concept",
+   "id": "section_0046",
+   "label": "3.1 行政色彩浓厚的电信业重组",
+   "type": "section",
    "page": 56,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0119"
+    "chapter_0033"
    ]
   },
   {
-   "id": "concept_0140",
-   "label": "功败垂成的中铝海外收购 3. 2",
-   "type": "concept",
+   "id": "chapter_0047",
+   "label": "第3章 国家战略与并购重组",
+   "type": "chapter",
+   "page": 57,
+   "layer": "macro",
+   "parents": []
+  },
+  {
+   "id": "section_0048",
+   "label": "3.2 功败垂成的中铝海外收购",
+   "type": "section",
    "page": 59,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0119"
+    "chapter_0047"
    ]
   },
   {
-   "id": "section_0147",
+   "id": "section_0049",
    "label": "3.3 铁矿石谈判：中国钢企之痛",
    "type": "section",
    "page": 62,
    "layer": "meso",
    "parents": [
-    "chapter_derived_03"
+    "chapter_0047"
    ]
   },
   {
-   "id": "concept_0148",
-   "label": "铁矿石谈判：中国钢企之痛",
-   "type": "concept",
-   "page": 62,
-   "layer": "micro",
-   "parents": [
-    "section_0147"
-   ]
-  },
-  {
-   "id": "concept_0152",
-   "label": "乳业并购重组如火如荼",
-   "type": "concept",
+   "id": "section_0050",
+   "label": "3.4 乳业并购重组如火如荼",
+   "type": "section",
    "page": 65,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0147"
+    "chapter_0047"
    ]
   },
   {
-   "id": "concept_0153",
-   "label": "医药健康领域并购整合大幕开启 3.5",
-   "type": "concept",
+   "id": "section_0051",
+   "label": "3.5 医药健康领域并购整合大幕开启",
+   "type": "section",
    "page": 66,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0147"
+    "chapter_0047"
    ]
   },
   {
-   "id": "concept_0156",
+   "id": "concept_0052",
    "label": "产业并购 与并购基金",
    "type": "concept",
    "page": 69,
    "layer": "micro",
    "parents": [
-    "section_0147"
+    "chapter_0047"
    ]
   },
   {
-   "id": "concept_0158",
-   "label": "上市公司产业并购 4. 1",
-   "type": "concept",
+   "id": "section_0053",
+   "label": "4.1 上市公司产业并购",
+   "type": "section",
    "page": 69,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0147"
+    "chapter_0047"
    ]
   },
   {
-   "id": "concept_0172",
-   "label": "上市公司 司+PE\"1.0 0版本 4.3 66",
-   "type": "concept",
+   "id": "chapter_0054",
+   "label": "第4章 产业并购与并购基金",
+   "type": "chapter",
+   "page": 71,
+   "layer": "macro",
+   "parents": []
+  },
+  {
+   "id": "section_0056",
+   "label": "4.3 上市公司 司+PE\"1.0 0版本",
+   "type": "section",
    "page": 75,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0147"
+    "chapter_0054"
    ]
   },
   {
-   "id": "concept_0179",
-   "label": "上市公司 +PE\"2.0 0 版本① 4.4 66",
-   "type": "concept",
+   "id": "section_0057",
+   "label": "4.4 上市公司 +PE\"2.0 0 版本",
+   "type": "section",
    "page": 78,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0147"
+    "chapter_0054"
    ]
   },
   {
-   "id": "concept_0184",
-   "label": "上市公司+PE\"3.0 版本 4.5 66",
-   "type": "concept",
+   "id": "section_0058",
+   "label": "4.5 上市公司+PE\"3.0 版本",
+   "type": "section",
    "page": 81,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0147"
+    "chapter_0054"
    ]
   },
   {
-   "id": "concept_0186",
-   "label": "并购基金 4.6",
-   "type": "concept",
+   "id": "section_0059",
+   "label": "4.6 并购基金",
+   "type": "section",
    "page": 85,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0147"
+    "chapter_0054"
    ]
   },
   {
-   "id": "concept_0192",
-   "label": "并购贷款 4.7",
-   "type": "concept",
+   "id": "section_0060",
+   "label": "4.7 并购贷款",
+   "type": "section",
    "page": 88,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0147"
+    "chapter_0054"
    ]
   },
   {
-   "id": "concept_0203",
-   "label": "联想集团：\"人弃我取\"的底气与自信 5.1",
-   "type": "concept",
+   "id": "section_0061",
+   "label": "5.1 联想集团：\"人弃我取\"的底气与自信",
+   "type": "section",
    "page": 93,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0147"
+    "chapter_0054"
    ]
   },
   {
-   "id": "section_0207",
+   "id": "chapter_0062",
+   "label": "第5章 跨国并购",
+   "type": "chapter",
+   "page": 93,
+   "layer": "macro",
+   "parents": []
+  },
+  {
+   "id": "section_0063",
    "label": "5.2 中国工程机械制造企业的海外并购与\"大国优势\"",
    "type": "section",
    "page": 99,
    "layer": "meso",
    "parents": [
-    "chapter_derived_05"
+    "chapter_0062"
    ]
   },
   {
-   "id": "concept_0213",
+   "id": "concept_0064",
    "label": "中联重科",
    "type": "concept",
    "page": 103,
    "layer": "micro",
    "parents": [
-    "section_0207"
+    "chapter_0062"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0214",
+   "id": "concept_0065",
    "label": "境内",
    "type": "concept",
    "page": 103,
    "layer": "micro",
    "parents": [
-    "section_0207"
+    "chapter_0062"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0215",
+   "id": "concept_0066",
    "label": "境外",
    "type": "concept",
    "page": 103,
    "layer": "micro",
    "parents": [
-    "section_0207"
+    "chapter_0062"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0216",
+   "id": "concept_0067",
    "label": "ZOOMLION HK HOLDING",
    "type": "concept",
    "page": 103,
    "layer": "micro",
    "parents": [
-    "section_0207"
+    "chapter_0062"
    ]
   },
   {
-   "id": "concept_0217",
+   "id": "concept_0068",
    "label": "曼达林",
    "type": "concept",
    "page": 103,
    "layer": "micro",
    "parents": [
-    "section_0207"
+    "chapter_0062"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0218",
+   "id": "concept_0069",
    "label": "弘毅",
    "type": "concept",
    "page": 103,
    "layer": "micro",
    "parents": [
-    "section_0207"
+    "chapter_0062"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0219",
+   "id": "concept_0070",
    "label": "高盛",
    "type": "concept",
    "page": 103,
    "layer": "micro",
    "parents": [
-    "section_0207"
+    "chapter_0062"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0220",
+   "id": "concept_0071",
    "label": "香港特殊目的公司A",
    "type": "concept",
    "page": 103,
    "layer": "micro",
    "parents": [
-    "section_0207"
+    "chapter_0062"
    ]
   },
   {
-   "id": "concept_0224",
+   "id": "concept_0072",
    "label": "香港特殊目的公司B",
    "type": "concept",
    "page": 103,
    "layer": "micro",
    "parents": [
-    "section_0207"
+    "chapter_0062"
    ]
   },
   {
-   "id": "concept_0225",
+   "id": "concept_0073",
    "label": "CIFA",
    "type": "concept",
    "page": 103,
    "layer": "micro",
    "parents": [
-    "section_0207"
+    "chapter_0062"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0226",
-   "label": "中国车企海外收购的得与失 5.3",
-   "type": "concept",
+   "id": "section_0074",
+   "label": "5.3 中国车企海外收购的得与失",
+   "type": "section",
    "page": 106,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0207"
+    "chapter_0062"
    ]
   },
   {
-   "id": "section_0233",
+   "id": "section_0075",
    "label": "5.4 复星国际海外并购逻辑：中国动力嫁接全球资源",
    "type": "section",
    "page": 112,
    "layer": "meso",
    "parents": [
-    "chapter_derived_05"
+    "chapter_0062"
    ]
   },
   {
-   "id": "concept_0234",
-   "label": "复星国际海外并购逻辑：中国动力嫁接全球资源",
-   "type": "concept",
-   "page": 112,
-   "layer": "micro",
-   "parents": [
-    "section_0233"
-   ]
-  },
-  {
-   "id": "section_0238",
+   "id": "section_0076",
    "label": "5.5 万达收购AMC：文化影业成\"霸王\"新宠",
    "type": "section",
    "page": 116,
    "layer": "meso",
    "parents": [
-    "chapter_derived_05"
+    "chapter_0062"
    ]
   },
   {
-   "id": "concept_0239",
-   "label": "万达收购AMC：文化影业成\"霸王\"新宠",
-   "type": "concept",
-   "page": 116,
-   "layer": "micro",
-   "parents": [
-    "section_0238"
-   ]
-  },
-  {
-   "id": "concept_0240",
+   "id": "concept_0077",
    "label": "公寓住宅",
    "type": "concept",
    "page": 117,
    "layer": "micro",
    "parents": [
-    "section_0238"
+    "section_0076"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0241",
+   "id": "concept_0078",
    "label": "高级酒店",
    "type": "concept",
    "page": 117,
    "layer": "micro",
    "parents": [
-    "section_0238"
+    "section_0076"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0242",
+   "id": "concept_0079",
    "label": "商业中心",
    "type": "concept",
    "page": 117,
    "layer": "micro",
    "parents": [
-    "section_0238"
+    "section_0076"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0243",
+   "id": "concept_0080",
    "label": "写字楼",
    "type": "concept",
    "page": 117,
    "layer": "micro",
    "parents": [
-    "section_0238"
+    "section_0076"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0244",
+   "id": "concept_0081",
    "label": "(含室内步行街)",
    "type": "concept",
    "page": 117,
    "layer": "micro",
    "parents": [
-    "section_0238"
+    "section_0076"
    ]
   },
   {
-   "id": "concept_0245",
+   "id": "concept_0082",
    "label": "公共空间",
    "type": "concept",
    "page": 117,
    "layer": "micro",
    "parents": [
-    "section_0238"
+    "section_0076"
    ],
    "quality": "low"
   },
   {
-   "id": "section_0254",
+   "id": "section_0083",
    "label": "5.6 民以食为天\"逻辑下的跨国并购",
    "type": "section",
    "page": 124,
    "layer": "meso",
    "parents": [
-    "chapter_derived_05"
+    "chapter_0062"
    ]
   },
   {
-   "id": "concept_0255",
-   "label": "民以食为天\"逻辑下的跨国并购",
-   "type": "concept",
-   "page": 124,
-   "layer": "micro",
-   "parents": [
-    "section_0254"
-   ]
-  },
-  {
-   "id": "section_0261",
+   "id": "section_0084",
    "label": "5.7 富通集团：中国平安永远的痛",
    "type": "section",
    "page": 130,
    "layer": "meso",
    "parents": [
-    "chapter_derived_05"
+    "chapter_0062"
    ]
   },
   {
-   "id": "concept_0262",
-   "label": "富通集团：中国平安永远的痛",
-   "type": "concept",
-   "page": 130,
-   "layer": "micro",
-   "parents": [
-    "section_0261"
-   ]
-  },
-  {
-   "id": "section_0263",
+   "id": "section_0085",
    "label": "5.8 跨国并购后的整合：挑战与经验",
    "type": "section",
    "page": 134,
    "layer": "meso",
    "parents": [
-    "chapter_derived_05"
+    "chapter_0062"
    ]
   },
   {
-   "id": "concept_0267",
+   "id": "concept_0086",
    "label": "控制权之 之争与 反收购措施",
    "type": "concept",
    "page": 138,
    "layer": "micro",
    "parents": [
-    "section_0263"
+    "chapter_0062"
    ]
   },
   {
-   "id": "concept_0269",
-   "label": "中国平安：\"白衣骑士\"变身\"门口的野蛮人 6.1",
-   "type": "concept",
+   "id": "section_0087",
+   "label": "6.1 中国平安：\"白衣骑士\"变身\"门口的野蛮人",
+   "type": "section",
    "page": 139,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0263"
+    "chapter_0062"
    ]
   },
   {
-   "id": "concept_0273",
-   "label": "毒丸计划： 真的很毒！ 6. 2 ②",
-   "type": "concept",
+   "id": "chapter_0088",
+   "label": "第6章 控制权之争与反收购措施",
+   "type": "chapter",
+   "page": 139,
+   "layer": "macro",
+   "parents": []
+  },
+  {
+   "id": "section_0089",
+   "label": "6.2 毒丸计划： 真的很毒！",
+   "type": "section",
    "page": 145,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0263"
+    "chapter_0088"
    ]
   },
   {
-   "id": "concept_0276",
-   "label": "累积投票权：中小股东的利器 6.3",
-   "type": "concept",
+   "id": "section_0090",
+   "label": "6.3 累积投票权：中小股东的利器",
+   "type": "section",
    "page": 148,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0263"
+    "chapter_0088"
    ]
   },
   {
-   "id": "concept_0278",
-   "label": "武商联： 在疲于奔命中成长 4",
-   "type": "concept",
+   "id": "section_0091",
+   "label": "6.4 武商联： 在疲于奔命中成长",
+   "type": "section",
    "page": 151,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0263"
+    "chapter_0088"
    ]
   },
   {
-   "id": "concept_0291",
-   "label": "工大首创：泽熙投资登堂入室的第一站",
-   "type": "concept",
+   "id": "section_0092",
+   "label": "6.5 工大首创：泽熙投资登堂入室的第一站",
+   "type": "section",
    "page": 159,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0263"
+    "chapter_0088"
    ]
   },
   {
-   "id": "concept_0294",
+   "id": "concept_0093",
    "label": "员 工持股 与 与管理层收购",
    "type": "concept",
    "page": 167,
    "layer": "micro",
    "parents": [
-    "section_0263"
+    "chapter_0088"
    ]
   },
   {
-   "id": "section_0295",
+   "id": "section_0094",
    "label": "7.1 我国员工持股和管理层收购简史",
    "type": "section",
    "page": 168,
    "layer": "meso",
    "parents": [
-    "chapter_derived_07"
+    "chapter_0088"
    ]
   },
   {
-   "id": "section_0303",
+   "id": "chapter_0095",
+   "label": "第7章 员工持股与管理层收购",
+   "type": "chapter",
+   "page": 169,
+   "layer": "macro",
+   "parents": []
+  },
+  {
+   "id": "section_0096",
    "label": "7.2 广发证券反收购：员工持股与交叉持股的威力",
    "type": "section",
    "page": 174,
    "layer": "meso",
    "parents": [
-    "chapter_derived_07"
+    "chapter_0095"
    ]
   },
   {
-   "id": "concept_0308",
-   "label": "\"曲径通幽\"的双汇 3 66 MBO① ①",
-   "type": "concept",
+   "id": "section_0097",
+   "label": "7.3 \"曲径通幽\"的双汇 3 66 MBO",
+   "type": "section",
    "page": 177,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0303"
+    "chapter_0095"
    ]
   },
   {
-   "id": "section_0311",
+   "id": "section_0098",
    "label": "7.4 宇通客车MBO：以司法裁决取代行政审批",
    "type": "section",
    "page": 180,
    "layer": "meso",
    "parents": [
-    "chapter_derived_07"
+    "chapter_0095"
    ]
   },
   {
-   "id": "concept_0312",
+   "id": "concept_0099",
    "label": "郑州市国资局",
    "type": "concept",
    "page": 180,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "section_0098"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0313",
+   "id": "concept_0100",
    "label": "郑州第一",
    "type": "concept",
    "page": 180,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "section_0098"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0314",
+   "id": "concept_0101",
    "label": "中国公路车辆",
    "type": "concept",
    "page": 180,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "section_0098"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0315",
+   "id": "concept_0102",
    "label": "河南世海实业",
    "type": "concept",
    "page": 180,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "section_0098"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0316",
+   "id": "concept_0103",
    "label": "宇通集团",
    "type": "concept",
    "page": 180,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "section_0098"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0317",
+   "id": "concept_0104",
    "label": "钢厂",
    "type": "concept",
    "page": 180,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "section_0098"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0318",
+   "id": "concept_0105",
    "label": "机械总公司",
    "type": "concept",
    "page": 180,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "section_0098"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0319",
+   "id": "concept_0106",
    "label": "有限公司",
    "type": "concept",
    "page": 180,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "section_0098"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0324",
+   "id": "concept_0107",
    "label": "宇通客车",
    "type": "concept",
    "page": 180,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "section_0098"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0325",
+   "id": "concept_0108",
    "label": "汤玉祥",
    "type": "concept",
    "page": 181,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "section_0098"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0326",
-   "label": "22名自然人",
-   "type": "concept",
-   "page": 181,
-   "layer": "micro",
-   "parents": [
-    "section_0311"
-   ],
-   "quality": "low"
-  },
-  {
-   "id": "concept_0329",
+   "id": "concept_0109",
    "label": "上海宇通创业投资有限公司",
    "type": "concept",
    "page": 181,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "section_0098"
    ]
   },
   {
-   "id": "concept_0330",
+   "id": "concept_0110",
    "label": "郑州宇通集团有限公司",
    "type": "concept",
    "page": 181,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "section_0098"
    ]
   },
   {
-   "id": "concept_0331",
+   "id": "concept_0111",
    "label": "郑州宇通发展有限公司",
    "type": "concept",
    "page": 181,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "section_0098"
    ]
   },
   {
-   "id": "concept_0333",
+   "id": "concept_0112",
    "label": "郑州宇通客车股份有限公司",
    "type": "concept",
    "page": 181,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "section_0098"
    ]
   },
   {
-   "id": "concept_0335",
+   "id": "concept_0113",
    "label": "表7-1宇通集团及宇通客车管理层收购进程表",
    "type": "concept",
    "page": 181,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "section_0098"
    ]
   },
   {
-   "id": "concept_0336",
-   "label": "TCL 集团：增量切入的渐进式 MBO 7.5",
-   "type": "concept",
+   "id": "section_0114",
+   "label": "7.5 TCL 集团：增量切入的渐进式 MBO",
+   "type": "section",
    "page": 183,
-   "layer": "micro",
+   "layer": "meso",
    "parents": [
-    "section_0311"
+    "chapter_0095"
    ]
   },
   {
-   "id": "concept_0337",
+   "id": "concept_0115",
    "label": "惠州市",
    "type": "concept",
    "page": 184,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0338",
+   "id": "concept_0116",
    "label": "员工",
    "type": "concept",
    "page": 184,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0339",
+   "id": "concept_0117",
    "label": "管理层",
    "type": "concept",
    "page": 184,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0340",
+   "id": "concept_0118",
    "label": "政府",
    "type": "concept",
    "page": 184,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0341",
+   "id": "concept_0119",
    "label": "持股",
    "type": "concept",
    "page": 184,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0342",
+   "id": "concept_0120",
    "label": "TCL",
    "type": "concept",
    "page": 184,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0343",
+   "id": "concept_0121",
    "label": "全资",
    "type": "concept",
    "page": 184,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0344",
+   "id": "concept_0122",
    "label": "集团",
    "type": "concept",
    "page": 184,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0345",
+   "id": "concept_0123",
    "label": "通讯设备",
    "type": "concept",
    "page": 184,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0347",
+   "id": "concept_0124",
    "label": "(香港)",
    "type": "concept",
    "page": 184,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0348",
+   "id": "concept_0125",
    "label": "TCL通讯",
    "type": "concept",
    "page": 184,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0349",
+   "id": "concept_0126",
    "label": "(上市公司)",
    "type": "concept",
    "page": 184,
    "layer": "micro",
    "parents": [
-    "section_0311"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0353",
+   "id": "concept_0127",
    "label": "流通股",
    "type": "concept",
    "page": 185,
    "layer": "micro",
    "parents": [
-    "section_0362"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0357",
+   "id": "concept_0128",
    "label": "战略",
    "type": "concept",
    "page": 185,
    "layer": "micro",
    "parents": [
-    "section_0362"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0358",
+   "id": "concept_0129",
    "label": "持股者",
    "type": "concept",
    "page": 185,
    "layer": "micro",
    "parents": [
-    "section_0362"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0361",
+   "id": "concept_0130",
    "label": "TCL集团",
    "type": "concept",
    "page": 185,
    "layer": "micro",
    "parents": [
-    "section_0362"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "section_0362",
+   "id": "section_0131",
    "label": "7.6 打造没有家族的家族企业：柳传志的智慧",
    "type": "section",
    "page": 185,
    "layer": "meso",
    "parents": [
-    "chapter_derived_07"
+    "chapter_0095"
    ]
   },
   {
-   "id": "concept_0365",
+   "id": "concept_0132",
    "label": "中国科学院",
    "type": "concept",
    "page": 187,
    "layer": "micro",
    "parents": [
-    "section_0362"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0366",
+   "id": "concept_0133",
    "label": "联想控股职工",
    "type": "concept",
    "page": 187,
    "layer": "micro",
    "parents": [
-    "section_0362"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0367",
-   "label": "持股会(35%)",
-   "type": "concept",
-   "page": 187,
-   "layer": "micro",
-   "parents": [
-    "section_0362"
-   ]
-  },
-  {
-   "id": "concept_0368",
+   "id": "concept_0134",
    "label": "联想控股有限公司",
    "type": "concept",
    "page": 187,
    "layer": "micro",
    "parents": [
-    "section_0362"
+    "chapter_0095"
    ]
   },
   {
-   "id": "concept_0369",
+   "id": "concept_0135",
    "label": "联想集团",
    "type": "concept",
    "page": 187,
    "layer": "micro",
    "parents": [
-    "section_0362"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0370",
+   "id": "concept_0136",
    "label": "神州数码",
    "type": "concept",
    "page": 187,
    "layer": "micro",
    "parents": [
-    "section_0362"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0371",
+   "id": "concept_0137",
    "label": "联想投资",
    "type": "concept",
    "page": 187,
    "layer": "micro",
    "parents": [
-    "section_0362"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0372",
+   "id": "concept_0138",
    "label": "融料置地",
    "type": "concept",
    "page": 187,
    "layer": "micro",
    "parents": [
-    "section_0362"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0373",
+   "id": "concept_0139",
    "label": "弘毅投资",
    "type": "concept",
    "page": 187,
    "layer": "micro",
    "parents": [
-    "section_0362"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "concept_0374",
+   "id": "concept_0140",
    "label": "引入泛海集团后",
    "type": "concept",
    "page": 187,
    "layer": "micro",
    "parents": [
-    "section_0362"
+    "chapter_0095"
    ]
   },
   {
-   "id": "concept_0375",
+   "id": "concept_0141",
    "label": "泛海集团",
    "type": "concept",
    "page": 187,
    "layer": "micro",
    "parents": [
-    "section_0362"
+    "chapter_0095"
    ],
    "quality": "low"
   },
   {
-   "id": "section_0376",
+   "id": "section_0142",
    "label": "7.7 褚时健与李经纬的悲与哀",
    "type": "section",
    "page": 188,
    "layer": "meso",
    "parents": [
-    "chapter_derived_07"
+    "chapter_0095"
    ]
   },
   {
-   "id": "concept_0384",
-   "label": "李嘉诚： 逃离 离\"李家的城\" 8 1",
-   "type": "concept",
-   "page": 193,
-   "layer": "micro",
-   "parents": [
-    "section_0376"
-   ]
+   "id": "chapter_0143",
+   "label": "第8章 企业重组",
+   "type": "chapter",
+   "page": 195,
+   "layer": "macro",
+   "parents": []
   },
   {
-   "id": "section_0391",
+   "id": "section_0144",
    "label": "8.2 李途纯与太子奶：中国式破产重组",
    "type": "section",
    "page": 198,
    "layer": "meso",
    "parents": [
-    "chapter_derived_08"
+    "chapter_0143"
    ]
   },
   {
-   "id": "concept_0392",
-   "label": "李途纯与太子奶：中国式破产重组",
-   "type": "concept",
-   "page": 198,
-   "layer": "micro",
-   "parents": [
-    "section_0391"
-   ]
-  },
-  {
-   "id": "section_0397",
+   "id": "section_0145",
    "label": "8.3 命运多舛的科龙，峰回路转的顾雏军案",
    "type": "section",
    "page": 204,
    "layer": "meso",
    "parents": [
-    "chapter_derived_08"
+    "chapter_0143"
    ]
   },
   {
-   "id": "concept_0406",
-   "label": "附录1 2008年以来我国鼓励企业并购的相关政策",
-   "type": "concept",
-   "page": 211,
-   "layer": "micro",
-   "parents": [
-    "section_0397"
-   ]
-  },
-  {
-   "id": "concept_0407",
-   "label": "附录2我国《证券法》关于内幕交易的相关规定 附录2 我国《证券法》关于内幕交易的相关规定",
-   "type": "concept",
-   "page": 212,
-   "layer": "micro",
-   "parents": [
-    "section_0397"
-   ]
-  },
-  {
-   "id": "concept_0408",
+   "id": "concept_0146",
    "label": "第四节禁止的交易行为",
    "type": "concept",
    "page": 212,
    "layer": "micro",
    "parents": [
-    "section_0397"
+    "chapter_0143"
    ]
   },
   {
-   "id": "concept_0416",
+   "id": "concept_0147",
    "label": "参考文献",
    "type": "concept",
    "page": 214,
    "layer": "micro",
    "parents": [
-    "section_0397"
+    "chapter_0143"
    ],
    "quality": "low"
-  },
-  {
-   "id": "concept_0417",
-   "label": "iceo.com.cn/com2013/2015/0115/298686.shtml.",
-   "type": "concept",
-   "page": 215,
-   "layer": "micro",
-   "parents": [
-    "section_0397"
-   ]
-  },
-  {
-   "id": "chapter_derived_01",
-   "label": "第1章",
-   "type": "chapter",
-   "page": 11,
-   "layer": "macro",
-   "parents": []
-  },
-  {
-   "id": "chapter_derived_02",
-   "label": "第2章",
-   "type": "chapter",
-   "page": 44,
-   "layer": "macro",
-   "parents": []
-  },
-  {
-   "id": "chapter_derived_03",
-   "label": "第3章",
-   "type": "chapter",
-   "page": 62,
-   "layer": "macro",
-   "parents": []
-  },
-  {
-   "id": "chapter_derived_05",
-   "label": "第5章",
-   "type": "chapter",
-   "page": 99,
-   "layer": "macro",
-   "parents": []
-  },
-  {
-   "id": "chapter_derived_07",
-   "label": "第7章",
-   "type": "chapter",
-   "page": 168,
-   "layer": "macro",
-   "parents": []
-  },
-  {
-   "id": "chapter_derived_08",
-   "label": "第8章",
-   "type": "chapter",
-   "page": 198,
-   "layer": "macro",
-   "parents": []
   }
  ],
  "edges": [
   {
-   "source": "section_0032",
-   "target": "formula_0033",
+   "source": "section_0011",
+   "target": "formula_0012",
    "relation": "包含公式",
    "layer": "hier"
   },
   {
-   "source": "section_0032",
-   "target": "concept_0034",
+   "source": "section_0011",
+   "target": "concept_0013",
    "relation": "包含概念",
    "layer": "hier"
   },
   {
-   "source": "section_0032",
-   "target": "concept_0035",
+   "source": "section_0011",
+   "target": "concept_0014",
    "relation": "包含概念",
    "layer": "hier"
   },
   {
-   "source": "section_0032",
-   "target": "concept_0036",
+   "source": "section_0011",
+   "target": "concept_0015",
    "relation": "包含概念",
    "layer": "hier"
   },
   {
-   "source": "section_0032",
+   "source": "section_0011",
+   "target": "concept_0016",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0011",
+   "target": "concept_0017",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0011",
+   "target": "concept_0018",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0011",
+   "target": "concept_0019",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0011",
+   "target": "concept_0020",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0011",
+   "target": "concept_0021",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0022",
+   "target": "section_0023",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0023",
+   "target": "concept_0024",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0023",
+   "target": "concept_0025",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0022",
+   "target": "concept_0026",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0022",
+   "target": "section_0027",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0022",
+   "target": "section_0028",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0022",
+   "target": "concept_0029",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0022",
+   "target": "section_0030",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0022",
+   "target": "concept_0031",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0022",
+   "target": "section_0032",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0033",
+   "target": "section_0034",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0033",
+   "target": "formula_0035",
+   "relation": "包含公式",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0033",
+   "target": "section_0036",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0036",
    "target": "concept_0037",
    "relation": "包含概念",
    "layer": "hier"
   },
   {
-   "source": "section_0040",
-   "target": "concept_0037",
+   "source": "section_0036",
+   "target": "concept_0038",
    "relation": "包含概念",
    "layer": "hier"
   },
   {
-   "source": "section_0057",
-   "target": "concept_0058",
+   "source": "section_0036",
+   "target": "concept_0039",
    "relation": "包含概念",
    "layer": "hier"
   },
   {
-   "source": "section_0067",
+   "source": "section_0036",
+   "target": "concept_0040",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0033",
+   "target": "section_0041",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0033",
+   "target": "section_0042",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0042",
+   "target": "concept_0029",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0033",
+   "target": "section_0043",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0033",
+   "target": "concept_0044",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0033",
+   "target": "concept_0029",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0033",
+   "target": "concept_0045",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0033",
+   "target": "section_0046",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0047",
+   "target": "section_0048",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0047",
+   "target": "concept_0044",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0047",
+   "target": "concept_0029",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0047",
+   "target": "section_0049",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0047",
+   "target": "section_0050",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0047",
+   "target": "section_0051",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0047",
+   "target": "concept_0052",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0047",
+   "target": "section_0053",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0053",
+   "target": "concept_0044",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0053",
+   "target": "concept_0029",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0054",
+   "target": "section_0056",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0054",
+   "target": "concept_0044",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0054",
+   "target": "concept_0029",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0054",
+   "target": "section_0057",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0054",
+   "target": "section_0058",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0054",
+   "target": "concept_0009",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0054",
+   "target": "section_0059",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0054",
+   "target": "section_0060",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0054",
+   "target": "section_0061",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0062",
+   "target": "section_0063",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0062",
+   "target": "concept_0064",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0062",
+   "target": "concept_0065",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0062",
+   "target": "concept_0066",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0062",
+   "target": "concept_0067",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0062",
+   "target": "concept_0068",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0062",
+   "target": "concept_0069",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0062",
    "target": "concept_0070",
    "relation": "包含概念",
    "layer": "hier"
   },
   {
-   "source": "section_0067",
+   "source": "chapter_0062",
+   "target": "concept_0071",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0062",
    "target": "concept_0072",
    "relation": "包含概念",
    "layer": "hier"
   },
   {
-   "source": "section_0112",
-   "target": "concept_0114",
+   "source": "chapter_0062",
+   "target": "concept_0073",
    "relation": "包含概念",
    "layer": "hier"
   },
   {
-   "source": "section_0147",
-   "target": "concept_0148",
-   "relation": "包含概念",
+   "source": "chapter_0062",
+   "target": "section_0074",
+   "relation": "包含小节",
    "layer": "hier"
   },
   {
-   "source": "section_0207",
-   "target": "concept_0213",
-   "relation": "包含概念",
+   "source": "chapter_0062",
+   "target": "section_0075",
+   "relation": "包含小节",
    "layer": "hier"
   },
   {
-   "source": "section_0207",
-   "target": "concept_0214",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0207",
-   "target": "concept_0215",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0207",
-   "target": "concept_0216",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0207",
-   "target": "concept_0217",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0207",
-   "target": "concept_0218",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0207",
-   "target": "concept_0219",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0207",
-   "target": "concept_0220",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0233",
-   "target": "concept_0234",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0238",
-   "target": "concept_0239",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0238",
-   "target": "concept_0240",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0238",
-   "target": "concept_0241",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0238",
-   "target": "concept_0242",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0238",
-   "target": "concept_0243",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0238",
-   "target": "concept_0244",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0238",
-   "target": "concept_0245",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0254",
-   "target": "concept_0255",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0261",
-   "target": "concept_0262",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0263",
-   "target": "concept_0267",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0263",
-   "target": "concept_0269",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0263",
-   "target": "concept_0273",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0263",
-   "target": "concept_0276",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0303",
-   "target": "concept_0308",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0311",
-   "target": "concept_0312",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0311",
-   "target": "concept_0313",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0311",
-   "target": "concept_0314",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0311",
-   "target": "concept_0315",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0311",
-   "target": "concept_0316",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0311",
-   "target": "concept_0317",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0311",
-   "target": "concept_0318",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0311",
-   "target": "concept_0319",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0362",
-   "target": "concept_0365",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0362",
-   "target": "concept_0366",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0362",
-   "target": "concept_0367",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0362",
-   "target": "concept_0368",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0362",
-   "target": "concept_0369",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0362",
-   "target": "concept_0370",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0362",
-   "target": "concept_0371",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0362",
-   "target": "concept_0372",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0362",
-   "target": "concept_0373",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0362",
-   "target": "concept_0374",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0362",
-   "target": "concept_0375",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0376",
-   "target": "concept_0384",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0391",
-   "target": "concept_0392",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0397",
-   "target": "concept_0406",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0397",
-   "target": "concept_0407",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0397",
-   "target": "concept_0408",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0397",
-   "target": "concept_0416",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0397",
-   "target": "concept_0417",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "section_0397",
-   "target": "concept_0030",
-   "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "chapter_derived_01",
-   "target": "section_0032",
-   "relation": "包含章节",
-   "layer": "hier"
-  },
-  {
-   "source": "chapter_derived_01",
+   "source": "chapter_0062",
    "target": "section_0076",
-   "relation": "包含章节",
+   "relation": "包含小节",
    "layer": "hier"
   },
   {
-   "source": "chapter_derived_02",
-   "target": "section_0112",
-   "relation": "包含章节",
+   "source": "section_0076",
+   "target": "concept_0077",
+   "relation": "包含概念",
    "layer": "hier"
   },
   {
-   "source": "chapter_derived_02",
-   "target": "section_0119",
-   "relation": "包含章节",
+   "source": "section_0076",
+   "target": "concept_0078",
+   "relation": "包含概念",
    "layer": "hier"
   },
   {
-   "source": "chapter_derived_03",
-   "target": "section_0147",
-   "relation": "包含章节",
+   "source": "section_0076",
+   "target": "concept_0079",
+   "relation": "包含概念",
    "layer": "hier"
   },
   {
-   "source": "chapter_derived_05",
-   "target": "section_0207",
-   "relation": "包含章节",
+   "source": "section_0076",
+   "target": "concept_0080",
+   "relation": "包含概念",
    "layer": "hier"
   },
   {
-   "source": "chapter_derived_05",
-   "target": "section_0233",
-   "relation": "包含章节",
+   "source": "section_0076",
+   "target": "concept_0081",
+   "relation": "包含概念",
    "layer": "hier"
   },
   {
-   "source": "chapter_derived_05",
-   "target": "section_0238",
-   "relation": "包含章节",
+   "source": "section_0076",
+   "target": "concept_0082",
+   "relation": "包含概念",
    "layer": "hier"
   },
   {
-   "source": "chapter_derived_05",
-   "target": "section_0254",
-   "relation": "包含章节",
+   "source": "chapter_0062",
+   "target": "section_0083",
+   "relation": "包含小节",
    "layer": "hier"
   },
   {
-   "source": "chapter_derived_05",
-   "target": "section_0261",
-   "relation": "包含章节",
+   "source": "chapter_0062",
+   "target": "section_0084",
+   "relation": "包含小节",
    "layer": "hier"
   },
   {
-   "source": "chapter_derived_05",
-   "target": "section_0263",
-   "relation": "包含章节",
+   "source": "chapter_0062",
+   "target": "section_0085",
+   "relation": "包含小节",
    "layer": "hier"
   },
   {
-   "source": "chapter_derived_07",
-   "target": "section_0295",
-   "relation": "包含章节",
+   "source": "chapter_0062",
+   "target": "concept_0086",
+   "relation": "包含概念",
    "layer": "hier"
   },
   {
-   "source": "chapter_derived_07",
-   "target": "section_0303",
-   "relation": "包含章节",
+   "source": "chapter_0062",
+   "target": "section_0087",
+   "relation": "包含小节",
    "layer": "hier"
   },
   {
-   "source": "chapter_derived_07",
-   "target": "section_0311",
-   "relation": "包含章节",
+   "source": "chapter_0088",
+   "target": "section_0089",
+   "relation": "包含小节",
    "layer": "hier"
   },
   {
-   "source": "chapter_derived_07",
-   "target": "section_0362",
-   "relation": "包含章节",
+   "source": "chapter_0088",
+   "target": "section_0090",
+   "relation": "包含小节",
    "layer": "hier"
   },
   {
-   "source": "chapter_derived_07",
-   "target": "section_0376",
-   "relation": "包含章节",
+   "source": "chapter_0088",
+   "target": "section_0091",
+   "relation": "包含小节",
    "layer": "hier"
   },
   {
-   "source": "chapter_derived_08",
-   "target": "section_0391",
-   "relation": "包含章节",
+   "source": "chapter_0088",
+   "target": "section_0092",
+   "relation": "包含小节",
    "layer": "hier"
   },
   {
-   "source": "chapter_derived_08",
-   "target": "section_0397",
-   "relation": "包含章节",
+   "source": "chapter_0088",
+   "target": "concept_0093",
+   "relation": "包含概念",
    "layer": "hier"
   },
   {
-   "source": "concept_0021",
-   "target": "concept_0023",
+   "source": "chapter_0088",
+   "target": "section_0094",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "section_0096",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "section_0097",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "section_0098",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0098",
+   "target": "concept_0099",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0098",
+   "target": "concept_0100",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0098",
+   "target": "concept_0101",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0098",
+   "target": "concept_0102",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0098",
+   "target": "concept_0103",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0098",
+   "target": "concept_0104",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0098",
+   "target": "concept_0105",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0098",
+   "target": "concept_0106",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0098",
+   "target": "concept_0107",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0098",
+   "target": "concept_0108",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0098",
+   "target": "concept_0109",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0098",
+   "target": "concept_0110",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0098",
+   "target": "concept_0111",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0098",
+   "target": "concept_0112",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0098",
+   "target": "concept_0113",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "section_0114",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0115",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0116",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0117",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0118",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0119",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0120",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0121",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0122",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0123",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0124",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0125",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0126",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0127",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0128",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0129",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0130",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "section_0131",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0132",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0133",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0134",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0135",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0136",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0137",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0138",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0139",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0140",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "concept_0141",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "section_0142",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0143",
+   "target": "section_0144",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0143",
+   "target": "section_0145",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0143",
+   "target": "concept_0146",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0143",
+   "target": "concept_0147",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0143",
+   "target": "concept_0009",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "concept_0010",
+   "target": "formula_0012",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0021",
-   "target": "concept_0024",
+   "source": "concept_0010",
+   "target": "concept_0013",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0021",
-   "target": "concept_0031",
+   "source": "concept_0010",
+   "target": "concept_0014",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0023",
-   "target": "concept_0024",
+   "source": "formula_0012",
+   "target": "concept_0013",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0023",
-   "target": "concept_0031",
+   "source": "formula_0012",
+   "target": "concept_0014",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0023",
-   "target": "formula_0033",
+   "source": "formula_0012",
+   "target": "concept_0015",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0013",
+   "target": "concept_0014",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0013",
+   "target": "concept_0015",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0013",
+   "target": "concept_0016",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0014",
+   "target": "concept_0015",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0014",
+   "target": "concept_0016",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0014",
+   "target": "concept_0017",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0015",
+   "target": "concept_0016",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0015",
+   "target": "concept_0017",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0015",
+   "target": "concept_0018",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0016",
+   "target": "concept_0017",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0016",
+   "target": "concept_0018",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0016",
+   "target": "concept_0019",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0017",
+   "target": "concept_0018",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0017",
+   "target": "concept_0019",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0017",
+   "target": "concept_0020",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0018",
+   "target": "concept_0019",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0018",
+   "target": "concept_0020",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0018",
+   "target": "concept_0021",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0019",
+   "target": "concept_0020",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0019",
+   "target": "concept_0021",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0020",
+   "target": "concept_0021",
    "relation": "相关",
    "layer": "micro"
   },
   {
    "source": "concept_0024",
+   "target": "concept_0025",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0026",
+   "target": "concept_0029",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0026",
    "target": "concept_0031",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0024",
-   "target": "formula_0033",
+   "source": "concept_0029",
+   "target": "concept_0031",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0024",
-   "target": "concept_0034",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0031",
-   "target": "formula_0033",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0031",
-   "target": "concept_0034",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0031",
-   "target": "concept_0035",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "formula_0033",
-   "target": "concept_0034",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "formula_0033",
-   "target": "concept_0035",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "formula_0033",
-   "target": "concept_0036",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0034",
-   "target": "concept_0035",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0034",
-   "target": "concept_0036",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0034",
-   "target": "concept_0037",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0035",
-   "target": "concept_0036",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0035",
-   "target": "concept_0037",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0036",
-   "target": "concept_0037",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0030",
-   "target": "concept_0406",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0030",
-   "target": "concept_0407",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0030",
-   "target": "concept_0408",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0406",
-   "target": "concept_0407",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0406",
-   "target": "concept_0408",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0406",
-   "target": "concept_0416",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0407",
-   "target": "concept_0408",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0407",
-   "target": "concept_0416",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0407",
-   "target": "concept_0417",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0408",
-   "target": "concept_0416",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0408",
-   "target": "concept_0417",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0416",
-   "target": "concept_0417",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0043",
+   "source": "formula_0035",
    "target": "concept_0044",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0043",
+   "source": "formula_0035",
    "target": "concept_0045",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0043",
-   "target": "concept_0046",
    "relation": "相关",
    "layer": "micro"
   },
@@ -2369,14 +2469,152 @@
    "layer": "micro"
   },
   {
-   "source": "concept_0044",
-   "target": "concept_0046",
+   "source": "concept_0037",
+   "target": "concept_0038",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0045",
-   "target": "concept_0046",
+   "source": "concept_0037",
+   "target": "concept_0039",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0037",
+   "target": "concept_0040",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0038",
+   "target": "concept_0039",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0038",
+   "target": "concept_0040",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0039",
+   "target": "concept_0040",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0064",
+   "target": "concept_0065",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0064",
+   "target": "concept_0066",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0064",
+   "target": "concept_0067",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0065",
+   "target": "concept_0066",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0065",
+   "target": "concept_0067",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0065",
+   "target": "concept_0068",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0066",
+   "target": "concept_0067",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0066",
+   "target": "concept_0068",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0066",
+   "target": "concept_0069",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0067",
+   "target": "concept_0068",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0067",
+   "target": "concept_0069",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0067",
+   "target": "concept_0070",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0068",
+   "target": "concept_0069",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0068",
+   "target": "concept_0070",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0068",
+   "target": "concept_0071",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0069",
+   "target": "concept_0070",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0069",
+   "target": "concept_0071",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0069",
+   "target": "concept_0072",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0070",
+   "target": "concept_0071",
    "relation": "相关",
    "layer": "micro"
   },
@@ -2387,20 +2625,98 @@
    "layer": "micro"
   },
   {
-   "source": "concept_0075",
+   "source": "concept_0070",
+   "target": "concept_0073",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0071",
+   "target": "concept_0072",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0071",
+   "target": "concept_0073",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0071",
+   "target": "concept_0086",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0072",
+   "target": "concept_0073",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0072",
+   "target": "concept_0086",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0073",
+   "target": "concept_0086",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0077",
+   "target": "concept_0078",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0077",
+   "target": "concept_0079",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0077",
    "target": "concept_0080",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0075",
+   "source": "concept_0078",
+   "target": "concept_0079",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0078",
+   "target": "concept_0080",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0078",
    "target": "concept_0081",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0075",
-   "target": "concept_0083",
+   "source": "concept_0079",
+   "target": "concept_0080",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0079",
+   "target": "concept_0081",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0079",
+   "target": "concept_0082",
    "relation": "相关",
    "layer": "micro"
   },
@@ -2412,85 +2728,55 @@
   },
   {
    "source": "concept_0080",
-   "target": "concept_0083",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0080",
-   "target": "concept_0097",
+   "target": "concept_0082",
    "relation": "相关",
    "layer": "micro"
   },
   {
    "source": "concept_0081",
-   "target": "concept_0083",
+   "target": "concept_0082",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0081",
-   "target": "concept_0097",
+   "source": "concept_0099",
+   "target": "concept_0100",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0081",
-   "target": "formula_0098",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0083",
-   "target": "concept_0097",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0083",
-   "target": "formula_0098",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0083",
+   "source": "concept_0099",
    "target": "concept_0101",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0097",
-   "target": "formula_0098",
+   "source": "concept_0099",
+   "target": "concept_0102",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0097",
+   "source": "concept_0100",
    "target": "concept_0101",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0097",
+   "source": "concept_0100",
+   "target": "concept_0102",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0100",
    "target": "concept_0103",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "formula_0098",
-   "target": "concept_0101",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "formula_0098",
-   "target": "concept_0103",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "formula_0098",
-   "target": "concept_0104",
+   "source": "concept_0101",
+   "target": "concept_0102",
    "relation": "相关",
    "layer": "micro"
   },
@@ -2507,7 +2793,19 @@
    "layer": "micro"
   },
   {
-   "source": "concept_0101",
+   "source": "concept_0102",
+   "target": "concept_0103",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0102",
+   "target": "concept_0104",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0102",
    "target": "concept_0105",
    "relation": "相关",
    "layer": "micro"
@@ -2562,7 +2860,7 @@
   },
   {
    "source": "concept_0105",
-   "target": "concept_0111",
+   "target": "concept_0108",
    "relation": "相关",
    "layer": "micro"
   },
@@ -2574,37 +2872,463 @@
   },
   {
    "source": "concept_0106",
-   "target": "concept_0111",
+   "target": "concept_0108",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0106",
+   "target": "concept_0109",
    "relation": "相关",
    "layer": "micro"
   },
   {
    "source": "concept_0107",
+   "target": "concept_0108",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0107",
+   "target": "concept_0109",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0107",
+   "target": "concept_0110",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0108",
+   "target": "concept_0109",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0108",
+   "target": "concept_0110",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0108",
    "target": "concept_0111",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0114",
+   "source": "concept_0109",
+   "target": "concept_0110",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0109",
+   "target": "concept_0111",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0109",
+   "target": "concept_0112",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0110",
+   "target": "concept_0111",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0110",
+   "target": "concept_0112",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0110",
+   "target": "concept_0113",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0111",
+   "target": "concept_0112",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0111",
+   "target": "concept_0113",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0112",
+   "target": "concept_0113",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0115",
    "target": "concept_0116",
    "relation": "相关",
    "layer": "micro"
   },
   {
+   "source": "concept_0115",
+   "target": "concept_0117",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0115",
+   "target": "concept_0118",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0116",
+   "target": "concept_0117",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0116",
+   "target": "concept_0118",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0116",
+   "target": "concept_0119",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0117",
+   "target": "concept_0118",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0117",
+   "target": "concept_0119",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0117",
+   "target": "concept_0120",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0118",
+   "target": "concept_0119",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0118",
+   "target": "concept_0120",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0118",
+   "target": "concept_0121",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0119",
+   "target": "concept_0120",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0119",
+   "target": "concept_0121",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0119",
+   "target": "concept_0122",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0120",
+   "target": "concept_0121",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0120",
+   "target": "concept_0122",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0120",
+   "target": "concept_0123",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0121",
+   "target": "concept_0122",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0121",
+   "target": "concept_0123",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0121",
+   "target": "concept_0124",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0122",
+   "target": "concept_0123",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0122",
+   "target": "concept_0124",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0122",
+   "target": "concept_0125",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0123",
+   "target": "concept_0124",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0123",
+   "target": "concept_0125",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0123",
+   "target": "concept_0126",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0124",
+   "target": "concept_0125",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0124",
+   "target": "concept_0126",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0124",
+   "target": "concept_0127",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0125",
+   "target": "concept_0126",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0125",
+   "target": "concept_0127",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0125",
+   "target": "concept_0128",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0126",
+   "target": "concept_0127",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0126",
+   "target": "concept_0128",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0126",
+   "target": "concept_0129",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0127",
+   "target": "concept_0128",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0127",
+   "target": "concept_0129",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0127",
+   "target": "concept_0130",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0128",
+   "target": "concept_0129",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0128",
+   "target": "concept_0130",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0128",
+   "target": "concept_0132",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
    "source": "concept_0129",
+   "target": "concept_0130",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0129",
+   "target": "concept_0132",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0129",
+   "target": "concept_0133",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0130",
+   "target": "concept_0132",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0130",
+   "target": "concept_0133",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0130",
+   "target": "concept_0134",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0132",
+   "target": "concept_0133",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0132",
+   "target": "concept_0134",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0132",
+   "target": "concept_0135",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0133",
+   "target": "concept_0134",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0133",
+   "target": "concept_0135",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0133",
    "target": "concept_0136",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0129",
+   "source": "concept_0134",
+   "target": "concept_0135",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0134",
+   "target": "concept_0136",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0134",
    "target": "concept_0137",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0129",
-   "target": "concept_0140",
+   "source": "concept_0135",
+   "target": "concept_0136",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0135",
+   "target": "concept_0137",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0135",
+   "target": "concept_0138",
    "relation": "相关",
    "layer": "micro"
   },
@@ -2616,7 +3340,25 @@
   },
   {
    "source": "concept_0136",
-   "target": "concept_0140",
+   "target": "concept_0138",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0136",
+   "target": "concept_0139",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0137",
+   "target": "concept_0138",
+   "relation": "相关",
+   "layer": "micro"
+  },
+  {
+   "source": "concept_0137",
+   "target": "concept_0139",
    "relation": "相关",
    "layer": "micro"
   },
@@ -2627,1226 +3369,44 @@
    "layer": "micro"
   },
   {
-   "source": "concept_0148",
-   "target": "concept_0152",
+   "source": "concept_0138",
+   "target": "concept_0139",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0148",
-   "target": "concept_0153",
+   "source": "concept_0138",
+   "target": "concept_0140",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0148",
-   "target": "concept_0156",
+   "source": "concept_0138",
+   "target": "concept_0141",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0152",
-   "target": "concept_0153",
+   "source": "concept_0139",
+   "target": "concept_0140",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0152",
-   "target": "concept_0156",
+   "source": "concept_0139",
+   "target": "concept_0141",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0152",
-   "target": "concept_0158",
+   "source": "concept_0140",
+   "target": "concept_0141",
    "relation": "相关",
    "layer": "micro"
   },
   {
-   "source": "concept_0153",
-   "target": "concept_0156",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0153",
-   "target": "concept_0158",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0153",
-   "target": "concept_0172",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0156",
-   "target": "concept_0158",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0156",
-   "target": "concept_0172",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0156",
-   "target": "concept_0179",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0158",
-   "target": "concept_0172",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0158",
-   "target": "concept_0179",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0158",
-   "target": "concept_0184",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0172",
-   "target": "concept_0179",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0172",
-   "target": "concept_0184",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0172",
-   "target": "concept_0186",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0179",
-   "target": "concept_0184",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0179",
-   "target": "concept_0186",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0179",
-   "target": "concept_0192",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0184",
-   "target": "concept_0186",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0184",
-   "target": "concept_0192",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0184",
-   "target": "concept_0203",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0186",
-   "target": "concept_0192",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0186",
-   "target": "concept_0203",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0192",
-   "target": "concept_0203",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0213",
-   "target": "concept_0214",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0213",
-   "target": "concept_0215",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0213",
-   "target": "concept_0216",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0214",
-   "target": "concept_0215",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0214",
-   "target": "concept_0216",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0214",
-   "target": "concept_0217",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0215",
-   "target": "concept_0216",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0215",
-   "target": "concept_0217",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0215",
-   "target": "concept_0218",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0216",
-   "target": "concept_0217",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0216",
-   "target": "concept_0218",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0216",
-   "target": "concept_0219",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0217",
-   "target": "concept_0218",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0217",
-   "target": "concept_0219",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0217",
-   "target": "concept_0220",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0218",
-   "target": "concept_0219",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0218",
-   "target": "concept_0220",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0218",
-   "target": "concept_0224",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0219",
-   "target": "concept_0220",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0219",
-   "target": "concept_0224",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0219",
-   "target": "concept_0225",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0220",
-   "target": "concept_0224",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0220",
-   "target": "concept_0225",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0220",
-   "target": "concept_0226",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0224",
-   "target": "concept_0225",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0224",
-   "target": "concept_0226",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0225",
-   "target": "concept_0226",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0239",
-   "target": "concept_0240",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0239",
-   "target": "concept_0241",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0239",
-   "target": "concept_0242",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0240",
-   "target": "concept_0241",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0240",
-   "target": "concept_0242",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0240",
-   "target": "concept_0243",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0241",
-   "target": "concept_0242",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0241",
-   "target": "concept_0243",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0241",
-   "target": "concept_0244",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0242",
-   "target": "concept_0243",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0242",
-   "target": "concept_0244",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0242",
-   "target": "concept_0245",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0243",
-   "target": "concept_0244",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0243",
-   "target": "concept_0245",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0244",
-   "target": "concept_0245",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0267",
-   "target": "concept_0269",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0267",
-   "target": "concept_0273",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0267",
-   "target": "concept_0276",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0269",
-   "target": "concept_0273",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0269",
-   "target": "concept_0276",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0269",
-   "target": "concept_0278",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0273",
-   "target": "concept_0276",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0273",
-   "target": "concept_0278",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0273",
-   "target": "concept_0291",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0276",
-   "target": "concept_0278",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0276",
-   "target": "concept_0291",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0276",
-   "target": "concept_0294",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0278",
-   "target": "concept_0291",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0278",
-   "target": "concept_0294",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0291",
-   "target": "concept_0294",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0312",
-   "target": "concept_0313",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0312",
-   "target": "concept_0314",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0312",
-   "target": "concept_0315",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0313",
-   "target": "concept_0314",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0313",
-   "target": "concept_0315",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0313",
-   "target": "concept_0316",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0314",
-   "target": "concept_0315",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0314",
-   "target": "concept_0316",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0314",
-   "target": "concept_0317",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0315",
-   "target": "concept_0316",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0315",
-   "target": "concept_0317",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0315",
-   "target": "concept_0318",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0316",
-   "target": "concept_0317",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0316",
-   "target": "concept_0318",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0316",
-   "target": "concept_0319",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0317",
-   "target": "concept_0318",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0317",
-   "target": "concept_0319",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0317",
-   "target": "concept_0324",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0318",
-   "target": "concept_0319",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0318",
-   "target": "concept_0324",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0318",
-   "target": "concept_0325",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0319",
-   "target": "concept_0324",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0319",
-   "target": "concept_0325",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0319",
-   "target": "concept_0326",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0324",
-   "target": "concept_0325",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0324",
-   "target": "concept_0326",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0324",
-   "target": "concept_0329",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0325",
-   "target": "concept_0326",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0325",
-   "target": "concept_0329",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0325",
-   "target": "concept_0330",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0326",
-   "target": "concept_0329",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0326",
-   "target": "concept_0330",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0326",
-   "target": "concept_0331",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0329",
-   "target": "concept_0330",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0329",
-   "target": "concept_0331",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0329",
-   "target": "concept_0333",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0330",
-   "target": "concept_0331",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0330",
-   "target": "concept_0333",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0330",
-   "target": "concept_0335",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0331",
-   "target": "concept_0333",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0331",
-   "target": "concept_0335",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0331",
-   "target": "concept_0336",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0333",
-   "target": "concept_0335",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0333",
-   "target": "concept_0336",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0333",
-   "target": "concept_0337",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0335",
-   "target": "concept_0336",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0335",
-   "target": "concept_0337",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0335",
-   "target": "concept_0338",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0336",
-   "target": "concept_0337",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0336",
-   "target": "concept_0338",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0336",
-   "target": "concept_0339",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0337",
-   "target": "concept_0338",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0337",
-   "target": "concept_0339",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0337",
-   "target": "concept_0340",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0338",
-   "target": "concept_0339",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0338",
-   "target": "concept_0340",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0338",
-   "target": "concept_0341",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0339",
-   "target": "concept_0340",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0339",
-   "target": "concept_0341",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0339",
-   "target": "concept_0342",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0340",
-   "target": "concept_0341",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0340",
-   "target": "concept_0342",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0340",
-   "target": "concept_0343",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0341",
-   "target": "concept_0342",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0341",
-   "target": "concept_0343",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0341",
-   "target": "concept_0344",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0342",
-   "target": "concept_0343",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0342",
-   "target": "concept_0344",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0342",
-   "target": "concept_0345",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0343",
-   "target": "concept_0344",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0343",
-   "target": "concept_0345",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0343",
-   "target": "concept_0347",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0344",
-   "target": "concept_0345",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0344",
-   "target": "concept_0347",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0344",
-   "target": "concept_0348",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0345",
-   "target": "concept_0347",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0345",
-   "target": "concept_0348",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0345",
-   "target": "concept_0349",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0347",
-   "target": "concept_0348",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0347",
-   "target": "concept_0349",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0348",
-   "target": "concept_0349",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0353",
-   "target": "concept_0357",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0353",
-   "target": "concept_0358",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0353",
-   "target": "concept_0361",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0357",
-   "target": "concept_0358",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0357",
-   "target": "concept_0361",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0357",
-   "target": "concept_0365",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0358",
-   "target": "concept_0361",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0358",
-   "target": "concept_0365",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0358",
-   "target": "concept_0366",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0361",
-   "target": "concept_0365",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0361",
-   "target": "concept_0366",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0361",
-   "target": "concept_0367",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0365",
-   "target": "concept_0366",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0365",
-   "target": "concept_0367",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0365",
-   "target": "concept_0368",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0366",
-   "target": "concept_0367",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0366",
-   "target": "concept_0368",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0366",
-   "target": "concept_0369",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0367",
-   "target": "concept_0368",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0367",
-   "target": "concept_0369",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0367",
-   "target": "concept_0370",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0368",
-   "target": "concept_0369",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0368",
-   "target": "concept_0370",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0368",
-   "target": "concept_0371",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0369",
-   "target": "concept_0370",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0369",
-   "target": "concept_0371",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0369",
-   "target": "concept_0372",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0370",
-   "target": "concept_0371",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0370",
-   "target": "concept_0372",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0370",
-   "target": "concept_0373",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0371",
-   "target": "concept_0372",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0371",
-   "target": "concept_0373",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0371",
-   "target": "concept_0374",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0372",
-   "target": "concept_0373",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0372",
-   "target": "concept_0374",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0372",
-   "target": "concept_0375",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0373",
-   "target": "concept_0374",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0373",
-   "target": "concept_0375",
-   "relation": "相关",
-   "layer": "micro"
-  },
-  {
-   "source": "concept_0374",
-   "target": "concept_0375",
+   "source": "concept_0146",
+   "target": "concept_0147",
    "relation": "相关",
    "layer": "micro"
   }

@@ -440,6 +440,12 @@
 
         const merged = enter.merge(sel);
 
+        // ★ 2026-09-15：新进入 DOM 的节点必须在这里就按数据坐标定位。
+        //   位置原先只在 ticked() 里写，而 ticked 只在布局推进时执行；
+        //   布局冷却（alpha 归零）后切换层级新加入的节点会拿不到 transform，
+        //   全部堆在画布中心 → 表现为"宏观↔中观切换后数据全乱"。
+        merged.attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
+
         merged.attr('class', d => {
             let c = `g-node ${classOf(d)} zoom-${lvl}`;
             if (!state.visibleIds.has(d.id))         c += ' faded';
@@ -525,6 +531,7 @@
                 return c;
             })
             .text(e => e.relation || '');
+        updateEdgeGeometry();   // ★ 新进入 DOM 的边也要立刻算出路径（布局可能已冷却）
         syncStageFocusClass();
         runSimulation(false);   // ★ 渲染不重启 alpha：布局只在首次建图/合并新数据时重启，避免"一直动"
     }
@@ -579,7 +586,9 @@
         }
     }
 
-    function ticked() {
+    // 计算渲染集内边的路径与标签锚点。ticked() 与 render() 都要调用：
+    // 布局冷却后新进入 DOM 的边不会再有 tick，必须在渲染时算一次，否则是空路径
+    function updateEdgeGeometry() {
         const getXY = ref => (ref && typeof ref === 'object')
             ? { x: ref.x || 0, y: ref.y || 0 }
             : { x: 0, y: 0 };
@@ -604,6 +613,10 @@
         gLinkLabels.selectAll('.g-link-label')
             .attr('x', e => e._labelX || 0)
             .attr('y', e => e._labelY || 0);
+    }
+
+    function ticked() {
+        updateEdgeGeometry();
 
         gNodes.selectAll('.g-node')
             .attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
@@ -810,7 +823,8 @@
             stage.classList.remove('dragging', 'rotating');
         });
 
-        // ★ 滚轮缩放：以画布中心为锚点（tx/ty 按比例缩放，锚点不动）
+        // ★ 滚轮缩放：以鼠标位置为锚点（原来锚在画布中心，瞄着节点放大时会跑偏，
+        //   层级过滤后各层节点分布在不同半径上，中心放大会看到空区）
         svgNode.addEventListener('wheel', e => {
             e.preventDefault();
             _pendingFit = false;   // 用户介入，停止自动适配
@@ -819,8 +833,12 @@
             if (next === state.scale) return;
 
             const ratio = next / state.scale;
-            state.translateX *= ratio;
-            state.translateY *= ratio;
+            const rect = svgNode.getBoundingClientRect();
+            const px = e.clientX - rect.left - rect.width / 2;    // 光标相对画布中心
+            const py = e.clientY - rect.top - rect.height / 2;
+            // 让光标下的世界坐标点在缩放前后保持不动
+            state.translateX = px - (px - state.translateX) * ratio;
+            state.translateY = py - (py - state.translateY) * ratio;
             state.scale = next;
 
             applyTransform();
