@@ -64,11 +64,13 @@ body{
 /* 标题区域 */
 .brand-title{
     position:absolute;
-    left:174px;
-    top:6px;
+    left:210px;                 /* ★ 原 174px → 220px，整体右移 */
+    top:16px;
     color:white;
+    display:flex;               /* ★ 新增 */
+    flex-direction:column;      /* ★ 新增 */
+    align-items:center;         /* ★ 新增，让英文自动对齐到汉字组的中线 */
 }
-
 .title-main{
     display:flex;
     align-items:center;
@@ -76,9 +78,10 @@ body{
 }
 
 .title-sufe{
-    font-family:"Times New Roman", serif; /* 使用声明字体 */
+    font-family:"Times New Roman", serif;
     font-size:36px;
     font-weight:bold;
+    transform:translateY(4px);  /* ★ 新增，SUFE 下沉，与汉字底对齐 */
 }
 
 .title-cn{
@@ -90,16 +93,16 @@ body{
 
 .title-en{
     margin-top:5px;
-    margin-left:80px;
+
     font-family:"Times New Roman", serif;
-    font-size:20px;
+    font-size:18px;
 }
 
 /* 米白导航 */
 .navigation{
     height:41px;
-    width:calc(100% - 155px);
-    margin-left:155px;
+    width:100%;
+    margin-left:0;
     background:var(--paper); /* 保留米白小条 */
     border-bottom:2px solid var(--main-red);
     display:flex;
@@ -107,6 +110,8 @@ body{
     align-items:center;
     gap:35px;
     padding-right:50px;
+    position:relative;          /* ★ 新增 */
+    z-index:1;
 }
 
 .nav-item{
