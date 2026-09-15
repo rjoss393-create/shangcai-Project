@@ -2012,10 +2012,12 @@ footer{
     0%,100%{ stroke-width:4; }
     50%    { stroke-width:6; }
 }
-.galaxy-stage.has-focus .g-node.zoom-micro:not(.focused):not(.highlighted):not(.path-node){
+/* ★ 2026-09-15：加 :not(.faded)——否则"只看邻域"时被 fade_out 的无关节点会被这条规则
+   重新显示成 32%（该规则选择器优先级更高，覆盖了 .g-node.faded{opacity:0}） */
+.galaxy-stage.has-focus .g-node.zoom-micro:not(.focused):not(.highlighted):not(.path-node):not(.faded){
     opacity:.32;
 }
-.galaxy-stage:not(.has-focus) .g-node.zoom-micro{
+.galaxy-stage:not(.has-focus) .g-node.zoom-micro:not(.faded){
     opacity:1;
 }
 /* ---------- 路径高亮 + 粒子流动 ---------- */

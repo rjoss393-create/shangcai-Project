@@ -844,14 +844,17 @@
             applyTransform();
         }, { passive: false });
 
-        // 点击空白 → 清空路径
+        // 点击空白 → 退出"只看邻域"：清路径/焦点/高亮，并恢复全量节点可见
         svgNode.addEventListener('click', e => {
             if (e.target.closest && e.target.closest('.g-node')) return;
-            if (state.selectedIds.length > 0 || state.activePath) {
-                state.selectedIds = [];
-                state.activePath = null;
-                render();
-            }
+            const had = state.selectedIds.length || state.activePath ||
+                        state.focusedId || state.highlightedIds.size;
+            state.selectedIds = [];
+            state.activePath = null;
+            state.focusedId = null;
+            state.highlightedIds.clear();
+            state.visibleIds = new Set(state.allNodes.map(n => n.id));
+            if (had) render();
         });
 
         window.addEventListener('resize', applyTransform);
@@ -1188,6 +1191,12 @@
 
         state.highlightedIds.clear();
         mergeGraph(resp.data);
+        // ★ 点击/提问返回的是"某节点邻域"这类子图时，把邻域节点标为 highlighted：
+        //   其余节点会被 fade_out 隐藏，高亮让"真正连着的节点"一眼可辨（微观层尤其明显）
+        const sub = resp.data && resp.data.nodes;
+        if (sub && sub.length && sub.length < state.allNodes.length) {
+            state.highlightedIds = new Set(sub.map(n => n.id));
+        }
         render();
 
         if (resp.degraded && resp.notice) showToast(resp.notice);
