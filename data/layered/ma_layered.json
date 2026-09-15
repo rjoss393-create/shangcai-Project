@@ -255,7 +255,7 @@
    "page": 26,
    "layer": "meso",
    "parents": [
-    "chapter_0022"
+    "chapter_0033"
    ]
   },
   {
@@ -402,7 +402,7 @@
    "page": 56,
    "layer": "meso",
    "parents": [
-    "chapter_0033"
+    "chapter_0047"
    ]
   },
   {
@@ -470,7 +470,7 @@
    "page": 69,
    "layer": "meso",
    "parents": [
-    "chapter_0047"
+    "chapter_0054"
    ]
   },
   {
@@ -538,7 +538,7 @@
    "page": 93,
    "layer": "meso",
    "parents": [
-    "chapter_0054"
+    "chapter_0062"
    ]
   },
   {
@@ -808,7 +808,7 @@
    "page": 139,
    "layer": "meso",
    "parents": [
-    "chapter_0062"
+    "chapter_0088"
    ]
   },
   {
@@ -876,7 +876,7 @@
    "page": 168,
    "layer": "meso",
    "parents": [
-    "chapter_0088"
+    "chapter_0095"
    ]
   },
   {
@@ -1557,12 +1557,6 @@
    "layer": "hier"
   },
   {
-   "source": "chapter_0022",
-   "target": "section_0032",
-   "relation": "包含小节",
-   "layer": "hier"
-  },
-  {
    "source": "chapter_0033",
    "target": "section_0034",
    "relation": "包含小节",
@@ -1647,12 +1641,6 @@
    "layer": "hier"
   },
   {
-   "source": "chapter_0033",
-   "target": "section_0046",
-   "relation": "包含小节",
-   "layer": "hier"
-  },
-  {
    "source": "chapter_0047",
    "target": "section_0048",
    "relation": "包含小节",
@@ -1692,12 +1680,6 @@
    "source": "chapter_0047",
    "target": "concept_0052",
    "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "chapter_0047",
-   "target": "section_0053",
-   "relation": "包含小节",
    "layer": "hier"
   },
   {
@@ -1757,12 +1739,6 @@
   {
    "source": "chapter_0054",
    "target": "section_0060",
-   "relation": "包含小节",
-   "layer": "hier"
-  },
-  {
-   "source": "chapter_0054",
-   "target": "section_0061",
    "relation": "包含小节",
    "layer": "hier"
   },
@@ -1911,12 +1887,6 @@
    "layer": "hier"
   },
   {
-   "source": "chapter_0062",
-   "target": "section_0087",
-   "relation": "包含小节",
-   "layer": "hier"
-  },
-  {
    "source": "chapter_0088",
    "target": "section_0089",
    "relation": "包含小节",
@@ -1944,12 +1914,6 @@
    "source": "chapter_0088",
    "target": "concept_0093",
    "relation": "包含概念",
-   "layer": "hier"
-  },
-  {
-   "source": "chapter_0088",
-   "target": "section_0094",
-   "relation": "包含小节",
    "layer": "hier"
   },
   {
@@ -2261,6 +2225,54 @@
   {
    "source": "chapter_0143",
    "target": "concept_0009",
+   "relation": "包含概念",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0022",
+   "target": "section_0011",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0033",
+   "target": "section_0032",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0047",
+   "target": "section_0046",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0054",
+   "target": "section_0053",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0062",
+   "target": "section_0061",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0088",
+   "target": "section_0087",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "chapter_0095",
+   "target": "section_0094",
+   "relation": "包含小节",
+   "layer": "hier"
+  },
+  {
+   "source": "section_0011",
+   "target": "concept_0010",
    "relation": "包含概念",
    "layer": "hier"
   },

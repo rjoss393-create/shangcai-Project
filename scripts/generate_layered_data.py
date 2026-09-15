@@ -412,6 +412,22 @@ def build_layered(raw: dict, graph_id: str):
                     continue
         node_parents[mid] = ps
 
+    # ---------- 2.5 按节号校正 section→章 归属 ----------
+    # 原始数据的"包含小节"边可能缺失或挂错（实测：1.1 没有包含边、2.1 被挂到第1章）。
+    # 节号 X.Y 的前缀 X 就是章号，用它校正；只在该章号确实存在时生效。
+    chapter_no, fixed_parent = {}, 0
+    for cid in chapters:
+        m = re.match(r"^第\s*(\d+)\s*章", str(nodes[cid].get("label") or ""))
+        if m:
+            chapter_no[int(m.group(1))] = cid
+    for sid in sections:
+        m = re.match(r"^(\d{1,2})\s*[.．]\s*(\d{1,2})", str(nodes[sid].get("label") or "").strip())
+        if m and int(m.group(1)) in chapter_no:
+            cid = chapter_no[int(m.group(1))]
+            if node_parents.get(sid) != [cid]:
+                node_parents[sid] = [cid]
+                fixed_parent += 1
+
     # ---------- 3. 节点输出（layer + parents） ----------
     out_nodes = []
     for nid, n in nodes.items():
@@ -441,6 +457,30 @@ def build_layered(raw: dict, graph_id: str):
                 seen_edges.add(key)
                 out_edges.append({"source": e["source"], "target": e["target"],
                                   "relation": e["relation"], "layer": "hier"})
+
+    # 父子边以 parents 为权威（parents 已按节号校正）：
+    # ① 删掉与 parents 矛盾的旧边（实测：原始文件把 2.1 挂在第1章）；
+    # ② 补上缺失的边（实测：1.1 在原始文件里没有任何包含边，按边查询会漏节点）。
+    REL_BY_TYPE = {"section": "包含小节", "concept": "包含概念", "formula": "包含公式"}
+    CONTAIN_REL = set(REL_BY_TYPE.values()) | {"包含"}
+    pruned_edges, kept_edges = 0, []
+    for e in out_edges:
+        if e["relation"] in CONTAIN_REL and e["source"] not in node_parents.get(e["target"], []):
+            pruned_edges += 1
+            continue
+        kept_edges.append(e)
+    out_edges = kept_edges
+    seen_edges = {(e["source"], e["target"], e["relation"]) for e in out_edges}
+
+    added_parent_edges = 0
+    for nid, ps in node_parents.items():
+        for p in ps:
+            rel = REL_BY_TYPE.get(nodes[nid].get("type"), "包含")
+            key = (p, nid, rel)
+            if key not in seen_edges:
+                seen_edges.add(key)
+                added_parent_edges += 1
+                out_edges.append({"source": p, "target": nid, "relation": rel, "layer": "hier"})
 
     # 章的完整概念集（直挂 + 经节）
     chap_full_concepts = defaultdict(set)
@@ -523,6 +563,9 @@ def build_layered(raw: dict, graph_id: str):
         "micro": sum(1 for n in out_nodes if n["layer"] == "micro"),
         "孤节点丢弃": orphan_dropped,
         "hier边": sum(1 for e in out_edges if e["layer"] == "hier"),
+        "按节号校正归属": fixed_parent,
+        "补齐父子边": added_parent_edges,
+        "删除矛盾父子边": pruned_edges,
         "macro相关边": sum(1 for e in out_edges if e["layer"] == "macro"),
         "meso相关边": sum(1 for e in out_edges if e["layer"] == "meso"),
         "micro相关边": sum(1 for e in out_edges if e["layer"] == "micro"),
