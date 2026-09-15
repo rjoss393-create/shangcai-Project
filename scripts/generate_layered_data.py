@@ -101,6 +101,26 @@ def collapse_repeat(lab: str):
     return None
 
 
+def clean_chapter_label(lab: str) -> str:
+    """章名归一化：去尾部印刷页码、合并汉字间空格、统一"第N章 "写法
+    （"第20章 理解期权 3" → "第20章 理解期权"；"第31章 并 购" → "第31章 并购"）。"""
+    s = re.sub(r"\s+", " ", str(lab or "")).strip()
+    s = re.sub(r"\s*\d+\s*$", "", s)
+    s = re.sub(r"(?<=[\u4e00-\u9fa5])\s+(?=[\u4e00-\u9fa5])", "", s)
+    s = re.sub(r"^(第\s*[\d一二三四五六七八九十]+\s*章)\s*", r"\1 ", s)
+    return s.strip()
+
+
+def is_junk_chapter(lab: str) -> bool:
+    """正文句子被抽成"章"：含句末标点/冒号、以标点开头、含逗号且较长、或整体过长。"""
+    body = re.sub(r"^第\s*[\d一二三四五六七八九十]+\s*章", "", str(lab or "")).strip()
+    if re.search(r"[。！？：]", body) or re.match(r"^[，、；：]", body):
+        return True
+    if re.search(r"[，；]", body) and len(body) > 14:
+        return True
+    return len(body) > 40
+
+
 def strip_tail_noise(lab: str) -> str:
     """去掉标题尾部的页码/序号残留（"6.4 武商联：在疲于奔命中成长 4" → 去掉" 4"）。"""
     core = R_TAIL_NOISE.sub("", lab).strip()
@@ -134,6 +154,69 @@ def clean_raw(raw: dict, graph_id: str):
     max_ch = (max(chapter_nums) + 2) if chapter_nums else 0
 
     dropped, renamed, flags, fixed_repeat, trimmed = {}, {}, {}, {}, {}
+    id2node = {n["id"]: n for n in nodes}
+
+    # 第一遍之二：章去重合并 + 剔除句读垃圾章（实测：公司金融 139 个"章"里 107 个是页眉重复，
+    # 表现为同一章在连续页被抽成多个节点"第20章 理解期权 3/5/7…"；另有正文句子被抽成"章"）。
+    # 合并按（归一化章名 + 页码相距 ≤40 页）分组，保留"有子节点者、页码最小者"，其余 id 指向它。
+    child_cnt = defaultdict(int)
+    for e in edges:
+        child_cnt[e["source"]] += 1
+    chapter_merge = {}
+    groups = []
+    for n in sorted((x for x in nodes if x.get("type") == "chapter"),
+                    key=lambda x: (x.get("page") if x.get("page") is not None else 10 ** 9)):
+        lab = clean_chapter_label(n.get("label"))
+        if is_junk_chapter(lab):
+            dropped[n["id"]] = "章·正文句子碎片"
+            continue
+        bk = tuple(sorted(str(x) for x in (n.get("source_books") or [])))
+        key = (bk, re.sub(r"\s+", "", lab))
+        page = n.get("page") if n.get("page") is not None else 0
+        g = next((g for g in groups if g["key"] == key and page - g["pmax"] <= 40), None)
+        if g:
+            g["ids"].append(n["id"])
+            g["pages"][n["id"]] = page
+            g["pmax"] = page
+        else:
+            groups.append({"key": key, "ids": [n["id"]], "pages": {n["id"]: page}, "pmax": page})
+    for g in groups:
+        keep = max(g["ids"], key=lambda i: (child_cnt.get(i, 0), -g["pages"][i]))
+        for i in g["ids"]:
+            if i == keep:
+                clean = clean_chapter_label(id2node[i].get("label"))
+                if clean != str(id2node[i].get("label") or "").strip():
+                    renamed[i] = clean
+            else:
+                chapter_merge[i] = keep
+    # 裸章号（"第2章"）并入同号的带标题章（"第2章 资产类别与金融工具"），避免同一章出现两次
+    def bk_of(nid):
+        return tuple(sorted(str(x) for x in (id2node[nid].get("source_books") or [])))
+    titled_no = {}
+    for g in groups:
+        lab = clean_chapter_label(id2node[g["ids"][0]].get("label"))
+        m = re.match(r"^第\s*(\d+)\s*章\s+(.+)$", lab)
+        if m:
+            titled_no.setdefault((bk_of(g["ids"][0]), int(m.group(1))), g["ids"][0])
+    for g in list(groups):
+        lab = clean_chapter_label(id2node[g["ids"][0]].get("label"))
+        m = re.match(r"^第\s*(\d+)\s*章$", lab)
+        key = (bk_of(g["ids"][0]), int(m.group(1))) if m else None
+        if key and key in titled_no:
+            target = titled_no[key]
+            if target not in g["ids"]:
+                for i in g["ids"]:
+                    chapter_merge[i] = target
+                groups.remove(g)
+
+    if chapter_merge or "章·正文句子碎片" in dropped.values():
+        drop_ids = set(chapter_merge) | {i for i, r in dropped.items() if r == "章·正文句子碎片"}
+        nodes = [n for n in nodes if n["id"] not in drop_ids]
+        for e in edges:
+            e["source"] = chapter_merge.get(e["source"], e["source"])
+            e["target"] = chapter_merge.get(e["target"], e["target"])
+        edges = [e for e in edges if e["source"] != e["target"]]
+
     for n in nodes:
         t = n.get("type")
         lab = str(n.get("label") or "").strip()
@@ -237,7 +320,7 @@ def clean_raw(raw: dict, graph_id: str):
         "原始节点": len(nodes), "原始边": len(edges),
         "清洗后节点": len(kept_nodes), "清洗后边": len(out_edges),
         "删除": dropped, "改名": renamed, "标记low": flags, "推导章": derived,
-        "修复标题重复": fixed_repeat, "清理尾部杂讯": trimmed,
+        "修复标题重复": fixed_repeat, "清理尾部杂讯": trimmed, "章去重合并": chapter_merge,
     }
     cleaned = dict(raw)
     cleaned["nodes"] = kept_nodes
@@ -265,6 +348,10 @@ def format_report(graph_id: str, raw: dict, cleaned: dict, rep: dict) -> str:
         lines.append(f"\n**标题自重复已修复的节**（{len(rep['修复标题重复'])} 个）：")
         for nid, new in list(rep["修复标题重复"].items())[:10]:
             lines.append(f"- `{id2label.get(nid, nid)[:30]}` → `{new[:40]}`")
+    if rep.get("章去重合并"):
+        lines.append(f"\n**章去重合并**（{len(rep['章去重合并'])} 个重复章并入保留章）：")
+        for old, keep in list(rep["章去重合并"].items())[:10]:
+            lines.append(f"- `{id2label.get(old, old)[:26]}` → `{id2label.get(keep, keep)[:26]}`")
     if rep["推导章"]:
         lines.append(f"\n**从节号推导出的章**（{len(rep['推导章'])} 个，原标题在抽取时已丢失）：")
         lines.append("、".join(f"第{k}章({v['节数']}节)" for k, v in sorted(rep["推导章"].items())))
@@ -335,28 +422,33 @@ def build_layered(raw: dict, graph_id: str):
     micros = [nid for nid in nodes if nodes[nid].get("type") in ("concept", "formula")]
 
     # ---------- 1. 章排序与页码范围 ----------
-    chapter_pages = []
+    # ★ 按"来源书"分组：经济综合是四书融合，各书的页码各自从 1 开始，
+    #   混在一起按页码归章会串书（实测把并购的 1.1 归到投资学的第1章）。
+    def book_of(n):
+        b = n.get("source_books")
+        if isinstance(b, list):
+            return tuple(sorted(str(x) for x in b))
+        return (str(b),) if b else ()
+
+    chapter_pages_by_book = defaultdict(list)
     for nid in chapters:
         p = nodes[nid].get("page")
         if p is not None:
-            chapter_pages.append((int(p), nid))
-    chapter_pages.sort()
-    chapter_range = {}   # nid -> (start, end) 开区间右端
-    for i, (pg, nid) in enumerate(chapter_pages):
-        end = chapter_pages[i + 1][0] if i + 1 < len(chapter_pages) else None
-        chapter_range[nid] = (pg, end)
+            chapter_pages_by_book[book_of(nodes[nid])].append((int(p), nid))
+    for _lst in chapter_pages_by_book.values():
+        _lst.sort()
+    all_chapter_pages = sorted(p for _lst in chapter_pages_by_book.values() for p in _lst)
 
-    def chapter_by_page(page):
-        if page is None:
+    def chapter_by_page(page, book=()):
+        if page is None or not all_chapter_pages:
             return None
-        for pg, nid in chapter_pages:
-            end = chapter_range[nid][1]
+        pages = chapter_pages_by_book.get(tuple(book)) or all_chapter_pages
+        for i, (pg, nid) in enumerate(pages):
+            end = pages[i + 1][0] if i + 1 < len(pages) else None
             if page >= pg and (end is None or page < end):
                 return nid
         # 页码小于第一章：归第一章；大于最后一章：归最后一章
-        if page < chapter_pages[0][0]:
-            return chapter_pages[0][1]
-        return chapter_pages[-1][1]
+        return pages[0][1] if page < pages[0][0] else pages[-1][1]
 
     # ---------- 2. parents 计算 ----------
     sec2chap = {}
@@ -366,7 +458,7 @@ def build_layered(raw: dict, graph_id: str):
             sec2chap.setdefault(e["target"], e["source"])
 
     for sid in sections:
-        chap = sec2chap.get(sid) or chapter_by_page(nodes[sid].get("page"))
+        chap = sec2chap.get(sid) or chapter_by_page(nodes[sid].get("page"), book_of(nodes[sid]))
         if chap:
             chap2secs[chap].append(sid)
 
@@ -404,7 +496,7 @@ def build_layered(raw: dict, graph_id: str):
             if sid:
                 ps = [sid]
             else:
-                cid = chapter_by_page(page)
+                cid = chapter_by_page(page, book_of(nodes[mid]))
                 if cid:
                     ps = [cid]
                 else:
@@ -415,18 +507,55 @@ def build_layered(raw: dict, graph_id: str):
     # ---------- 2.5 按节号校正 section→章 归属 ----------
     # 原始数据的"包含小节"边可能缺失或挂错（实测：1.1 没有包含边、2.1 被挂到第1章）。
     # 节号 X.Y 的前缀 X 就是章号，用它校正；只在该章号确实存在时生效。
-    chapter_no, fixed_parent = {}, 0
+    chapter_no, fixed_parent = defaultdict(list), 0
     for cid in chapters:
         m = re.match(r"^第\s*(\d+)\s*章", str(nodes[cid].get("label") or ""))
         if m:
-            chapter_no[int(m.group(1))] = cid
+            chapter_no[(book_of(nodes[cid]), int(m.group(1)))].append(cid)
+
+    def chapter_for(book, num, page, window=60):
+        """校正 section→章 归属：
+        - 同书同章号唯一（单本书）→ 直接用该章。注意有些书的章节点页码来自目录页（如投资学全在 p10），
+          按页码判定会失效，所以唯一时不做页码校验。
+        - 章号重复（经济综合=四书融合，每本书都有"第1章"）→ 只在"该号章里唯一一个与本节
+          页码相距 ≤60 页"时才认，避免串书；否则不校正（保留原始边归属）。"""
+        cands = chapter_no.get((tuple(book), num))
+        if not cands:
+            return None
+        if len(cands) == 1:
+            return cands[0]
+        if page is None:
+            return None
+        near = [c for c in cands if abs((nodes[c].get("page") or 0) - page) <= window]
+        return near[0] if len(near) == 1 else None
+
     for sid in sections:
         m = re.match(r"^(\d{1,2})\s*[.．]\s*(\d{1,2})", str(nodes[sid].get("label") or "").strip())
-        if m and int(m.group(1)) in chapter_no:
-            cid = chapter_no[int(m.group(1))]
-            if node_parents.get(sid) != [cid]:
+        if m:
+            cid = chapter_for(book_of(nodes[sid]), int(m.group(1)), nodes[sid].get("page"))
+            if cid and node_parents.get(sid) != [cid]:
                 node_parents[sid] = [cid]
                 fixed_parent += 1
+
+    # ---------- 2.6 跨书父边修正 ----------
+    # 融合图里偶见"公司金融的节挂到国际投资学的章"这类跨书父边（原始边错），
+    # 一律不可信：改为同一本书内按页找父（节→章；概念→先找节再找章）。
+    cross_book_fixed = 0
+    for nid, ps in list(node_parents.items()):
+        if not ps or ps[0] not in nodes:
+            continue
+        nb, pb = book_of(nodes[nid]), book_of(nodes[ps[0]])
+        if not (nb and pb and nb != pb):
+            continue
+        page = nodes[nid].get("page")
+        if is_type(nid, "section"):
+            newp = chapter_by_page(page, nb)
+        else:
+            same_book_secs = [x for x in sections if book_of(nodes[x]) == nb]
+            newp = section_by_page(same_book_secs, nodes, page) or chapter_by_page(page, nb)
+        if newp:
+            node_parents[nid] = [newp]
+            cross_book_fixed += 1
 
     # ---------- 3. 节点输出（layer + parents） ----------
     out_nodes = []
@@ -445,6 +574,8 @@ def build_layered(raw: dict, graph_id: str):
         }
         if n.get("quality"):
             item["quality"] = n["quality"]      # 清洗标记（low = 短词，前端标签默认不显示）
+        if n.get("source_books"):
+            item["source_books"] = n["source_books"]   # 融合图的来源书（排查用）
         out_nodes.append(item)
 
     # ---------- 4. 边：原始包含* 打 hier 标 + 派生相关边 ----------
@@ -566,6 +697,7 @@ def build_layered(raw: dict, graph_id: str):
         "按节号校正归属": fixed_parent,
         "补齐父子边": added_parent_edges,
         "删除矛盾父子边": pruned_edges,
+        "跨书父边修正": cross_book_fixed,
         "macro相关边": sum(1 for e in out_edges if e["layer"] == "macro"),
         "meso相关边": sum(1 for e in out_edges if e["layer"] == "meso"),
         "micro相关边": sum(1 for e in out_edges if e["layer"] == "micro"),
