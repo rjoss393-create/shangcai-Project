@@ -42,7 +42,7 @@ def collect_entries(src: str):
         topic = re.sub(r"\.MP4$", "", topic, flags=re.I).strip(" -–—._")
         if not topic:
             topic = name
-        entries.append((n, p, f"第{n}讲 {topic}", "安德鲁·罗（Andrew Lo）", ["课程", "外语"],
+        entries.append((n, p, f"第{n}讲 {topic}", "罗闻全（Andrew Lo）", ["课程", "外语"],
                         f"MIT 金融理论课程第 {n} 讲：{topic}"))
 
     # ---- 耶鲁大学公开演讲（Robert Shiller）：排在金融理论之后，编号连续（24 起）----
