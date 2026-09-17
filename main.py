@@ -5,6 +5,7 @@
 
 装配：DataService（数据层） + QaAgentImpl(LLM_Navigator)（Agent 层）
      + create_router（控制层）
+     + UserStore + create_auth_router（账号注册/登录/用户管理，data/users.json）
 启动事件：后台按顺序预热 5 个图谱（4 本书 + 经济综合，
          建图 + 加载/生成 embedding），把首次提问的冷启动成本转移到服务启动阶段。
 
@@ -56,9 +57,11 @@ _load_api_config()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from controller.auth import create_auth_router
 from controller.graph_ids import GRAPH_IDS
 from controller.router import create_router
 from service.data_service import DataService
+from service.user_store import UserStore
 
 
 def _build_qa_agent():
@@ -87,6 +90,8 @@ def _build_qa_agent():
 
 service = DataService(data_dir=os.path.join(ROOT, "data"))
 qa_agent = _build_qa_agent()
+# 用户账号/权限数据（JSON 文件，首个注册的用户自动成为管理员）
+user_store = UserStore(path=os.path.join(ROOT, "data", "users.json"))
 
 
 async def _preload_all_books() -> None:
@@ -116,6 +121,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="投资学知识图谱", version="1.0.0", lifespan=lifespan)
 app.include_router(create_router(service, qa_agent))
+app.include_router(create_auth_router(user_store))
 
 # 前端（proxy-server :3000）跨域访问
 app.add_middleware(

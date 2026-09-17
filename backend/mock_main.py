@@ -11,13 +11,16 @@ main.py / data_service / intent_agent / reason_agent 就绪前，
 - 真实 Service/Agent 就绪后，把 create_router(...) 的三参数换成真实实现即可
 """
 import asyncio
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from controller.auth import create_auth_router
 from controller.interfaces import GraphService, QaAgent
 from controller.router import create_router
 from controller.schemas import AnswerResult, GraphData, GraphEdge, GraphNode, RelatedNode
+from service.user_store import UserStore
 
 # 模拟 Agent 延迟（秒）：让前端能观察到"慢通道"的加载效果；调 0 可关闭
 MOCK_AGENT_DELAY = 0.5
@@ -157,9 +160,15 @@ class MockQaAgent:
 
 service = MockGraphService()
 qa_agent = MockQaAgent()
+# 与正式入口共用同一份用户文件（项目根 data/users.json），联调时注册的账号两边通用
+user_store = UserStore(
+    path=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                      "data", "users.json")
+)
 
 app = FastAPI(title="投资学知识图谱 - Mock 联调服务", version="0.1.0")
 app.include_router(create_router(service, qa_agent))
+app.include_router(create_auth_router(user_store))
 
 # 联调期间放开跨域，方便前端 dev server（如 Vite :5173）直接调用
 app.add_middleware(

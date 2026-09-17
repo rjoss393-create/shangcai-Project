@@ -24,6 +24,9 @@ backend/dataset_files/
 # 数据层原始交付文件（图谱 JSON + 书 + 视频，约 4.6GB，不进版本库；分层产物在 data/layered/）
 数据/
 
+# 用户账号数据（运行期状态，含密码哈希；首个注册用户自动成为管理员）
+data/users.json
+
 # 前端交付副本（已合并进 SUFE-Knowledge-Galaxy，验证后由用户删除）
 前端/SUFE-Knowledge-Galaxy(新)/
 前端/SUFE-Knowledge-Galaxy最新版/
