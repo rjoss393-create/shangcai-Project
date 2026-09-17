@@ -3,7 +3,8 @@
 把 数据/ 下的课程视频复制到前端静态目录并生成清单：
 
 - 视频 -> 前端/SUFE-Knowledge-Galaxy/assets/videos/01.mp4 ~ NN.mp4
-  （金融理论 Andrew Lo P1-P23 = 01-23；耶鲁公开课 Shiller = 24-45）
+  （金融理论 Andrew Lo P1-P23 = 01-23；耶鲁公开课 Shiller = 24-45；
+   吴恩达 AI for everyone P1-P35 = 46-80）
 - 清单 -> 前端/SUFE-Knowledge-Galaxy/data/videos.json
   （前端学习资料区读取：videos 数组 + carousel 推荐 id）
 
@@ -67,6 +68,21 @@ def collect_entries(src: str):
         base = 24 + i  # 与 P 编号无关，按顺序连续编号，避免源文件缺集导致空洞
         entries.append((base, p, f"第{n}课 {topic}", "罗伯特·希勒（Robert J. Shiller）",
                         ["演讲", "外语"], f"耶鲁大学公开课《金融市场》第 {n} 课：{topic}"))
+
+    # ---- 吴恩达《AI for everyone》给所有人的AI课：排在最后（46 起）----
+    # 源文件无逐讲主题（文件名只有 P1-P35），故标题只保留讲次
+    ai_items = []
+    for p in glob.glob(os.path.join(src, "AI For Everyone", "*.mp4")):
+        m = re.search(r"P(\d+)", os.path.basename(p))
+        if not m:
+            continue
+        ai_items.append((int(m.group(1)), p))
+    ai_items.sort(key=lambda x: x[0])
+    for i, (n, p) in enumerate(ai_items):
+        base = 46 + i  # 按讲次顺序连续编号
+        entries.append((base, p, f"第{n}讲 给所有人的 AI 课", "吴恩达（Andrew Ng）",
+                        ["课程", "人工智能"],
+                        f"deeplearning.ai《AI for everyone》第 {n} 讲（中英字幕）：面向所有人的 AI 通识课"))
 
     entries.sort(key=lambda x: x[0])
     return entries
