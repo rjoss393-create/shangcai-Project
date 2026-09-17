@@ -38,8 +38,13 @@ class TestUserStore:
         with pytest.raises(ValueError):
             await store.create("alice", "pass456")
 
+    async def test_chinese_username_allowed(self, store):
+        user = await store.create("测试", "123456")
+        assert (await store.verify("测试", "123456"))["username"] == "测试"
+        assert user["role"] == "admin"
+
     async def test_invalid_username_and_password(self, store):
-        for name in ("ab", "a" * 21, "中文名", "with space"):
+        for name in ("a", "a" * 21, "with space", "名字!", "a@b"):
             with pytest.raises(ValueError):
                 await store.create(name, "pass123")
         for password in ("12345", "x" * 65, "with space"):

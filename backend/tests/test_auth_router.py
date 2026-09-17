@@ -45,8 +45,14 @@ class TestRegister:
         assert r.status_code == 400
         assert "已被注册" in r.json()["detail"]
 
+    def test_chinese_username_register_and_login(self, client):
+        body = register(client, "测试", "123456").json()
+        assert body["user"]["username"] == "测试"
+        assert login(client, "测试", "123456").status_code == 200
+
     def test_invalid_input_400(self, client):
-        assert register(client, "ab").status_code == 400           # 用户名过短
+        assert register(client, "a").status_code == 400            # 用户名过短
+        assert register(client, "with space").status_code == 400   # 用户名含空格
         assert register(client, "alice", "12345").status_code == 400   # 密码过短
 
 

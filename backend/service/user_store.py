@@ -31,7 +31,7 @@ PBKDF2_ITERATIONS = 120_000     # 迭代次数：登录时约几十毫秒，兼�
 SALT_BYTES = 16
 ROLES = ("admin", "user")
 STATUSES = ("active", "disabled")
-USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9_]{3,20}$")   # 字母/数字/下划线，3~20 位
+USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9_\u4e00-\u9fff]{2,20}$")   # 中文/字母/数字/下划线，2~20 位
 MIN_PASSWORD_LENGTH = 6
 MAX_PASSWORD_LENGTH = 64
 
@@ -169,7 +169,7 @@ class UserStore:
     @staticmethod
     def _validate_username(username: str) -> None:
         if not USERNAME_PATTERN.match(username):
-            raise ValueError("用户名需为 3~20 位字母、数字或下划线")
+            raise ValueError("用户名需为 2~20 位中文、字母、数字或下划线")
 
     @staticmethod
     def _validate_password(password: str) -> None:
