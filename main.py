@@ -6,15 +6,19 @@
 装配：DataService（数据层） + QaAgentImpl(LLM_Navigator)（Agent 层）
      + create_router（控制层）
      + UserStore + create_auth_router（账号注册/登录/用户管理，data/users.json）
+     + create_media_router + mount_site（媒体数据 + 前端页面托管）
 启动事件：后台按顺序预热 5 个图谱（4 本书 + 经济综合，
          建图 + 加载/生成 embedding），把首次提问的冷启动成本转移到服务启动阶段。
+
+访问：启动后浏览器打开 http://localhost:8000/ 即为完整网页（页面/数据/接口同一个端口）
 
 分层约定：
 - backend/controller  控制层（本仓库既有代码）
 - backend/agent、src  Agent 层（Agent 负责人交付，内部代码不动）
 - backend/service     数据访问层（读 data/ 的 JSON）
 - data/               数据层（纯数据文件）
-- 前端/               视图层（独立运行，proxy-server 3000 端口）
+- data/media/         媒体数据（视频/论文/图书封面/视频清单，由后端托管，见 controller/media.py）
+- 前端/               视图层（只放页面自身的 html/css/js/字体/logo，由后端挂载到 /）
 """
 import asyncio
 import json
@@ -59,6 +63,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from controller.auth import create_auth_router
 from controller.graph_ids import GRAPH_IDS
+from controller.media import create_media_router, mount_site
 from controller.router import create_router
 from service.data_service import DataService
 from service.user_store import UserStore
@@ -87,6 +92,9 @@ def _build_qa_agent():
         logger.exception("Agent 层初始化失败（缺少依赖或 API Key），智能问答将降级为基础检索")
         return None
 
+
+MEDIA_DIR = os.path.join(ROOT, "data", "media")            # 视频/论文/封面/清单
+FRONTEND_DIR = os.path.join(ROOT, "前端", "SUFE-Knowledge-Galaxy")   # 页面自身资源
 
 service = DataService(data_dir=os.path.join(ROOT, "data"))
 qa_agent = _build_qa_agent()
@@ -122,8 +130,9 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="投资学知识图谱", version="1.0.0", lifespan=lifespan)
 app.include_router(create_router(service, qa_agent))
 app.include_router(create_auth_router(user_store))
+app.include_router(create_media_router(MEDIA_DIR))
 
-# 前端（proxy-server :3000）跨域访问
+# 跨域放行：页面已由本服务托管（同源），此配置保留给"页面另行托管"的场景
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -136,3 +145,7 @@ app.add_middleware(
 @app.get("/health")
 async def health():
     return {"status": "ok", "agent": qa_agent is not None}
+
+
+# 前端页面托管：必须放在最后（挂在 "/"，先注册的 /api、/assets、/data 路由优先匹配）
+mount_site(app, FRONTEND_DIR)

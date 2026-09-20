@@ -31,5 +31,6 @@ data/users.json
 前端/SUFE-Knowledge-Galaxy(新)/
 前端/SUFE-Knowledge-Galaxy最新版/
 
-# 前端视频文件与封面（约 2GB+，本地静态托管；清单 data/videos.json 进库）
-前端/SUFE-Knowledge-Galaxy/assets/videos/
+# 视频文件与封面（约 4.8GB，后端 data/media/ 托管，由 scripts/import_videos.py 生成；
+# 清单 data/media/videos.json 进库，论文 PDF 与图书封面体积小也进库）
+data/media/videos/

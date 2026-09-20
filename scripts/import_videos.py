@@ -1,12 +1,14 @@
 """数据层 · 视频导入脚本
 
-把 数据/ 下的课程视频复制到前端静态目录并生成清单：
+把 数据/ 下的课程视频复制到后端媒体目录并生成清单：
 
-- 视频 -> 前端/SUFE-Knowledge-Galaxy/assets/videos/01.mp4 ~ NN.mp4
+- 视频 -> data/media/videos/01.mp4 ~ NN.mp4
   （金融理论 Andrew Lo P1-P23 = 01-23；耶鲁公开课 Shiller = 24-45；
    吴恩达 AI for everyone P1-P35 = 46-80）
-- 清单 -> 前端/SUFE-Knowledge-Galaxy/data/videos.json
-  （前端学习资料区读取：videos 数组 + carousel 推荐 id）
+- 清单 -> data/media/videos.json
+  （后端 controller/media.py 以 /data/videos.json 提供给前端学习资料区读取）
+
+封面 01-cover.jpg ~ NN-cover.jpg 放在同目录，由后端 /assets/videos/ 路径提供。
 
 用法：python scripts/import_videos.py [--src 源目录]
 """
@@ -19,8 +21,8 @@ import shutil
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC_DEFAULT = os.path.join(ROOT, "数据")
-OUT_DIR = os.path.join(ROOT, "前端", "SUFE-Knowledge-Galaxy", "assets", "videos")
-MANIFEST_PATH = os.path.join(ROOT, "前端", "SUFE-Knowledge-Galaxy", "data", "videos.json")
+OUT_DIR = os.path.join(ROOT, "data", "media", "videos")
+MANIFEST_PATH = os.path.join(ROOT, "data", "media", "videos.json")
 
 
 def collect_entries(src: str):
@@ -89,7 +91,7 @@ def collect_entries(src: str):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="导入课程视频到前端静态目录并生成清单")
+    parser = argparse.ArgumentParser(description="导入课程视频到后端媒体目录 data/media/ 并生成清单")
     parser.add_argument("--src", default=SRC_DEFAULT)
     args = parser.parse_args()
 
