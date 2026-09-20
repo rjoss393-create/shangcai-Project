@@ -113,6 +113,16 @@
         roamAbort:  false
     };
 
+    // ★ 2026-09-20：图谱字段名兼容。本文件用 state.currentGraphId（旧版叫 state.graphId），
+    //   但页面其它脚本（js/assistant.js）读的是 state.graphId —— 不加别名的话取到 undefined，
+    //   AI 助手会退回 'econ'，变成"不管当前看哪本书，问答都只在经济综合图里检索"。
+    Object.defineProperty(state, 'graphId', {
+        get()  { return state.currentGraphId; },
+        set(v) { state.currentGraphId = v; },
+        enumerable: true,
+        configurable: true
+    });
+
     let stage, svg, gRoot, gLinks, gLinkLabels, gNodes;
     let tooltipEl, nodePopupEl;
     
@@ -1353,7 +1363,10 @@
             try {
                 const r = await api('/api/graph/click', {
                     node_id:    nodeId,
-                    session_id: state.sessionId
+                    session_id: state.sessionId,
+                    // ★ 2026-09-20 补回：后端 service._require() 要求 graph_id 必填，
+                    //   缺了会返回 code=500「graph_id 必填」，点节点整个失效
+                    graph_id:   state.currentGraphId
                 });
                 await handleResponse(r);
                 return;
@@ -1646,7 +1659,9 @@
         try {
             const r = await api('/api/graph/query', {
                 text:       text.trim(),
-                session_id: state.sessionId
+                session_id: state.sessionId,
+                // ★ 2026-09-20 补回：同上，后端 Agent/关键词检索都按 graph_id 选图
+                graph_id:   state.currentGraphId
             });
             await handleResponse(r);
         } catch (e) {
