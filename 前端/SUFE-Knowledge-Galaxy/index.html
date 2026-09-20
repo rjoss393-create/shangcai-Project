@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/auth.css">
 <link rel="stylesheet" href="css/profile-ui.css">
+<link rel="stylesheet" href="css/course-galaxy.css">
 
 <!-- 图表库 -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -52,6 +53,7 @@
         <button class="nav-item active" data-target="finance">财经资讯</button>
         <button class="nav-item" data-target="course">课程</button>
         <button class="nav-item" data-target="galaxy">知识星系</button>
+        <button class="nav-item" data-target="course-galaxy">课程星系</button>
         <button class="nav-item" data-target="assistant">知识助手</button>
         <button class="nav-item" data-target="study">学习资料</button>
         <button class="nav-item" data-target="paper">科学研究</button>
@@ -327,6 +329,55 @@
     </div>
 
     
+</section>
+
+<!-- ==========  course-galaxy 课程星系板块（新增，2026-09-19 前端负责人交付） ========== -->
+<section class="page-section" id="course-galaxy">
+
+    <div class="section-title">
+        <h1>课程星系</h1>
+    </div>
+
+    <p class="cg-intro">
+        以「课程」为节点的投资学 / 经济学课程图谱 —— 展示课程节点、先修关系、学习路径、课程卡片与资源。
+        滚轮缩放切换宏观 / 中观 / 微观层级 · 悬停查看课程详情 · 单击展开课程卡片 · 卡片内可跳转至知识星系对应概念。
+    </p>
+
+    <!-- 工具栏：缩放层级 + 学习路径 + 重置 -->
+    <div class="cg-toolbar">
+        <div class="cg-zoom-indicator">
+            <span class="cg-zoom-pct" id="cgZoomPct">80%</span>
+            <span class="cg-zoom-name" id="cgZoomName">中观 · 课程层</span>
+        </div>
+
+        <div class="cg-paths" id="cgPaths">
+            <span class="cg-paths-label">学习路径：</span>
+            <!-- 路径按钮由 JS 渲染 -->
+        </div>
+
+        <button class="cg-btn ghost" id="cgReset" title="重置视图">
+            <span>↺</span><span>重置视图</span>
+        </button>
+    </div>
+
+    <!-- 图谱舞台 -->
+    <div class="cg-stage" id="cgStage">
+        <svg id="cgSvg"></svg>
+        <div class="cg-tooltip" id="cgTooltip"></div>
+        <div class="cg-guest-tip" id="cgGuestTip"></div>
+        <div class="cg-hint">滚轮缩放 · 拖动平移 · 悬停看详情 · 单击开课程卡片</div>
+        <div class="cg-loading show" id="cgLoading">课程图谱加载中…</div>
+    </div>
+
+    <!-- 课程卡片（右侧滑出面板） -->
+    <div class="cg-card-mask" id="cgCardMask"></div>
+    <aside class="cg-card" id="cgCard" aria-hidden="true">
+        <button class="cg-card-close" id="cgCardClose" aria-label="关闭">×</button>
+        <div class="cg-card-body" id="cgCardBody">
+            <!-- 由 JS 渲染 -->
+        </div>
+    </aside>
+
 </section>
 
 <section class="page-section" id="assistant">
@@ -720,6 +771,7 @@
 <script src="js/assistant.js"></script>   <!-- 新增 -->
 <script src="js/auth.js"></script>
 <script src="js/profile-ui.js"></script>
+<script src="js/course-galaxy.js"></script>
 <script src="js/main.js"></script>
 
 </body>

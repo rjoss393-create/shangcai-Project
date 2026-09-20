@@ -68,7 +68,27 @@ class TestKline:
         assert "拿数据失败了" in r.json()["detail"]
 
 
+class TestManifests:
+    """清单类数据由后端按前端原路径提供（/data/videos.json、/data/courses.json）"""
+
+    def test_videos_manifest(self, client, tmp_path):
+        (tmp_path / "videos.json").write_text('{"videos":[{"id":1}]}', encoding="utf-8")
+        r = client.get("/data/videos.json")
+        assert r.status_code == 200
+        assert r.json()["videos"][0]["id"] == 1
+
+    def test_courses_manifest(self, client, tmp_path):
+        (tmp_path / "courses.json").write_text('{"domains":[{"id":"econ_base"}]}', encoding="utf-8")
+        r = client.get("/data/courses.json")
+        assert r.status_code == 200
+        assert r.json()["domains"][0]["id"] == "econ_base"
+
+    def test_missing_manifest_returns_404(self, client):
+        assert client.get("/data/courses.json").status_code == 404
+
+
 class TestNews:
+
     def test_returns_domestic_list_and_caches(self, client, monkeypatch):
         calls = {"n": 0}
 

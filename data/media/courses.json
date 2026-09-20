@@ -1,0 +1,379 @@
+{
+  "domains": [
+    { "id": "econ_base",   "name": "经济学基础", "color": "#1F4E79" },
+    { "id": "fin_market",  "name": "金融市场",   "color": "#811C21" },
+    { "id": "core_invest", "name": "核心投资",   "color": "#B23A3A" },
+    { "id": "corp_fin",    "name": "公司金融",   "color": "#8B5A2B" },
+    { "id": "cross_front", "name": "交叉与前沿", "color": "#4A6B3A" }
+  ],
+  "tiers": { "1": "基础课", "2": "核心课", "3": "进阶课" },
+  "learningPaths": [
+    {
+      "id": "quant",
+      "name": "量化投资方向",
+      "courses": ["micro", "macro", "metrics", "portfolio", "quant"]
+    },
+    {
+      "id": "corp",
+      "name": "公司金融与投行方向",
+      "courses": ["micro", "market", "corpfin", "ibank"]
+    },
+    {
+      "id": "security",
+      "name": "证券投资方向",
+      "courses": ["micro", "market", "invest", "securities", "behavior"]
+    }
+  ],
+  "courses": [
+    {
+      "id": "micro",
+      "name": "微观经济学",
+      "en": "Microeconomics",
+      "domain": "econ_base",
+      "tier": "1",
+      "desc": "研究个体经济单位（消费者、厂商）的决策行为，是全部金融类课程的理论起点。",
+      "prereq": [],
+      "book": { "title": "微观经济学：现代观点", "author": "哈尔·R. 范里安", "en": "Intermediate Microeconomics" },
+      "papers": [],
+      "concepts": ["kp_macro_008"],
+      "chapters": [
+        { "part": "第一部分 引言", "chapters": [
+          { "name": "第1章 市场", "sections": [ { "name": "1.1 实证经济学与规范经济学", "points": ["均衡思想", "最优化原理"] }, { "name": "1.2 市场机制", "points": ["供求均衡", "价格弹性"] } ] }
+        ]},
+        { "part": "第二部分 消费者理论", "chapters": [
+          { "name": "第3章 偏好", "sections": [ { "name": "3.1 无差异曲线", "points": ["效用函数", "边际替代率"] } ] },
+          { "name": "第5章 选择", "sections": [ { "name": "5.1 最优选择", "points": ["预算约束下的效用最大化", "需求函数"] } ] }
+        ]},
+        { "part": "第三部分 厂商理论", "chapters": [
+          { "name": "第19章 利润最大化", "sections": [ { "name": "19.1 成本曲线", "points": ["边际成本", "竞争市场供给"] } ] }
+        ]}
+      ]
+    },
+    {
+      "id": "macro",
+      "name": "宏观经济学",
+      "en": "Macroeconomics",
+      "domain": "econ_base",
+      "tier": "1",
+      "desc": "研究总量经济运行：增长、通胀、货币与财政政策，为理解金融市场宏观环境打底。",
+      "prereq": ["micro"],
+      "book": { "title": "宏观经济学", "author": "N. 格里高利·曼昆", "en": "Macroeconomics" },
+      "papers": [],
+      "concepts": ["kp_macro_002", "kp_macro_003"],
+      "chapters": [
+        { "part": "国民收入", "chapters": [
+          { "name": "第3章 国民收入", "sections": [ { "name": "3.1 生产要素分配", "points": ["柯布-道格拉斯生产函数", "要素价格"] }, { "name": "3.2 货币与通胀", "points": ["数量方程", "费雪方程"] } ] }
+        ]},
+        { "part": "经济波动", "chapters": [
+          { "name": "第10章 总需求 I", "sections": [ { "name": "10.1 IS-LM 模型", "points": ["IS 曲线推导", "LM 曲线推导"] }, { "name": "10.2 政策分析", "points": ["财政政策乘数", "货币政策传导"] } ] }
+        ]}
+      ]
+    },
+    {
+      "id": "metrics",
+      "name": "金融计量学",
+      "en": "Financial Econometrics",
+      "domain": "econ_base",
+      "tier": "2",
+      "desc": "以统计方法处理金融数据：回归、时间序列与实证资产定价的实证工具箱。",
+      "prereq": ["micro", "macro"],
+      "book": { "title": "计量经济学导论：现代观点", "author": "杰弗里·M. 伍德里奇", "en": "Introductory Econometrics: A Modern Approach" },
+      "papers": [
+        { "title": "Data-Snooping Biases in Tests of Financial Asset Pricing Models", "authors": "Andrew W. Lo, A. Craig MacKinlay", "journal": "RFS", "year": 1990 }
+      ],
+      "concepts": ["kp_macro_025", "kp_macro_026"],
+      "chapters": [
+        { "part": "横截面回归", "chapters": [
+          { "name": "第3章 多元回归分析", "sections": [ { "name": "3.1 OLS 估计量", "points": ["高斯-马尔可夫定理", "t 检验与 F 检验"] }, { "name": "3.2 内生性", "points": ["工具变量法", "两阶段最小二乘"] } ] }
+        ]},
+        { "part": "时间序列", "chapters": [
+          { "name": "第12章 时间序列基础", "sections": [ { "name": "12.1 平稳性", "points": ["单位根检验", "ARMA 模型"] }, { "name": "12.2 波动率建模", "points": ["ARCH 效应", "GARCH 模型"] } ] }
+        ]}
+      ]
+    },
+    {
+      "id": "moneybank",
+      "name": "货币金融学",
+      "en": "Money and Banking",
+      "domain": "fin_market",
+      "tier": "1",
+      "desc": "理解货币、银行体系与中央银行政策如何影响利率与金融体系运行。",
+      "prereq": ["macro"],
+      "book": { "title": "货币金融学", "author": "弗雷德里克·S. 米什金", "en": "The Economics of Money, Banking and Financial Markets" },
+      "papers": [],
+      "concepts": ["kp_macro_003"],
+      "chapters": [
+        { "part": "金融市场", "chapters": [
+          { "name": "第4章 利率的含义", "sections": [ { "name": "4.1 现值与到期收益率", "points": ["贴现与现值", "收益率曲线"] } ] }
+        ]},
+        { "part": "银行体系", "chapters": [
+          { "name": "第9章 金融结构", "sections": [ { "name": "9.1 信息不对称", "points": ["逆向选择", "道德风险"] }, { "name": "9.2 银行管理", "points": ["资产负债管理", "资本充足率"] } ] }
+        ]}
+      ]
+    },
+    {
+      "id": "market",
+      "name": "金融市场学",
+      "en": "Financial Markets",
+      "domain": "fin_market",
+      "tier": "2",
+      "desc": "系统认识股票、债券、外汇与衍生品市场的组织结构、定价机制与参与者。",
+      "prereq": ["moneybank", "micro"],
+      "book": { "title": "金融市场与金融机构", "author": "弗雷德里克·S. 米什金 / 斯坦利·G. 埃金斯", "en": "Financial Markets and Institutions" },
+      "papers": [
+        { "title": "Efficient Capital Markets: A Review of Theory and Empirical Work", "authors": "Eugene F. Fama", "journal": "JF", "year": 1970 }
+      ],
+      "concepts": ["kp_macro_013", "kp_macro_014"],
+      "chapters": [
+        { "part": "市场概览", "chapters": [
+          { "name": "第2章 金融体系概览", "sections": [ { "name": "2.1 直接金融与间接金融", "points": ["一级市场", "二级市场"] }, { "name": "2.2 利率决定", "points": ["可贷资金理论", "流动性偏好理论"] } ] }
+        ]},
+        { "part": "机构与监管", "chapters": [
+          { "name": "第7章 股票市场", "sections": [ { "name": "7.1 股票定价", "points": ["戈登增长模型", "市盈率估值"] } ] }
+        ]}
+      ]
+    },
+    {
+      "id": "intlfin",
+      "name": "国际金融",
+      "en": "International Finance",
+      "domain": "fin_market",
+      "tier": "2",
+      "desc": "汇率决定、国际收支与开放经济下的政策选择，理解全球资本流动。",
+      "prereq": ["macro"],
+      "book": { "title": "国际经济学：理论与政策（国际金融部分）", "author": "保罗·R. 克鲁格曼 / 茅瑞斯·奥伯斯法尔德", "en": "International Economics: Theory and Policy" },
+      "papers": [
+        { "title": "Emerging Equity Market Volatility", "authors": "Geert Bekaert, Campbell R. Harvey", "journal": "JF", "year": 1997 }
+      ],
+      "concepts": ["kp_macro_002"],
+      "chapters": [
+        { "part": "汇率", "chapters": [
+          { "name": "第14章 汇率与外汇市场", "sections": [ { "name": "14.1 利率平价", "points": ["套补利率平价", "非套补利率平价"] }, { "name": "14.2 货币模型", "points": ["购买力平价", "货币分析法"] } ] }
+        ]}
+      ]
+    },
+    {
+      "id": "risk",
+      "name": "金融风险管理",
+      "en": "Financial Risk Management",
+      "domain": "fin_market",
+      "tier": "3",
+      "desc": "市场风险、信用风险与操作风险的度量与控制，VaR 与压力测试体系。",
+      "prereq": ["market", "fixedincome"],
+      "book": { "title": "风险管理与金融机构", "author": "约翰·C. 赫尔", "en": "Risk Management and Financial Institutions" },
+      "papers": [
+        { "title": "Common Risk Factors in the Returns on Stocks and Bonds", "authors": "Eugene F. Fama, Kenneth R. French", "journal": "JFE", "year": 1993 }
+      ],
+      "concepts": ["kp_macro_004"],
+      "chapters": [
+        { "part": "市场风险", "chapters": [
+          { "name": "第12章 VaR 方法", "sections": [ { "name": "12.1 历史模拟法", "points": ["分位数估计", "回溯测试"] }, { "name": "12.2 参数法", "points": ["方差-协方差法", "期望损失 ES"] } ] }
+        ]},
+        { "part": "信用风险", "chapters": [
+          { "name": "第19章 信用风险", "sections": [ { "name": "19.1 违约概率", "points": ["结构化模型", "简约模型"] } ] }
+        ]}
+      ]
+    },
+    {
+      "id": "invest",
+      "name": "投资学",
+      "en": "Investments",
+      "domain": "core_invest",
+      "tier": "2",
+      "desc": "本星系的核心课程：风险与收益、资产组合理论、CAPM 与市场有效性。",
+      "prereq": ["market"],
+      "book": { "title": "投资学", "author": "滋维·博迪 / 亚历克斯·凯恩 / 艾伦·J. 马库斯", "en": "Investments" },
+      "papers": [
+        { "title": "Portfolio Selection", "authors": "Harry Markowitz", "journal": "JF", "year": 1952 },
+        { "title": "Capital Asset Prices: A Theory of Market Equilibrium under Conditions of Risk", "authors": "William F. Sharpe", "journal": "JF", "year": 1964 }
+      ],
+      "concepts": ["kp_macro_005"],
+      "chapters": [
+        { "part": "第四部分 风险与收益", "chapters": [
+          { "name": "第5章 风险与收益入门", "sections": [ { "name": "5.1 收益率度量", "points": ["持有期收益率", "几何平均与算术平均"] }, { "name": "5.2 风险度量", "points": ["方差与标准差", "夏普比率"] } ] },
+          { "name": "第6章 有效分散化", "sections": [ { "name": "6.1 两风险资产组合", "points": ["协方差与相关系数", "最小方差组合"] }, { "name": "6.2 马科维茨模型", "points": ["有效前沿", "分散化极限"] } ] }
+        ]},
+        { "part": "第五部分 均衡定价", "chapters": [
+          { "name": "第8章 指数模型与 CAPM", "sections": [ { "name": "8.1 资本市场线", "points": ["市场组合", "贝塔系数"] }, { "name": "8.2 证券市场线", "points": ["阿尔法", "证券特征线"] } ] },
+          { "name": "第9章 套利定价理论", "sections": [ { "name": "9.1 多因子模型", "points": ["无套利条件", "APT 与 CAPM 关系"] } ] }
+        ]}
+      ]
+    },
+    {
+      "id": "securities",
+      "name": "证券投资学",
+      "en": "Security Investment & Analysis",
+      "domain": "core_invest",
+      "tier": "2",
+      "desc": "基本面与技术面分析框架：证券估值、财报分析与投资策略执行。",
+      "prereq": ["invest"],
+      "book": { "title": "证券分析", "author": "本杰明·格雷厄姆 / 戴维·多德", "en": "Security Analysis" },
+      "papers": [
+        { "title": "Does the Stock Market Overreact?", "authors": "Werner F. M. De Bondt, Richard H. Thaler", "journal": "JF", "year": 1985 }
+      ],
+      "concepts": ["kp_macro_015"],
+      "chapters": [
+        { "part": "估值基础", "chapters": [
+          { "name": "第18章 权益估值", "sections": [ { "name": "18.1 股利贴现模型", "points": ["DDM 两阶段/三阶段", "内在价值与市价"] }, { "name": "18.2 自由现金流估值", "points": ["FCFF / FCFE", "相对估值法"] } ] }
+        ]},
+        { "part": "投资策略", "chapters": [
+          { "name": "第11章 有效市场假说", "sections": [ { "name": "11.1 弱式/半强式/强式有效", "points": ["随机游走检验", "事件研究法"] } ] }
+        ]}
+      ]
+    },
+    {
+      "id": "portfolio",
+      "name": "投资组合管理",
+      "en": "Portfolio Management",
+      "domain": "core_invest",
+      "tier": "3",
+      "desc": "从组合构建、业绩归因到再平衡的实战管理流程与机构投资实践。",
+      "prereq": ["invest", "metrics"],
+      "book": { "title": "主动投资组合管理", "author": "理查德·C. 格里纳尔德 / 罗纳德·N. 卡恩", "en": "Active Portfolio Management" },
+      "papers": [
+        { "title": "The Cross-Section of Expected Stock Returns", "authors": "Eugene F. Fama, Kenneth R. French", "journal": "JF", "year": 1992 }
+      ],
+      "concepts": ["kp_macro_007", "kp_macro_022"],
+      "chapters": [
+        { "part": "组合构建", "chapters": [
+          { "name": "第3章 基本定律", "sections": [ { "name": "3.1 信息比率", "points": ["残差收益", "广度 × 信息系数"] } ] }
+        ]},
+        { "part": "业绩评价", "chapters": [
+          { "name": "第24章 业绩评估", "sections": [ { "name": "24.1 风险调整收益", "points": ["夏普/特雷纳/詹森指标", "业绩归因模型"] } ] }
+        ]}
+      ]
+    },
+    {
+      "id": "behavior",
+      "name": "行为金融学",
+      "en": "Behavioral Finance",
+      "domain": "core_invest",
+      "tier": "3",
+      "desc": "心理学与金融的交叉：前景理论、有限套利与市场异象的行为解释。",
+      "prereq": ["invest"],
+      "book": { "title": "思考，快与慢", "author": "丹尼尔·卡尼曼", "en": "Thinking, Fast and Slow" },
+      "papers": [
+        { "title": "Investor Psychology and Security Market Under- and Overreactions", "authors": "Kent Daniel, David Hirshleifer, Avanidhar Subrahmanyam", "journal": "JF", "year": 1998 }
+      ],
+      "concepts": ["kp_macro_012"],
+      "chapters": [
+        { "part": "理论基石", "chapters": [
+          { "name": "第1章 前景理论", "sections": [ { "name": "1.1 价值函数", "points": ["损失厌恶", "参照点依赖"] }, { "name": "1.2 概率权重", "points": ["高估小概率事件", "确定性效应"] } ] }
+        ]},
+        { "part": "市场应用", "chapters": [
+          { "name": "第8章 市场异象", "sections": [ { "name": "8.1 动量与反转", "points": ["过度反应", "反应不足"] }, { "name": "8.2 有限套利", "points": ["噪声交易者风险", "套利限制"] } ] }
+        ]}
+      ]
+    },
+    {
+      "id": "corpfin",
+      "name": "公司金融",
+      "en": "Corporate Finance",
+      "domain": "corp_fin",
+      "tier": "2",
+      "desc": "企业投资决策、融资结构、股利政策与公司治理的价值逻辑。",
+      "prereq": ["market", "micro"],
+      "book": { "title": "公司理财", "author": "斯蒂芬·A. 罗斯 / 伦道夫·W. 威斯特菲尔德 / 杰弗利·F. 杰富", "en": "Corporate Finance" },
+      "papers": [
+        { "title": "Theory of the Firm: Managerial Behavior, Agency Costs and Ownership Structure", "authors": "Michael C. Jensen, William H. Meckling", "journal": "JFE", "year": 1976 }
+      ],
+      "concepts": ["kp_macro_006", "kp_macro_017"],
+      "chapters": [
+        { "part": "投资决策", "chapters": [
+          { "name": "第5章 净现值", "sections": [ { "name": "5.1 NPV 与 IRR", "points": ["现金流折现", "互斥项目排序"] } ] }
+        ]},
+        { "part": "资本结构", "chapters": [
+          { "name": "第15章 MM 定理", "sections": [ { "name": "15.1 无税/有税 MM", "points": ["资本结构无关论", "税盾价值"] }, { "name": "15.2 权衡理论", "points": ["财务困境成本", "代理成本"] } ] }
+        ]}
+      ]
+    },
+    {
+      "id": "ibank",
+      "name": "投资银行学",
+      "en": "Investment Banking",
+      "domain": "corp_fin",
+      "tier": "3",
+      "desc": "IPO、并购重组与私募股权的运作机制，一级市场的价值创造。",
+      "prereq": ["corpfin", "securities"],
+      "book": { "title": "投资银行、对冲基金和私募股权投资", "author": "大卫·斯托厄尔", "en": "Investment Banks, Hedge Funds, and Private Equity" },
+      "papers": [
+        { "title": "Financial Contracting Theory Meets the Real World: An Empirical Analysis of Venture Capital Contracts", "authors": "Steven N. Kaplan, Per Strömberg", "journal": "RFS", "year": 2003 }
+      ],
+      "concepts": ["kp_macro_016", "kp_macro_018"],
+      "chapters": [
+        { "part": "股权融资", "chapters": [
+          { "name": "第2章 首次公开发行", "sections": [ { "name": "2.1 定价与承销", "points": ["询价机制", "抑价现象"] } ] }
+        ]},
+        { "part": "并购重组", "chapters": [
+          { "name": "第8章 兼并与收购", "sections": [ { "name": "8.1 交易结构", "points": ["现金/换股支付", "对赌协议"] }, { "name": "8.2 杠杆收购", "points": ["LBO 模型", "偿债瀑布"] } ] }
+        ]}
+      ]
+    },
+    {
+      "id": "fixedincome",
+      "name": "固定收益证券",
+      "en": "Fixed Income Securities",
+      "domain": "cross_front",
+      "tier": "3",
+      "desc": "债券定价、久期凸性、利率期限结构与信用衍生品。",
+      "prereq": ["invest"],
+      "book": { "title": "固定收益证券", "author": "布鲁斯·塔克曼 / 安杰尔·塞拉特", "en": "Fixed Income Securities" },
+      "papers": [
+        { "title": "Modeling Term Structures of Defaultable Bonds", "authors": "Darrell Duffie, Kenneth J. Singleton", "journal": "RFS", "year": 1999 }
+      ],
+      "concepts": ["kp_macro_009"],
+      "chapters": [
+        { "part": "定价基础", "chapters": [
+          { "name": "第3章 债券价格", "sections": [ { "name": "3.1 到期收益率", "points": ["价格-收益率关系", "应计利息"] }, { "name": "3.2 久期与凸性", "points": ["麦考利久期", "价格弹性近似"] } ] }
+        ]},
+        { "part": "期限结构", "chapters": [
+          { "name": "第8章 利率期限结构", "sections": [ { "name": "8.1 零息曲线", "points": ["即期/远期利率", "期限溢价"] } ] }
+        ]}
+      ]
+    },
+    {
+      "id": "derivatives",
+      "name": "金融衍生工具",
+      "en": "Derivatives",
+      "domain": "cross_front",
+      "tier": "3",
+      "desc": "期权、期货与互换的定价与对冲：从无套利到 Black-Scholes 世界。",
+      "prereq": ["invest", "fixedincome"],
+      "book": { "title": "期权、期货及其他衍生产品", "author": "约翰·C. 赫尔", "en": "Options, Futures, and Other Derivatives" },
+      "papers": [
+        { "title": "Valuing American Options by Simulation: A Simple Least-Squares Approach", "authors": "Francis A. Longstaff, Eduardo S. Schwartz", "journal": "RFS", "year": 2001 }
+      ],
+      "concepts": ["kp_macro_010"],
+      "chapters": [
+        { "part": "远期与期货", "chapters": [
+          { "name": "第5章 远期合约定价", "sections": [ { "name": "5.1 无套利定价", "points": ["持有成本模型", "期货价格与现货预期"] } ] }
+        ]},
+        { "part": "期权", "chapters": [
+          { "name": "第13章 Black-Scholes 模型", "sections": [ { "name": "13.1 BSM 公式", "points": ["风险中性定价", "希腊字母 Delta/Gamma"] }, { "name": "13.2 波动率", "points": ["隐含波动率", "波动率微笑"] } ] }
+        ]}
+      ]
+    },
+    {
+      "id": "quant",
+      "name": "量化投资",
+      "en": "Quantitative Investment",
+      "domain": "cross_front",
+      "tier": "3",
+      "desc": "用数据与模型驱动投资：因子挖掘、回测框架与算法交易系统。",
+      "prereq": ["invest", "metrics", "portfolio"],
+      "book": { "title": "量化交易：如何建立自己的算法交易事业", "author": "欧内斯特·P. 陈", "en": "Quantitative Trading: How to Build Your Own Algorithmic Trading Business" },
+      "papers": [
+        { "title": "Stock Prices, Earnings, and Expected Dividends", "authors": "John Y. Campbell, Robert J. Shiller", "journal": "JF", "year": 1988 }
+      ],
+      "concepts": ["kp_macro_011", "kp_macro_027"],
+      "chapters": [
+        { "part": "策略研发", "chapters": [
+          { "name": "第3章 回测", "sections": [ { "name": "3.1 回测陷阱", "points": ["前视偏差", "过拟合与样本外检验"] } ] }
+        ]},
+        { "part": "组合与执行", "chapters": [
+          { "name": "第9章 因子投资", "sections": [ { "name": "9.1 多因子模型", "points": ["价值/动量/质量因子", "因子相关性"] }, { "name": "9.2 交易成本", "points": ["冲击成本", "组合优化约束"] } ] }
+        ]}
+      ]
+    }
+  ]
+}

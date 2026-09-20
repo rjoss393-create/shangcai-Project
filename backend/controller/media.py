@@ -10,6 +10,7 @@
     /assets/papers/jf-01.pdf              data/media/papers/jf-01.pdf
     /assets/books/01.png                  data/media/books/01.png
     /data/videos.json                     data/media/videos.json
+    /data/courses.json                    data/media/courses.json（课程星系数据）
     /api/kline?secid=...                  A股/港美股走新浪；北证50(bj899050) 走东方财富
     /api/news                             新浪滚动财经新闻（5 分钟缓存，供首页新闻区）
     /（其余全部）                          前端/SUFE-Knowledge-Galaxy/（页面自身的 html/css/js/字体/logo）
@@ -195,6 +196,14 @@ def create_media_router(media_dir: str) -> APIRouter:
         path = os.path.join(media_dir, "videos.json")
         if not os.path.exists(path):
             raise HTTPException(status_code=404, detail="视频清单缺失：data/media/videos.json")
+        return FileResponse(path, media_type="application/json")
+
+    @router.get("/data/courses.json")
+    async def course_manifest():
+        """课程星系数据（课程节点 / 先修边 / 学习路径，原 前端/data/courses.json）"""
+        path = os.path.join(media_dir, "courses.json")
+        if not os.path.exists(path):
+            raise HTTPException(status_code=404, detail="课程数据缺失：data/media/courses.json")
         return FileResponse(path, media_type="application/json")
 
     @router.get("/api/kline")
