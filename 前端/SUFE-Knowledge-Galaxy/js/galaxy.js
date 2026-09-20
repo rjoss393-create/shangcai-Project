@@ -1,74 +1,53 @@
 /* ============================================================
    知识星系 · 雷达环图谱渲染引擎
-   依赖：d3 v7（CDN，缺失时自动补加载）
-   接口：后端 /api/graph/{load | click | query}
-   ------------------------------------------------------------
-   场景3 能力（对甲方需求）：
-   ① 缩放分层：≤40% 宏观 / 40%-80% 中观 / ≥80% 微观
-   ② 右键拖拽旋转视角
-   ③ Ctrl+点击选中两节点 → BFS 求路径 → 粒子流动高亮
-   ④ 自动漫游：镜头依次经过路径中间节点并弹解释
-   ⑤ 回到宏观视角：旋转飞回动画
-   ⑥ 底部时间轴：按节点年份依次点亮/淡出
-   ⑦ 沉浸模式：隐藏所有外围 UI
+   依赖：d3 v7（本地 js/d3.min.js，缺失时自动补加载 CDN）
+
+   ★ 字段契约（一切以后端为准，不做映射）：
+       节点：{ id, label, type, page, source_books, media? }
+       边：  { source, target, relation }
+       type ∈ { chapter, section, concept, formula }
+
+   ★ 本次修复（节点/连线/文字全部重叠 Bug）：
+       ① layoutGalaxy 重写为「自适应多环带状布局」——
+          1911 个节点（1600 个叶子）不再被压在单一圆环上互相叠盖
+       ② 标签显隐改为按「缩放层级 + 节点类型」控制，
+          并补上此前缺失的 .hidden CSS 规则（旧规则 .zoom-meso.other
+          里的 other 类 JS 从未添加过，导致全部标签常显叠加）
+       ③ 2896 条边的「关系文字」仅微观层 / 高亮 / 路径时显示
+       ④ micro 标签放大到 1.4× 后才显示；mergeGraph 每次合并后
+          确定性重排（后端增量返回节点也能正确落位）
 ============================================================ */
 (function () {
     'use strict';
 
+    /* ------------------------------------------------------------
+       配置
+    ------------------------------------------------------------ */
     const API_BASE = 'http://localhost:8000';
-    const D3_CDNS  = [
+    const D3_CDNS = [
         'https://cdn.jsdelivr.net/npm/d3@7',
         'https://unpkg.com/d3@7/dist/d3.min.js',
         'https://cdn.bootcdn.net/ajax/libs/d3/7.9.0/d3.min.js',
         'https://lib.baomitu.com/d3/7.9.0/d3.min.js'
     ];
 
-    // ★ 2026-09-15：环形半径按"数据层级"排布（宏观章在内圈、中观节居中、微观概念/公式在外圈），
-    //   取代原来按 category 的 155/250/335——那次的目标只是"散开一点"，层级语义没体现。
-    //   半径取值配合下方 LEVEL_SCALE_BAND：宏观层在 0.4 缩放下直径约 400px，标签仍可读。
-    const RING_RADIUS = {
-        'macro':       500,
-        'meso':        800,
-        'micro':      1100,
-        '__default__': 1100
-    };
-    // 层级序号：数值越小越"宏观"，用于按当前缩放层级过滤渲染集
-    const LAYER_RANK = { macro: 0, meso: 1, micro: 2 };
-    const EDGE_RANK  = { hier: 0, macro: 0, meso: 1, micro: 2 };
+    const GRAPH_BASE_PATH = '';
 
-    // ★ 节点配色：红橙黄绿青蓝紫 7 色，按节点 id 哈希稳定分配（刷新/切书不变色）
-    const NODE_COLORS = ['#c0392b', '#e67e22', '#f0b400', '#27ae60', '#16a085', '#2980b9', '#8e44ad'];
-    function colorIndexOf(node) {
-        let h = 0;
-        const s = String(node.id || '');
-        for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-        return h % NODE_COLORS.length;
-    }
-
-    // ★ 新增：缩放分层阈值（对齐需求 40% / 80%）
-    const ZOOM_BOUNDS = { macroMax: 0.4, mesoMax: 0.8 };
-    // 缩放下限须低于"最大图谱的适配缩放"，否则 fitViewToContent 被卡住、装不进视野。
-    // 实测最大图谱（经济综合 5437 节点）跨度约 4500 世界单位，660px 高画布需 ~0.14，取 0.12 留余量。
-    const SCALE_MIN = 0.12;
-    const SCALE_MAX = 2.0;
-    const SCALE_DEFAULT = 0.7;   // 初始落在中观层
-
-    // 每个缩放层级允许的缩放带（fitViewToContent 会把结果夹到带内，
-    // 避免"适配这一层的内容 → 缩放跨到另一层 → 渲染集又变"的来回抖动）
-    const LEVEL_SCALE_BAND = {
-        macro: [SCALE_MIN, ZOOM_BOUNDS.macroMax],
-        meso:  [ZOOM_BOUNDS.macroMax, ZOOM_BOUNDS.mesoMax],
-        micro: [ZOOM_BOUNDS.mesoMax, SCALE_MAX]
+    const GRAPH_SOURCES = {
+        'econ':     'galaxy.json',
+        'corp_fin': '公司金融_知识图谱.json',
+        'intl_inv': '国际投资学_知识图谱.json',
+        'ma':       '并购与重组_知识图谱.json',
+        'invest':   '投资学_知识图谱.json'
     };
 
-    // ★ 视野裁剪参数（世界坐标）：
-    //   视野框 + CULL_RENDER_MARGIN 内 → 渲染集（挂 DOM）
-    //   视野框 + CULL_ACTIVE_MARGIN 内 → 活动集（参与力导向，即"附近缓存"，无 DOM）
-    //   超出 → 移出活动集（仅保留在全量缓存 allNodes，接近时按原坐标恢复）
-    const CULL_RENDER_MARGIN = 300;
-    const CULL_ACTIVE_MARGIN = 1200;
+    // （旧 RING_RADIUS / ringOf 半径表已删除：与新布局脱节，
+    //   是标签显隐失效、标签全部叠在一起的根源之一）
+    const ZOOM_BOUNDS  = { macroMax: 0.4, mesoMax: 0.8 };
+    const SCALE_MIN    = 0.28;
+    const SCALE_MAX    = 2.0;
+    const SCALE_DEFAULT= 0.55;   // 图谱外半径较大，默认稍微缩小保证首屏可读
 
-    // ★ 新增：缩放时用来计算层级名
     function zoomLevelOf(s) {
         if (s <= ZOOM_BOUNDS.macroMax) return 'macro';
         if (s <= ZOOM_BOUNDS.mesoMax)  return 'meso';
@@ -80,52 +59,55 @@
         micro: '微观聚焦层'
     };
 
-    // ---------- 全局状态 ----------
+    // 各缩放层级下显示文字标签的节点类型
+    // ★ micro 标签默认不渲染（密排时文字互相压盖），悬停/点击节点时由 CSS 单独亮出
+    const LABEL_LEVELS = {
+        macro: ['domain', 'macro'],
+        meso:  ['domain', 'macro', 'meso'],
+        micro: ['domain', 'macro', 'meso']
+    };
+
+    const CULL = {
+        ENABLED:         true,
+        BUFFER:          0.35,
+        REBIND_THROTTLE: 90,
+        TICK_THROTTLE:   24
+    };
+
+    /* ------------------------------------------------------------
+       状态
+    ------------------------------------------------------------ */
     const state = {
         sessionId:      null,
-        graphId:        'econ',        // ★ 当前图谱（对应后端 graph_id，默认经济综合）
-        // ★ 视野裁剪三级结构：
-        //   allNodes/allEdges  全量数据（含 x/y 布局坐标，远端节点仅存这里，接近时恢复）
-        //   nodes/edges        活动集：视野 + 活动缓冲带，参与力导向（"附近缓存"）
-        //   renderNodes/edges  渲染集：视野 + 渲染缓冲带，真正挂 DOM（"视野框内"）
-        allNodes:       [],
-        allEdges:       [],
+        currentGraphId: 'econ',
         nodes:          [],
         edges:          [],
-        renderNodes:    [],
-        renderEdges:    [],
         visibleIds:     new Set(),
         focusedId:      null,
         highlightedIds: new Set(),
 
-        // 视图
         translateX: 0,
         translateY: 0,
         scale:      SCALE_DEFAULT,
-        rotation:   0,                 // ★ 新增：旋转角度（deg）
+        rotation:   0,
         zoomLevel:  'meso',
 
-        // 交互
         dragging:        false,
-        dragMode:        null,         // 'pan' | 'rotate'
+        dragMode:        null,
         dragStartX:      0,
         dragStartY:      0,
-        downAt:          null,         // 按下位置（区分"点击空白"与"拖拽后松手"）
         dragStartTX:     0,
         dragStartTY:     0,
         dragStartRot:    0,
 
-        // ★ 新增：双节点选择 & 路径
         selectedIds: [],
-        activePath:  null,             // string[] | null
+        activePath:  null,
 
-        // ★ 新增：时间轴
         timelineEnabled: false,
         timelineMin:     0,
         timelineMax:     0,
         timelineValue:   null,
 
-        // ★ 新增：沉浸 / 漫游
         immersive:  false,
         roaming:    false,
         roamAbort:  false
@@ -133,12 +115,18 @@
 
     let stage, svg, gRoot, gLinks, gLinkLabels, gNodes;
     let tooltipEl, nodePopupEl;
-    let simulation = null;
+    
     let toastTimer = null;
     let inited = false;
     let timelineInited = false;
 
-    // ---------- 工具 ----------
+    let lastCullAt = 0;
+    let cullScheduled = false;
+    let lastTickAt = 0;
+
+    /* ------------------------------------------------------------
+       工具
+    ------------------------------------------------------------ */
     const sleep = ms => new Promise(r => setTimeout(r, Math.max(0, ms || 0)));
 
     function showToast(msg) {
@@ -164,44 +152,36 @@
         return res.json();
     }
 
-    // ---------- 数据 ----------
-    // ★ 后端契约字段为 type（concept/chapter/section/formula），原前端读 category（课程/概念）。
-    //   统一改为按 type 映射：章/节视为"课程"核心节点（宏观层突出），概念为概念节点。
-    function categoryOf(node) {
-        if (node.category) return node.category;
-        if (node.type === 'chapter' || node.type === 'section') return '课程';
-        if (node.type === 'concept') return '概念';
-        return '';
-    }
-    const ringOf = n => RING_RADIUS[n.layer] ?? RING_RADIUS.__default__;
-    // 当前缩放层级下"可见"的数据层级（宏观=只看章；中观=章+节；微观=全部）
-    const layerRankOf = n => LAYER_RANK[n.layer] ?? 2;
-    const rankAtLevel = () => LAYER_RANK[state.zoomLevel] ?? 2;
-
-    function classOf(node) {
-        const c = categoryOf(node);
-        if (c === '课程') return 'course';
-        if (c === '概念') return 'concept';
-        return 'other';
-    }
-
-    // ★ 清洗质量标记：low = 短词/表格小标题类（后端放在 extra.quality 里）
-    const qualityOf = n => n.quality || (n.extra && n.extra.quality) || '';
-
+    /* ------------------------------------------------------------
+       数据辅助（直接使用后端字段，不做映射）
+    ------------------------------------------------------------ */
     const srcId   = e => (e.source && typeof e.source === 'object') ? e.source.id : e.source;
     const tgtId   = e => (e.target && typeof e.target === 'object') ? e.target.id : e.target;
     const edgeKey = e => `${srcId(e)}|${tgtId(e)}|${e.relation || ''}`;
 
-    // ★ 新增：边的方向极性（促进/抑制），优先用后端字段，否则从 relation 文本推断
+    function classOf(node) {
+        switch (node.type) {
+            case 'domain': return 'lvl-domain';
+            case 'macro':  return 'lvl-macro';
+            case 'meso':   return 'lvl-meso';
+            case 'micro':  return 'lvl-micro';
+            default:       return 'lvl-micro';
+        }
+    }
+
+    // ★ 2026-09-15：清洗质量标记 low = 短词/表格小标题类（后端放在 extra.quality），
+    //   这类标签默认不显示、hover 才出（避免上千个短标签叠成一片）。
+    //   接入新 galaxy.js 时该逻辑被丢掉，此处找回。
+    const qualityOf = n => n.quality || (n.extra && n.extra.quality) || '';
+
+    // 后端未下发 polarity；用 relation 文本推断（仅渲染用途）
     function edgePolarity(e) {
-        if (e.polarity) return String(e.polarity).toLowerCase();
         const rel = String(e.relation || '').toLowerCase();
         if (/抑制|负|阻碍|减弱|降低|削弱/.test(rel)) return 'inhibit';
-        if (/促进|正|增强|提高|推动|促进/.test(rel)) return 'promote';
+        if (/促进|正|增强|提高|推动/.test(rel))       return 'promote';
         return 'neutral';
     }
 
-    // ★ 新增：节点年份（用于时间轴），优先 node.year → node.media.year → 稳定伪年份
     function getNodeYear(node) {
         if (node.year != null) return +node.year;
         if (node.media && node.media.year != null) return +node.media.year;
@@ -211,241 +191,237 @@
         const s = String(node.id) + String(node.label || '');
         let h = 0;
         for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-        return 2010 + (h % 15);   // 2010 – 2024
+        return 2010 + (h % 15);
     }
 
-    function resolveEdges(edges) {
-        // 把边的 source/target 字符串解析为全量缓存中的节点对象（供力导向/坐标读取）
-        const nodeMap = new Map(state.allNodes.map(n => [n.id, n]));
-        edges.forEach(e => {
-            if (typeof e.source === 'string' && nodeMap.has(e.source)) e.source = nodeMap.get(e.source);
-            if (typeof e.target === 'string' && nodeMap.has(e.target)) e.target = nodeMap.get(e.target);
+    function resolveEdges() {
+        const nodeMap = new Map(state.nodes.map(n => [n.id, n]));
+        state.edges.forEach(e => {
+            const s = nodeMap.get(srcId(e));
+            const t = nodeMap.get(tgtId(e));
+            if (s) e.source = s;
+            if (t) e.target = t;
         });
     }
 
-    function mergeGraph(data) {
+    /** 直接使用后端原始结构（不映射字段） */
+    function mergeGraph(data, reset) {
         if (!data || !data.nodes) return;
 
-        const firstLoad = state.allNodes.length === 0;
-        const nodeMap = new Map(state.allNodes.map(n => [n.id, n]));
-        data.nodes.forEach(n => {
-            const old = nodeMap.get(n.id);
-            // 保留已有布局坐标：合并时不清空 x/y（裁剪恢复依赖历史坐标）
-            if (old) Object.assign(old, n);
-            else {
-                // ★ 新节点必须给"不重合"的初始坐标：全部落在 (0,0) 会让 d3 四叉树的
-                //   斥力在零距离处产生数值爆炸（实测 1 tick 冲到 146 万世界单位，节点
-                //   飞出视野后被裁剪冻结，图谱永久空白）。用 d3 同款费马螺旋撒点。
-                const i = nodeMap.size;
-                const r = 10 * Math.sqrt(0.5 + i);
-                const a = i * Math.PI * (3 - Math.sqrt(5));
-                nodeMap.set(n.id, { ...n, x: r * Math.cos(a), y: r * Math.sin(a) });
+        // 节点/边集合可能变化 → 度缓存失效
+        state._degree = null;
+        state._typeOf = null;
+
+        if (reset) {
+            state.nodes = [];
+            state.edges = [];
+            state.visibleIds = new Set();
+            state.selectedIds = [];
+            state.activePath = null;
+            state.highlightedIds.clear();
+            state.focusedId = null;
+        }
+
+        // 后端字段 → 前端节点对象（唯一转换点，函数内部使用）
+        // ★ 2026-09-20 接入适配：本文件原按前端交付包自带 galaxy.json 的字段写
+        //   （{ name, level, domain, parent_id }），我方后端契约是
+        //   { id, label, type, page, layer, media, extra }（见《字段.md》）。
+        //   这里两者都认，优先前端包字段、回退后端字段。
+        function toNode(raw) {
+            return {
+                id:            String(raw.id),
+                label:         raw.name          ?? raw.label ?? '',
+                type:          raw.level         ?? raw.layer ?? 'micro',
+                domain:        raw.domain        ?? '',
+                parent_id:     raw.parent_id     ?? null,
+                domains:       raw.domains       ?? [],
+                courses:       raw.courses       ?? [],
+                description:   raw.description   ?? '',
+                media:         raw.media         ?? null,
+                tags:          raw.tags          ?? null,
+                teaching_case: raw.teaching_case ?? null,
+                // ★ 后端把清洗质量标记放在 extra.quality（也有直接放 quality 的）
+                quality:       raw.quality ?? (raw.extra && raw.extra.quality) ?? '',
+                x:             typeof raw.x === 'number' ? raw.x : 0,
+                y:             typeof raw.y === 'number' ? raw.y : 0,
+                _visible:      true
+            };
+        }
+
+        const nodeMap = new Map(state.nodes.map(n => [n.id, n]));
+        data.nodes.forEach(raw => {
+            if (!raw || !raw.id) return;
+            const id  = String(raw.id);
+            const old = nodeMap.get(id);
+            const nv  = toNode(raw);
+            if (old) {
+                // 保留旧的坐标与可见状态，其余字段刷新
+                nv.x = typeof raw.x === 'number' ? raw.x : old.x;
+                nv.y = typeof raw.y === 'number' ? raw.y : old.y;
+                nv._visible = old._visible;
+                Object.assign(old, nv);
+            } else {
+                nodeMap.set(id, nv);
             }
         });
-        state.allNodes = Array.from(nodeMap.values());
+        state.nodes = Array.from(nodeMap.values());
 
-        const edgeMap = new Map(state.allEdges.map(e => [edgeKey(e), e]));
-        data.edges.forEach(e => {
+        const edgeMap = new Map(state.edges.map(e => [edgeKey(e), e]));
+        (data.edges || []).forEach(raw => {
+            if (!raw || !raw.source || !raw.target) return;
+            const e = { source: String(raw.source), target: String(raw.target), relation: raw.relation || '' };
             const k = edgeKey(e);
-            if (!edgeMap.has(k)) edgeMap.set(k, { ...e });
+            if (!edgeMap.has(k)) edgeMap.set(k, e);
         });
-        state.allEdges = Array.from(edgeMap.values());
-        rebuildDegree();
+        state.edges = Array.from(edgeMap.values());
 
-        state.visibleIds = new Set(data.nodes.map(n => n.id));
+        state.visibleIds = new Set(data.nodes.map(n => String(n.id)));
 
-        // ★ 清理失效的选中/路径
-        const idSet = new Set(state.allNodes.map(n => n.id));
+        const idSet = new Set(state.nodes.map(n => n.id));
         state.selectedIds = state.selectedIds.filter(id => idSet.has(id));
         if (state.activePath) {
             state.activePath = state.activePath.filter(id => idSet.has(id));
             if (state.activePath.length < 2) state.activePath = null;
         }
 
-        // ★ 首次拿到数据后初始化时间轴
-        if (!timelineInited) {
-            timelineInited = true;
-            setupTimeline();
-        }
+        if (!timelineInited) { timelineInited = true; setupTimeline(); }
+        state.nodes.forEach(n => { n._visible = true; });
 
-        // ★ 按视野重建活动集/渲染集
-        updateCulling(true);
-
-        // ★ 首次载入：布局稳定后自动缩放视图到内容包围盒（防止散开后视野中心空白）
-        if (firstLoad) {
-            _pendingFit = true;
-            // 兜底：6 秒后若仍未自动适配（如布局异常停滞），强制适配一次
-            setTimeout(() => {
-                if (_pendingFit) {
-                    _pendingFit = false;
-                    fitViewToContent(500);
-                }
-            }, 6000);
-        }
+        // ★ 布局是确定性的：每次合并后整体重算。
+        //   已有节点坐标不变，后端增量返回的新节点也能自动正确落位
+        //   （旧逻辑只在 reset 时布局，增量节点全部堆在原点 (0,0)）
+        layoutGalaxy();
     }
-
-    // ---------- ★ 视野裁剪 ----------
-    function worldViewport() {
-        // 计算当前视野在世界坐标系下的 AABB（考虑 translate/scale/rotate）
-        const rect = svg.node().getBoundingClientRect();
-        const cos = Math.cos(-state.rotation * Math.PI / 180);
-        const sin = Math.sin(-state.rotation * Math.PI / 180);
-        const cxr = state.translateX + rect.width / 2;
-        const cyr = state.translateY + rect.height / 2;
-        const corners = [
-            [0, 0], [rect.width, 0], [0, rect.height], [rect.width, rect.height],
-        ].map(([px, py]) => {
-            const dx = (px - cxr) / state.scale;
-            const dy = (py - cyr) / state.scale;
-            return [dx * cos - dy * sin, dx * sin + dy * cos];
-        });
-        const xs = corners.map(c => c[0]), ys = corners.map(c => c[1]);
-        return {
-            minX: Math.min(...xs), maxX: Math.max(...xs),
-            minY: Math.min(...ys), maxY: Math.max(...ys),
-        };
-    }
-
-    let _renderSet = new Set();   // 上一帧渲染集 id（变化检测用）
-    let _cullTick  = 0;
-
-    function updateCulling(forceRender) {
-        if (!state.allNodes.length || !svg) return;
-
-        let vp;
-        try { vp = worldViewport(); } catch (e) { vp = null; }
-
-        // ★ 兜底：画布尺寸未就绪（0 尺寸 / NaN）时全量渲染，保证图谱可见
-        if (!vp || !isFinite(vp.minX) || !isFinite(vp.maxX) ||
-            !isFinite(vp.minY) || !isFinite(vp.maxY) ||
-            vp.maxX - vp.minX < 2 || vp.maxY - vp.minY < 2) {
-            state.renderNodes = state.allNodes;
-            state.nodes = state.allNodes;
-            state.renderEdges = state.allEdges;
-            state.edges = state.allEdges;
-            resolveEdges(state.edges);
-            if (simulation) simulation.nodes(state.nodes);
-            _renderSet = new Set(state.allNodes.map(n => n.id));
-            render();
-            return;
-        }
-
-        const renderIds = new Set(), activeIds = new Set();
-        const rmx = CULL_RENDER_MARGIN, amx = CULL_ACTIVE_MARGIN;
-        // ★ 层级过滤只作用于"渲染集"：活动集（参与力导向）保持全量，
-        //   这样放大到更深层级时，下层级节点已经在正确位置，不会挤成一团。
-        const lvlRank = rankAtLevel();
-
-        for (const n of state.allNodes) {
-            const x = n.x || 0, y = n.y || 0;
-            if (layerRankOf(n) <= lvlRank &&
-                x > vp.minX - rmx && x < vp.maxX + rmx &&
-                y > vp.minY - rmx && y < vp.maxY + rmx) renderIds.add(n.id);
-            if (x > vp.minX - amx && x < vp.maxX + amx &&
-                y > vp.minY - amx && y < vp.maxY + amx) activeIds.add(n.id);
-        }
-
-        // 聚焦/高亮/选中/路径节点强制进入渲染集（后端 actions 可能指向视野外节点）
-        const forceIds = [state.focusedId, ...state.highlightedIds,
-                          ...state.selectedIds, ...(state.activePath || [])];
-        forceIds.forEach(id => { if (id) renderIds.add(id); });
-
-        state.renderNodes = state.allNodes.filter(n => renderIds.has(n.id));
-        // 边同样按层级过滤：hier（父子）与 macro 恒显，meso/micro 的相关边只在自己层级出现，
-        // 避免宏观层被几千条"概念-概念相关"边糊成毛线球
-        state.renderEdges = state.allEdges.filter(e =>
-            (EDGE_RANK[e.layer] ?? 2) <= lvlRank &&
-            renderIds.has(srcId(e)) && renderIds.has(tgtId(e)));
-        state.nodes = state.allNodes.filter(n => activeIds.has(n.id));
-        state.edges = state.allEdges.filter(e =>
-            activeIds.has(srcId(e)) && activeIds.has(tgtId(e)));
-
-        // 渲染集变化检测（仅增删时重建 DOM）
-        let changed = forceRender ||
-            renderIds.size !== _renderSet.size ||
-            state.renderNodes.some(n => !_renderSet.has(n.id));
-        _renderSet = renderIds;
-
-        // 同步力导向（活动集变化时；不重启 alpha，避免平移时抖动）
-        // ★ 顺序关键：必须先换 links 再换 nodes —— d3 的 simulation.nodes() 会按当前
-        //   links 重新初始化力，若 links 还指向刚被移出活动集的节点会抛异常杀死模拟器
-        if (simulation) {
-            resolveEdges(state.edges);
-            const activeLinks = state.edges.filter(e =>
-                e.source && typeof e.source === 'object' &&
-                e.target && typeof e.target === 'object');
-            simulation.force('link').links(activeLinks);
-            simulation.nodes(state.nodes);
-            if (forceRender) simulation.alpha(0.3).restart();   // 合并新数据时轻量重新布局
-        }
-
-        if (changed) render();
-    }
-
-    function rebuildDegree() {
-        // 度数基于全量边预计算，避免每次渲染都遍历全部边（裁剪后渲染更频繁）
-        state.degree = new Map();
-        state.allEdges.forEach(e => {
-            const s = srcId(e), t = tgtId(e);
-            state.degree.set(s, (state.degree.get(s) || 0) + 1);
-            state.degree.set(t, (state.degree.get(t) || 0) + 1);
-        });
-    }
-
     function degreeOf(id) {
-        return state.degree ? (state.degree.get(id) || 0) : 0;
+        // 度缓存：1911 节点 × 2896 边逐次重算太慢，一次构建 O(E)
+        if (!state._degree) {
+            const m = new Map();
+            state.edges.forEach(e => {
+                const s = srcId(e), t = tgtId(e);
+                m.set(s, (m.get(s) || 0) + 1);
+                m.set(t, (m.get(t) || 0) + 1);
+            });
+            state._degree = m;
+        }
+        return state._degree.get(id) || 0;
+    }
+    function typeOf(id) {
+        // 类型缓存：渲染时按边批量查类型，避免每次线性扫描
+        if (!state._typeOf) {
+            const m = new Map();
+            state.nodes.forEach(n => m.set(n.id, n.type || 'micro'));
+            state._typeOf = m;
+        }
+        return state._typeOf.get(id);
     }
 
-    const radiusOf = d => 11 + Math.min(degreeOf(d.id), 5) * 2.0;
-
-    // ★ 新增：宏观层的简称
-    function shortName(name) {
-        if (!name) return '';
-        return name.length <= 4 ? name : name.slice(0, 4);
+    function shortName(label) {
+        if (!label) return '';
+        return label.length <= 4 ? label : label.slice(0, 4);
     }
-        // ★ 新增：层级感知的节点半径（图形坐标，会再被 scale 乘一次）
-    function visualRadius(d) {
-        const base = radiusOf(d);
-        const lvl  = state.zoomLevel;
-        if (lvl === 'macro') return base * 2.0;    // 补偿 0.28~0.4 的缩放
-        if (lvl === 'meso')  return base * 1.25;
-        return base;
-}
 
-    // ---------- 渲染 ----------
+    /* ------------------------------------------------------------
+       视野裁剪
+    ------------------------------------------------------------ */
+    function scheduleCull() {
+        if (!CULL.ENABLED || cullScheduled) return;
+        const now = performance.now();
+        if (now - lastCullAt < CULL.REBIND_THROTTLE) return;
+        cullScheduled = true;
+        requestAnimationFrame(() => {
+            cullScheduled = false;
+            lastCullAt = performance.now();
+            applyCulling();
+        });
+    }
+
+    function applyCulling() {
+        if (!CULL.ENABLED || !svg || !gRoot || !state.nodes.length) return;
+
+        const rect = svg.node().getBoundingClientRect();
+        const W = rect.width, H = rect.height;
+        if (W < 4 || H < 4) return;
+
+        const cx = W / 2, cy = H / 2;
+        const scale = state.scale;
+        const rot = state.rotation * Math.PI / 180;
+        const cos = Math.cos(rot), sin = Math.sin(rot);
+        const tx = cx + state.translateX;
+        const ty = cy + state.translateY;
+
+        const bufW = W * CULL.BUFFER;
+        const bufH = H * CULL.BUFFER;
+        const minX = -bufW, maxX = W + bufW;
+        const minY = -bufH, maxY = H + bufH;
+
+        let changed = 0;
+        for (let i = 0, len = state.nodes.length; i < len; i++) {
+            const n = state.nodes[i];
+            const wx = n.x || 0, wy = n.y || 0;
+            const rx = wx * cos - wy * sin;
+            const ry = wx * sin + wy * cos;
+            const sx = rx * scale + tx;
+            const sy = ry * scale + ty;
+            const vis = (sx >= minX && sx <= maxX && sy >= minY && sy <= maxY);
+            if (n._visible !== vis) { n._visible = vis; changed++; }
+        }
+
+        if (changed === 0) return;
+        renderActive();
+    }
+
+    /* ------------------------------------------------------------
+       渲染
+    ------------------------------------------------------------ */
+    function getActiveNodes() {
+        if (!CULL.ENABLED) return state.nodes;
+        return state.nodes.filter(n => n._visible);
+    }
+
+    /**
+     * ★ 修复 Bug 1：边保留条件由「两端都可见」改成「至少一端可见」。
+     *   超出视野那一端交给 SVG 自然裁剪，视觉上相当于线延伸出屏幕。
+     */
+    function getActiveEdges(activeIds) {
+        if (!CULL.ENABLED) return state.edges;
+        const ids = activeIds || new Set(getActiveNodes().map(n => n.id));
+        return state.edges.filter(e => ids.has(srcId(e)) || ids.has(tgtId(e)));
+    }
+
     function render() {
         if (!gRoot) return;
+        resolveEdges();
+        renderActive();
+        syncStageFocusClass();
+        updateStaticLayout();
+    }
 
-        resolveEdges(state.renderEdges);
+    function renderActive() {
+        if (!gRoot) return;
 
         const lvl = state.zoomLevel;
+        const activeNodes = getActiveNodes();
+        const activeIds = new Set(activeNodes.map(n => n.id));
+        const activeEdges = getActiveEdges(activeIds);
 
-        // ---- 节点（视野裁剪：只对渲染集挂 DOM）----
-        const sel = gNodes.selectAll('.g-node').data(state.renderNodes, d => d.id);
+        /* ---- 节点 ---- */
+        const sel = gNodes.selectAll('.g-node').data(activeNodes, d => d.id);
         sel.exit().remove();
 
         const enter = sel.enter()
             .append('g')
             .style('cursor', 'pointer')
-            .on('click', (evt, d) => {
-                evt.stopPropagation();
-                handleNodeClick(d.id, evt);
-            })
-            .on('mouseenter', (evt, d) => showTooltip(evt, d))
+            .on('click', (evt, d) => { evt.stopPropagation(); handleNodeClick(d.id, evt); })
+            .on('dblclick', (evt, d) => { evt.stopPropagation(); showNodePopup(d); })
+            .on('mouseenter', (evt, d) => { showTooltip(evt, d); highlightNeighbors(d.id); })
             .on('mousemove', moveTooltip)
-            .on('mouseleave', hideTooltip)
-            .on('contextmenu', e => e.preventDefault());   // 右键不弹菜单
+            .on('mouseleave', () => { hideTooltip(); clearNeighborHighlight(); })
+            .on('contextmenu', e => e.preventDefault());
 
         enter.append('circle').attr('r', 0);
         enter.append('text').attr('class', 'g-label');
 
         const merged = enter.merge(sel);
-
-        // ★ 2026-09-15：新进入 DOM 的节点必须在这里就按数据坐标定位。
-        //   位置原先只在 ticked() 里写，而 ticked 只在布局推进时执行；
-        //   布局冷却（alpha 归零）后切换层级新加入的节点会拿不到 transform，
-        //   全部堆在画布中心 → 表现为"宏观↔中观切换后数据全乱"。
-        merged.attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
 
         merged.attr('class', d => {
             let c = `g-node ${classOf(d)} zoom-${lvl}`;
@@ -455,7 +431,6 @@
             if (state.selectedIds.includes(d.id))    c += ' selected';
             if (state.activePath && state.activePath.includes(d.id))
                                                      c += ' path-node';
-            // ★ 时间轴过滤
             if (state.timelineEnabled && state.timelineValue != null) {
                 const y = getNodeYear(d) ?? d._year ?? null;
                 if (y != null && y > state.timelineValue) c += ' time-faded';
@@ -464,79 +439,93 @@
         });
 
         merged.select('circle')
-            .transition().duration(400)
-            .attr('r', visualRadius)
-            .style('fill', d => NODE_COLORS[colorIndexOf(d)]);
+            .transition().duration(320)
+            .attr('r', visualRadius);
 
-        // 标签：宏观层节点少时用全名（多了才截断）；清洗标记为 quality=low 的短概念默认不显示标签，hover 才出
-        const macroFew = state.renderNodes.length <= 30;
         merged.select('text')
-            .attr('class', d => 'g-label' + (qualityOf(d) === 'low' ? ' low-q' : ''))
-            .text(d => (lvl === 'macro' && !macroFew) ? shortName(d.label) : d.label)
-            .attr('dy', d => radiusOf(d) + 16);
-
-        // ---- 连线 ----
-        const lsel = gLinks.selectAll('.g-link').data(state.renderEdges, edgeKey);
+            .attr('class', d => {
+                let cls = 'g-label';
+                if (d.type === 'domain' || d.type === 'macro') cls += ' ring-core';
+                // 按缩放层级决定可见类型（旧逻辑用的 RING_RADIUS 已与新布局脱节）
+                const allowed = LABEL_LEVELS[lvl] || LABEL_LEVELS.micro;
+                if (!allowed.includes(d.type)) cls += ' hidden';
+                // ★ 2026-09-15：quality=low 的短概念标签默认不显示，hover 才出
+                if (qualityOf(d) === 'low') cls += ' low-q';
+                return cls;
+            })
+            .text(d => lvl === 'macro' ? shortName(d.label) : d.label)
+            .attr('dy', d => nodeBaseR(d) + 14);
+        merged.attr('data-domain', d => d.domain || '');
+        merged.attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
+        /* ---- 连线 ---- */
+        const lsel = gLinks.selectAll('.g-link').data(activeEdges, edgeKey);
         lsel.exit().remove();
         lsel.enter().append('path').attr('class', 'g-link');
 
+    
+        // ★ 直线连接（星座风）
         gLinks.selectAll('.g-link')
             .attr('class', e => {
-                const s = srcId(e), t = tgtId(e);
-                let c = 'g-link';
-
-                // 中观及以上显示促进/抑制方向色
-                if (lvl !== 'macro') {
-                    const p = edgePolarity(e);
-                    if (p === 'promote') c += ' promote';
-                    else if (p === 'inhibit') c += ' inhibit';
-                }
-
-                if (state.highlightedIds.has(s) || state.highlightedIds.has(t))
-                    c += ' highlighted';
-                if (!state.visibleIds.has(s) || !state.visibleIds.has(t))
-                    c += ' faded';
-
-                // ★ 路径高亮 + 粒子流动
-                if (state.activePath && isPathEdge(s, t))
-                    c += ' path-active path-flow';
-
-                // ★ 时间轴过滤（两端都过了当前年份才显示）
-                if (state.timelineEnabled && state.timelineValue != null) {
-                    const sn = state.allNodes.find(n => n.id === s);
-                    const tn = state.allNodes.find(n => n.id === t);
-                    const sy = sn ? (getNodeYear(sn) ?? sn._year) : null;
-                    const ty = tn ? (getNodeYear(tn) ?? tn._year) : null;
-                    if ((sy != null && sy > state.timelineValue) ||
-                        (ty != null && ty > state.timelineValue)) {
-                        c += ' time-faded';
+                    const s = srcId(e), t = tgtId(e);
+                    let c = 'g-link';
+                    // ★ 两端都是微观节点的连线默认淡化（微观间连线占大头，
+                    //   全部实显会糊成乱麻；悬停/选中/路径时由 CSS 恢复显示）
+                    if (typeOf(s) === 'micro' && typeOf(t) === 'micro') c += ' sub';
+                    if (lvl !== 'macro') {
+                        const p = edgePolarity(e);
+                        if (p === 'promote') c += ' promote';
+                        else if (p === 'inhibit') c += ' inhibit';
                     }
-                }
-                return c;
-            });
-
-        // ---- 关系标签 ----
-        const lls = gLinkLabels.selectAll('.g-link-label')
-            .data(state.renderEdges, edgeKey);
+                    if (state.highlightedIds.has(s) || state.highlightedIds.has(t))
+                        c += ' highlighted';
+                    if (!state.visibleIds.has(s) || !state.visibleIds.has(t))
+                        c += ' faded';
+                    if (state.activePath && isPathEdge(s, t))
+                        c += ' path-active path-flow';
+                    if (state.timelineEnabled && state.timelineValue != null) {
+                        const sn = state.nodes.find(n => n.id === s);
+                        const tn = state.nodes.find(n => n.id === t);
+                        const sy = sn ? (getNodeYear(sn) ?? sn._year) : null;
+                        const ty = tn ? (getNodeYear(tn) ?? tn._year) : null;
+                        if ((sy != null && sy > state.timelineValue) ||
+                            (ty != null && ty > state.timelineValue)) {
+                            c += ' time-faded';
+                        }
+                    }
+                    return c;
+                })
+            
+                /* ---- 关系标签（保持「两端都可见」才显示，避免断头标签堆积） ---- */
+        const lls = gLinkLabels.selectAll('.g-link-label').data(activeEdges, edgeKey);
         lls.exit().remove();
         lls.enter().append('text').attr('class', 'g-link-label');
 
         gLinkLabels.selectAll('.g-link-label')
             .attr('class', e => {
                 const s = srcId(e), t = tgtId(e);
-                const bothVisible =
-                    state.visibleIds.has(s) && state.visibleIds.has(t);
+                const bothVisible = state.visibleIds.has(s) && state.visibleIds.has(t);
                 let c = 'g-link-label' + (bothVisible ? '' : ' faded');
-                // ★ 宏观层不展示关系标签
-                if (lvl === 'macro') c += ' faded';
+                // 关系文字只在高倍微观层（或两端被高亮 / 位于路径上）显示，
+                // 否则 2896 条边的中点文字会糊成一片
+                const bothHi = state.highlightedIds.has(s) && state.highlightedIds.has(t);
+                const onPath = state.activePath && isPathEdge(s, t);
+                if (lvl !== 'micro' && !bothHi && !onPath) c += ' hidden';
                 return c;
             })
-            .text(e => e.relation || '');
-        updateEdgeGeometry();   // ★ 新进入 DOM 的边也要立刻算出路径（布局可能已冷却）
-        syncStageFocusClass();
-        runSimulation(false);   // ★ 渲染不重启 alpha：布局只在首次建图/合并新数据时重启，避免"一直动"
+            .text(e => e.relation || '')
+            .attr('x', e => {
+                const s = e.source, t = e.target;
+                if (!s || !t || typeof s !== 'object' || typeof t !== 'object') return 0;
+                return ((s.x || 0) + (t.x || 0)) / 2;
+            })
+            .attr('y', e => {
+                const s = e.source, t = e.target;
+                if (!s || !t || typeof s !== 'object' || typeof t !== 'object') return 0;
+                return ((s.y || 0) + (t.y || 0)) / 2;
+            });
+
     }
-        // ★ 新增
+
     function syncStageFocusClass() {
         if (!stage) return;
         const has = !!(state.focusedId ||
@@ -545,7 +534,6 @@
         stage.classList.toggle('has-focus', has);
     }
 
-    // ★ 新增：判断一条边是否属于当前高亮路径
     function isPathEdge(a, b) {
         const p = state.activePath;
         if (!p || p.length < 2) return false;
@@ -556,112 +544,356 @@
         return false;
     }
 
-    // ---------- 力导向布局 ----------
-    function runSimulation(restart) {
-        // ★ 布局适度分散（比原版宽松但不过度）：连线距离 110→150、斥力 -420→-460、
-        //   碰撞间距 +26→+34、连线强度 0.08→0.06。
-        //   注意：斥力过强（如 -560）会让 5000 节点级图谱散得比默认视野还大，
-        //   视野中心反而空白——布局范围须配合 fitViewToContent 使用。
-        if (typeof d3 === 'undefined') return;
+    /* ============================================================
+    分层放射布局 v2 —— 自适应多环带状布局
+    ------------------------------------------------------------
+    旧版把每层节点压在固定单一圆环上（micro 环 r=660），
+    1600 个叶子节点每点只分到 ~2.6px 弧长（节点直径 13~25px），
+    全部叠死、文字糊成一团。
 
-        resolveEdges(state.edges);
-        const links = state.edges.filter(e =>
-            e.source && typeof e.source === 'object' &&
-            e.target && typeof e.target === 'object'
-        );
+    新版：
+      ① domain 根节点均匀分布在内环，每个 domain 占一个扇区；
+      ② macro 在扇区内的「宏环」上按子树规模分配角度，
+         宏环半径按各域 macro 数量自适应，保证弧向间距；
+      ③ meso / micro 以「楔形 + 多子环」带状铺开——
+         环容量 = 楔形弧长 ÷ 节点间距，放不下就再起一环，
+         任意两节点弧向间距 ≥ 设定 spacing，不再重叠。
+    ============================================================ */
+    const LEVEL_SIZE = { domain: 26, macro: 17, meso: 11, micro: 6.5, __default__: 6.5 };
 
-        if (!simulation) {
-            simulation = d3.forceSimulation(state.nodes)
-                .force('radial',  d3.forceRadial(ringOf, 0, 0).strength(0.85))
-                .force('charge',  d3.forceManyBody().strength(-460))
-                .force('collide', d3.forceCollide(d => radiusOf(d) + 34).strength(1))
-                .force('link',    d3.forceLink(links).id(d => d.id)
-                                    .distance(150).strength(0.06))
-                .force('confine', confineForce(CULL_CONFINE_RADIUS))
-                .on('tick', ticked);
-        } else {
-            // ★ 顺序关键：先换 links 再换 nodes（同 updateCulling，防 d3 用旧 links 初始化抛异常）
-            simulation.force('link').links(links);
-            simulation.nodes(state.nodes);
-            if (restart) simulation.alpha(0.6).restart();
-        }
-    }
+    // 各层排布参数：spacing = 同环相邻节点的最小弧向间距
+    const LAYOUT_SPACING  = { macro: 92, meso: 72, micro: 32 };
+    const LAYOUT_RING_GAP = { meso: 70, micro: 38 };
+    const DOMAIN_R        = 85;    // domain 内环半径
+    const MACRO_RING_MIN  = 300;   // 宏环最小半径
+    const BAND_PAD_RATIO  = 0.06;  // 楔形两侧留白比例，防止跨扇区贴边
 
-    // 计算渲染集内边的路径与标签锚点。ticked() 与 render() 都要调用：
-    // 布局冷却后新进入 DOM 的边不会再有 tick，必须在渲染时算一次，否则是空路径
-    function updateEdgeGeometry() {
-        const getXY = ref => (ref && typeof ref === 'object')
-            ? { x: ref.x || 0, y: ref.y || 0 }
-            : { x: 0, y: 0 };
+    function layoutGalaxy() {
+        const byId = new Map(state.nodes.map(n => [n.id, n]));
+        const childrenOf = new Map();
+        const roots = [];
 
-        // 只更新渲染集内的边路径（视野裁剪：DOM 里只有渲染集）
-        state.renderEdges.forEach(e => {
-            const s = getXY(e.source), t = getXY(e.target);
-            const dx = t.x - s.x, dy = t.y - s.y;
-            const len = Math.sqrt(dx * dx + dy * dy) || 1;
-            const nx = -dy / len, ny = dx / len;
-            const curve = Math.min(38, len * 0.20);
-            const cx = (s.x + t.x) / 2 + nx * curve;
-            const cy = (s.y + t.y) / 2 + ny * curve;
-
-            e._path = `M${s.x},${s.y} Q${cx},${cy} ${t.x},${t.y}`;
-            e._labelX = 0.25 * s.x + 0.5 * cx + 0.25 * t.x;
-            e._labelY = 0.25 * s.y + 0.5 * cy + 0.25 * t.y;
+        state.nodes.forEach(n => {
+            const pid = n.parent_id;
+            if (pid && byId.has(pid)) {
+                if (!childrenOf.has(pid)) childrenOf.set(pid, []);
+                childrenOf.get(pid).push(n);
+            } else {
+                roots.push(n);
+            }
         });
 
-        gLinks.selectAll('.g-link').attr('d', e => e._path || '');
+        // 兜底：异常数据（无根 / 成环）→ 黄金角螺旋，保证不叠死
+        if (!roots.length) {
+            state.nodes.forEach((n, i) => {
+                const a = i * 2.39996;
+                const r = 66 * Math.sqrt(i + 1);
+                n.x = r * Math.cos(a);
+                n.y = r * Math.sin(a);
+                n._depth = 3;
+                n._angle = a;
+            });
+            return;
+        }
 
+        // 稳定排序，避免每次重排跳位
+        childrenOf.forEach(arr =>
+            arr.sort((a, b) => (a.label || '').localeCompare(b.label || ''))
+        );
+
+        // 叶子计数
+        const leaf = new Map();
+        function countLeaf(n) {
+            if (leaf.has(n.id)) return leaf.get(n.id);
+            const kids = childrenOf.get(n.id) || [];
+            const c = kids.length ? kids.reduce((s, k) => s + countLeaf(k), 0) : 1;
+            leaf.set(n.id, c);
+            return c;
+        }
+        roots.forEach(countLeaf);
+
+        const TWO_PI = Math.PI * 2;
+        const sectorAll = TWO_PI / roots.length;
+
+        // 宏环半径：保证扇区内相邻 macro 弧向间距 ≥ LAYOUT_SPACING.macro
+        let rMacro = MACRO_RING_MIN;
+        roots.forEach(r => {
+            const cnt = Math.max(1, (childrenOf.get(r.id) || []).length);
+            rMacro = Math.max(rMacro, cnt * LAYOUT_SPACING.macro / sectorAll);
+        });
+        rMacro = Math.round(rMacro);
+        let maxR = rMacro;
+
+        // 确定性散列（同一节点每次布局结果一致）
+        function hash01(s) {
+            let h = 0;
+            for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+            return (h % 1000) / 1000;
+        }
+
+        /**
+         * 带状放置：把 children 沿楔形 [a0,a1] 自 rStart 起逐环铺开。
+         * 每环容量 = 楔形弧长 ÷ spacing，放不下自动再起一环。
+         * 返回本带用到的最外环半径。
+         */
+        function placeBand(children, a0, a1, rStart, gap, spacing, depth) {
+            const pad = Math.min(0.035, (a1 - a0) * BAND_PAD_RATIO);
+            const s0 = a0 + pad, s1 = a1 - pad;
+            let ring = 0, i = 0;
+            while (i < children.length) {
+                const r = rStart + ring * gap;
+                const cap = Math.max(1, Math.floor((s1 - s0) * r / spacing));
+                const take = Math.min(cap, children.length - i);
+                for (let k = 0; k < take; k++) {
+                    const n = children[i + k];
+                    const t = take === 1 ? 0.5 : (k + 0.5) / take;
+                    // 确定性角度抖动：一环只放 1 个时避免排成死板的直线
+                    const j = (hash01(n.id) - 0.5) * Math.min(0.3, (s1 - s0) * 0.35);
+                    const a = s0 + (s1 - s0) * t + j;
+                    n.x = r * Math.cos(a);
+                    n.y = r * Math.sin(a);
+                    n._depth = depth;
+                    n._angle = a;
+                    if (r > maxR) maxR = r;
+                }
+                i += take;
+                ring++;
+            }
+            return ring > 0 ? rStart + (ring - 1) * gap : rStart;
+        }
+
+        roots.forEach((root, ri) => {
+            // ① domain：内环均匀分布
+            const aMid = -Math.PI / 2 + sectorAll * (ri + 0.5);
+            root.x = DOMAIN_R * Math.cos(aMid);
+            root.y = DOMAIN_R * Math.sin(aMid);
+            root._depth = 0;
+            root._angle = aMid;
+
+            const a0d = -Math.PI / 2 + sectorAll * ri;
+            const macros = childrenOf.get(root.id) || [];
+            // ★ 注意：countLeaf 接收节点对象（传 root.id 会算成 1，
+            //   导致楔形角度暴涨、节点绕圆几百圈后随机叠在一起）
+            const domLeaf = countLeaf(root) || 1;
+
+            // ② macro：扇区内按子树叶子数分配角度，落在宏环上
+            let cur = a0d;
+            macros.forEach(m => {
+                const span = sectorAll * (countLeaf(m) / domLeaf);
+                const a = cur + span / 2;
+                m.x = rMacro * Math.cos(a);
+                m.y = rMacro * Math.sin(a);
+                m._depth = 1;
+                m._angle = a;
+
+                const mesos = childrenOf.get(m.id) || [];
+                const mLeaf = countLeaf(m) || 1;
+
+                // ③ meso：在 macro 楔形内带状铺开
+                let rMesoOuter = rMacro + 105;
+                if (mesos.length) {
+                    rMesoOuter = placeBand(mesos, cur, cur + span,
+                        rMacro + 105, LAYOUT_RING_GAP.meso, LAYOUT_SPACING.meso, 2);
+                }
+
+                // ④ micro：该 macro 下全部 micro 后代按所属 meso 的
+                //    楔形中心角排序，整体铺在 meso 带外侧（保持局部性）
+                const micros = [];
+                let w = cur;
+                mesos.forEach(me => {
+                    const ws = span * (countLeaf(me) / mLeaf);
+                    const wCenter = w + ws / 2;
+                    (childrenOf.get(me.id) || []).forEach(mi => {
+                        mi._wedgeA = wCenter;
+                        micros.push(mi);
+                    });
+                    w += ws;
+                });
+                if (micros.length) {
+                    micros.sort((x, y) => x._wedgeA - y._wedgeA);
+                    placeBand(micros, cur, cur + span,
+                        rMesoOuter + 55, LAYOUT_RING_GAP.micro, LAYOUT_SPACING.micro, 3);
+                }
+
+                cur += span;
+            });
+        });
+
+        // 兜底：任何未被放置的节点（层级缺失等）撒到最外环
+        state.nodes.forEach(n => {
+            if (n._depth == null) {
+                const a = hash01(n.id) * TWO_PI;
+                const r = maxR + 60 + hash01(n.id + '#') * 80;
+                n.x = r * Math.cos(a);
+                n.y = r * Math.sin(a);
+                n._depth = 3;
+                n._angle = a;
+                if (r > maxR) maxR = r;
+            }
+        });
+
+        // 碰撞松弛：网格哈希找近邻对，沿连线方向对称推开，
+        // 消除楔形交界处微节点贴边的情况（确定性，几轮即收敛）
+        (function relaxCollisions() {
+            const MIN_D = 26, ITER = 8, cell = MIN_D;
+            state.nodes.forEach((n, i) => { n._idx = i; });
+            for (let it = 0; it < ITER; it++) {
+                const grid = new Map();
+                const gk = (x, y) => Math.floor(x / cell) + '_' + Math.floor(y / cell);
+                state.nodes.forEach(n => {
+                    const k = gk(n.x, n.y);
+                    let b = grid.get(k);
+                    if (!b) { b = []; grid.set(k, b); }
+                    b.push(n);
+                });
+                state.nodes.forEach(n => {
+                    const gx = Math.floor(n.x / cell), gy = Math.floor(n.y / cell);
+                    for (let dx = -1; dx <= 1; dx++) {
+                        for (let dy = -1; dy <= 1; dy++) {
+                            const bucket = grid.get((gx + dx) + '_' + (gy + dy));
+                            if (!bucket) continue;
+                            for (const o of bucket) {
+                                if (o._idx <= n._idx) continue;   // 每对只处理一次
+                                let ddx = n.x - o.x, ddy = n.y - o.y;
+                                let d = Math.hypot(ddx, ddy);
+                                if (d >= MIN_D) continue;
+                                if (d < 1e-6) {                   // 完全重合：确定性微移
+                                    ddx = hash01(n.id) - 0.5; ddy = hash01(o.id) - 0.5;
+                                    d = Math.hypot(ddx, ddy) || 1;
+                                }
+                                const push = (MIN_D - d) / 2 + 0.05;
+                                const ux = ddx / d, uy = ddy / d;
+                                n.x += ux * push; n.y += uy * push;
+                                o.x -= ux * push; o.y -= uy * push;
+                            }
+                        }
+                    }
+                });
+            }
+        })();
+
+        maxR = state.nodes.reduce((m, n) => Math.max(m, Math.hypot(n.x, n.y)), maxR);
+        state._galaxyMaxR = maxR;
+    }
+
+    /* ============================================================
+    节点半径（替代原 radiusOf / visualRadius）
+    ============================================================ */
+    function nodeBaseR(n) {
+        const deg = degreeOf(n.id);
+        const lvR = LEVEL_SIZE[n.type] ?? LEVEL_SIZE.__default__;
+        return lvR + Math.min(deg, 8) * 0.8;
+    }
+    function visualRadius(n) {
+        const base = nodeBaseR(n);
+        const lvl = state.zoomLevel;
+        if (lvl === 'macro') return base * 0.65;
+        if (lvl === 'meso')  return base;
+        return base * 1.15;
+    }
+
+    /* ============================================================
+    展开动画 + 渲染
+    ============================================================ */
+    let _expandRAF = null;
+
+        /* ------------------------------------------------------------
+       静态布局同步（替代原力导向 ticked）
+       ------------------------------------------------------------
+       layoutGalaxy() 只负责给节点 x/y 赋值；
+       本函数把这些坐标"写"进 SVG 的 d 属性 / transform，
+       不再有任何物理抖动。
+    ------------------------------------------------------------ */
+    function updateStaticLayout() {
+        if (!gLinks || !gNodes || !gLinkLabels) return;
+
+        const getXY = ref => (ref && typeof ref === 'object')
+            ? { x: ref.x || 0, y: ref.y || 0 } : { x: 0, y: 0 };
+
+        // 边：直线连接（星座风）
+        gLinks.selectAll('.g-link').each(function (e) {
+            const s = getXY(e.source), t = getXY(e.target);
+            e._path   = `M${s.x},${s.y} L${t.x},${t.y}`;
+            e._labelX = (s.x + t.x) / 2;
+            e._labelY = (s.y + t.y) / 2;
+            this.setAttribute('d', e._path);
+        });
+
+        // 关系标签：居中
         gLinkLabels.selectAll('.g-link-label')
             .attr('x', e => e._labelX || 0)
             .attr('y', e => e._labelY || 0);
-    }
 
-    function ticked() {
-        updateEdgeGeometry();
-
+        // 节点：translate
         gNodes.selectAll('.g-node')
             .attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
-
-        // ★ 视野裁剪节流：布局推进时每 15 帧重算一次视野内外
-        if ((++_cullTick % 15) === 0) updateCulling(false);
-
-        // ★ 首次载入自动适配：布局推进期间每 40 tick 跟随适配一次，稳定后最终适配一次
-        if (_pendingFit && simulation) {
-            if (simulation.alpha() < 0.06) {
-                _pendingFit = false;
-                fitViewToContent(500);
-            } else if ((++_fitTick % 40) === 0) {
-                fitViewToContent(350);
-            }
-        }
     }
 
-    // ---------- 视图变换 ----------
+    function startExpandAnimation() {
+        if (!gRoot || !gNodes) return;
+        if (_expandRAF) cancelAnimationFrame(_expandRAF);
+
+        // 起始态：所有节点缩到原点
+        gNodes.selectAll('.g-node')
+            .style('transition', 'none')
+            .attr('transform', 'translate(0,0)')
+            .style('opacity', 0);
+        gNodes.selectAll('.g-node circle')
+            .style('transition', 'none')
+            .attr('r', 0);
+
+        requestAnimationFrame(() => {
+            const GROW = 1400;
+            const STEP = 260;
+            const EASE = 'cubic-bezier(.22,.9,.28,1)';
+
+            gNodes.selectAll('.g-node')
+                .style('transition', d =>
+                    `transform ${GROW}ms ${EASE} ${(d._depth || 0) * STEP}ms, opacity 600ms ease ${(d._depth || 0) * STEP}ms`)
+                .attr('transform', d => `translate(${d.x},${d.y})`)
+                .style('opacity', 1);
+
+            gNodes.selectAll('.g-node circle')
+                .style('transition', d =>
+                    `r ${GROW}ms ${EASE} ${(d._depth || 0) * STEP}ms`)
+                .attr('r', visualRadius);
+
+            // ★ 动画结束后清除全部内联样式：
+            //   内联 opacity:1 会永久压住 CSS 的 .dimmed/.faded/.time-faded，
+            //   内联 transition(带 0~780ms 延迟) 会让悬停变暗错峰拖影 → 闪频感
+            setTimeout(() => {
+                gNodes.selectAll('.g-node')
+                    .style('transition', null)
+                    .style('opacity', null);
+                gNodes.selectAll('.g-node circle')
+                    .style('transition', null);
+            }, GROW + 4 * STEP + 120);
+        });
+    }
+
+    
+        /* ------------------------------------------------------------
+       视图变换
+    ------------------------------------------------------------ */
     function applyTransform() {
         if (!gRoot || !svg) return;
         const rect = svg.node().getBoundingClientRect();
         const cx = rect.width  / 2;
         const cy = rect.height / 2;
 
-        // ★ 变换顺序：translate → scale → rotate
         gRoot.attr('transform',
             `translate(${cx + state.translateX},${cy + state.translateY}) ` +
             `scale(${state.scale}) ` +
             `rotate(${state.rotation})`);
 
         updateZoomLevelUI();
-
-        // ★ 视野变化 → 立即重算裁剪（平移/缩放/旋转实时跟手）
-        updateCulling(false);
+        scheduleCull();
     }
 
-    // ★ 新增：随缩放更新层级指示器 + 触发一次重渲染
     function updateZoomLevelUI() {
-        // ① 百分比每次都要更新（与层级解耦）
         const pctEl = document.getElementById('galaxyZoomPct');
         if (pctEl) pctEl.textContent = Math.round(state.scale * 100) + '%';
 
-        // ② 层级名
         const lvl = zoomLevelOf(state.scale);
         const nameEl = document.getElementById('galaxyZoomName');
         if (nameEl) nameEl.textContent = ZOOM_LABEL[lvl];
@@ -671,11 +903,9 @@
         if (stage) stage.setAttribute('data-zoom-level', lvl);
         const page = stage && stage.closest('.galaxy-page');
         if (page) page.setAttribute('data-zoom-level', lvl);
-        // ★ 层级变化 = 渲染集变化（宏观只画章、中观加节、微观全画），交给裁剪重算
-        updateCulling(false);
+        render();
     }
 
-    // ★ 新增：动画插值到目标变换（用于自动漫游 / 回到宏观 / 重置）
     function animateTo(targetScale, targetTX, targetTY, targetRot, duration) {
         return new Promise(resolve => {
             const startScale = state.scale;
@@ -687,7 +917,7 @@
 
             function step(t) {
                 const p = Math.min(1, (t - t0) / dur);
-                const e = 1 - Math.pow(1 - p, 3);   // easeOutCubic
+                const e = 1 - Math.pow(1 - p, 3);
 
                 state.scale      = startScale + (targetScale - startScale) * e;
                 state.translateX = startTX    + (targetTX    - startTX)    * e;
@@ -702,107 +932,44 @@
         });
     }
 
-    // ---------- ★ 布局围墙（把布局半径收在可视范围附近，实测 econ 跨度 5847→4513） ----------
-    function confineForce(maxR) {
-        let nodes = [];
-        function force(alpha) {
-            for (const n of nodes) {
-                const r = Math.hypot(n.x || 0, n.y || 0);
-                if (r > maxR && r > 0) {
-                    const k = ((r - maxR) / r) * alpha * 3;
-                    n.vx -= n.x * k;
-                    n.vy -= n.y * k;
-                    if (r > maxR * 1.6) {          // 严重越界直接钳位回墙内
-                        const s = maxR / r;
-                        n.x *= s; n.y *= s;
-                    }
-                }
-            }
-        }
-        force.initialize = ns => { nodes = ns; };
-        return force;
-    }
-    const CULL_CONFINE_RADIUS = 1500;   // 布局最大半径（世界坐标，需 ≥ 最外圈 micro 的 1100）
-
-    // ---------- ★ 视图适配内容 ----------
-    let _pendingFit = false;   // 加载/切换后等待布局稳定再适配一次
-    let _fitTick    = 0;
-
-    function fitViewToContent(duration) {
-        if (!svg) return;
-        // ★ 只按"当前层级可见的节点"适配：隐藏层级（如宏观下的节/概念）不参与包围盒，
-        //   否则会为了塞下看不见的节点把视图拉得过远
-        const lvlRank = rankAtLevel();
-        const pts = state.allNodes.filter(n => layerRankOf(n) <= lvlRank &&
-            n.x != null && n.y != null && isFinite(n.x) && isFinite(n.y));
-        if (!pts.length) return;
-        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-        pts.forEach(n => {
-            if (n.x < minX) minX = n.x;
-            if (n.x > maxX) maxX = n.x;
-            if (n.y < minY) minY = n.y;
-            if (n.y > maxY) maxY = n.y;
-        });
-        const w = Math.max(maxX - minX, 1), h = Math.max(maxY - minY, 1);
-        const rect = svg.node().getBoundingClientRect();
-        const pad = 90;
-        const raw = Math.min(rect.width / (w + pad * 2), rect.height / (h + pad * 2));
-        // ★ 夹到当前层级的缩放带：适配结果一旦跨层，渲染集就会跟着跳变（来回抖动）
-        const band = LEVEL_SCALE_BAND[state.zoomLevel] || [SCALE_MIN, SCALE_MAX];
-        const s = Math.max(band[0], Math.min(band[1], raw));
-        const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
-        animateTo(s, -cx * s, -cy * s, state.rotation, duration || 600);
-    }
-
-    // ---------- 交互 ----------
+    /* ------------------------------------------------------------
+       交互
+    ------------------------------------------------------------ */
     function setupInteraction() {
         const svgNode = svg.node();
 
-        // 屏蔽右键菜单
         svgNode.addEventListener('contextmenu', e => e.preventDefault());
-            // ② 保险层：mousedown 阶段就阻止右键，部分 Edge 版本手势基于此事件
         svgNode.addEventListener('mousedown', e => {
-            if (e.button === 2) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
+            if (e.button === 2) { e.preventDefault(); e.stopPropagation(); }
         });
 
         svgNode.addEventListener('pointerdown', e => {
-            _pendingFit = false;   // 用户介入，停止自动适配
-            // 记录按下位置：拖拽（平移/旋转）松手也会触发 click，用它区分"点击"与"拖拽"
-            state.downAt = { x: e.clientX, y: e.clientY };
             if (e.target.closest && e.target.closest('.g-node')) return;
 
-            // ★ 旋转：右键 或 Shift/Alt + 左键（备选交互）
             const isRotate = e.button === 2 ||
                             (e.button === 0 && (e.shiftKey || e.altKey));
             const isPan    = e.button === 0 && !e.shiftKey && !e.altKey;
 
-
-        if (isRotate) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            // ③ 接管指针，防止被浏览器手势抢走
-            try { svgNode.setPointerCapture(e.pointerId); } catch (_) {}
-
-            state.dragging     = true;
-            state.dragMode     = 'rotate';
-            state.dragStartX   = e.clientX;
-            state.dragStartY   = e.clientY;
-            state.dragStartRot = state.rotation;
-            stage.classList.add('rotating');
-        } else if (isPan) {
-            state.dragging     = true;
-            state.dragMode     = 'pan';
-            state.dragStartX   = e.clientX;
-            state.dragStartY   = e.clientY;
-            state.dragStartTX  = state.translateX;
-            state.dragStartTY  = state.translateY;
-            stage.classList.add('dragging');
-        }
-    });
+            if (isRotate) {
+                e.preventDefault();
+                e.stopPropagation();
+                try { svgNode.setPointerCapture(e.pointerId); } catch (_) {}
+                state.dragging     = true;
+                state.dragMode     = 'rotate';
+                state.dragStartX   = e.clientX;
+                state.dragStartY   = e.clientY;
+                state.dragStartRot = state.rotation;
+                stage.classList.add('rotating');
+            } else if (isPan) {
+                state.dragging     = true;
+                state.dragMode     = 'pan';
+                state.dragStartX   = e.clientX;
+                state.dragStartY   = e.clientY;
+                state.dragStartTX  = state.translateX;
+                state.dragStartTY  = state.translateY;
+                stage.classList.add('dragging');
+            }
+        });
 
         window.addEventListener('pointermove', e => {
             if (!state.dragging) return;
@@ -813,7 +980,6 @@
                 state.translateX = state.dragStartTX + dx;
                 state.translateY = state.dragStartTY + dy;
             } else if (state.dragMode === 'rotate') {
-                // 水平拖动每 1px → 0.35°，手感偏细腻
                 state.rotation = state.dragStartRot + dx * 0.35;
             }
             applyTransform();
@@ -824,58 +990,63 @@
             state.dragging = false;
             state.dragMode = null;
             stage.classList.remove('dragging', 'rotating');
+            scheduleCull();
         });
 
-        // ★ 滚轮缩放：以鼠标位置为锚点（原来锚在画布中心，瞄着节点放大时会跑偏，
-        //   层级过滤后各层节点分布在不同半径上，中心放大会看到空区）
         svgNode.addEventListener('wheel', e => {
             e.preventDefault();
-            _pendingFit = false;   // 用户介入，停止自动适配
             const k = e.deltaY > 0 ? 0.94 : 1.06;
             const next = Math.max(SCALE_MIN, Math.min(SCALE_MAX, state.scale * k));
             if (next === state.scale) return;
 
             const ratio = next / state.scale;
-            const rect = svgNode.getBoundingClientRect();
-            const px = e.clientX - rect.left - rect.width / 2;    // 光标相对画布中心
-            const py = e.clientY - rect.top - rect.height / 2;
-            // 让光标下的世界坐标点在缩放前后保持不动
-            state.translateX = px - (px - state.translateX) * ratio;
-            state.translateY = py - (py - state.translateY) * ratio;
+            state.translateX *= ratio;
+            state.translateY *= ratio;
             state.scale = next;
-
             applyTransform();
         }, { passive: false });
 
-        // 点击空白 → 退出"只看邻域"：清路径/焦点/高亮，并恢复全量节点可见
         svgNode.addEventListener('click', e => {
             if (e.target.closest && e.target.closest('.g-node')) return;
-            // ★ 拖拽后松手也会触发 click：位移超过 5px 就当成拖拽，不退出"只看邻域"
-            //   （否则用户想拖动画面看当前高亮的子图，一松手就被退出了）
-            const d = state.downAt;
-            if (d && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 5) return;
-            const had = state.selectedIds.length || state.activePath ||
-                        state.focusedId || state.highlightedIds.size;
-            state.selectedIds = [];
-            state.activePath = null;
-            state.focusedId = null;
-            state.highlightedIds.clear();
-            state.visibleIds = new Set(state.allNodes.map(n => n.id));
-            if (had) render();
+            if (state.selectedIds.length > 0 ||
+                state.activePath ||
+                state.focusedId ||
+                state.highlightedIds.size) {
+                state.selectedIds = [];
+                state.activePath  = null;
+                dismissPopup();          // ★ 统一清 focusedId + highlightedIds + hidePopup
+            }
         });
 
-        window.addEventListener('resize', applyTransform);
+        window.addEventListener('resize', () => { applyTransform(); scheduleCull(); });
 
-        // ★ Esc 退出沉浸模式
         document.addEventListener('keydown', e => {
-            if (e.key === 'Escape' && state.immersive) toggleImmersive();
+            if (e.key !== 'Escape') return;
+
+            // ① 优先关卡片
+            if (nodePopupEl && nodePopupEl.classList.contains('show')) {
+                dismissPopup();
+                return;
+            }
+            // ② 有聚焦/高亮 → 清选择
+            if (state.focusedId || state.highlightedIds.size ||
+                state.selectedIds.length || state.activePath) {
+                state.selectedIds = [];
+                state.activePath  = null;
+                dismissPopup();
+                return;
+            }
+            // ③ 最后退沉浸
+            if (state.immersive) toggleImmersive();
         });
     }
 
-    // ---------- ★ 悬停 tooltip ----------
+    /* ------------------------------------------------------------
+       Tooltip / Popup
+    ------------------------------------------------------------ */
     function showTooltip(evt, d) {
         if (!tooltipEl) return;
-        const text = (d.media && d.media.text) || '';
+        const text = d.description || '';
         if (!text) { hideTooltip(); return; }
         tooltipEl.innerHTML =
             `<div class="tt-title">${d.label}</div>` +
@@ -889,7 +1060,6 @@
         const rect = stage.getBoundingClientRect();
         let x = evt.clientX - rect.left + 16;
         let y = evt.clientY - rect.top  + 16;
-        // 边界约束
         const maxX = rect.width  - 280;
         const maxY = rect.height - 120;
         if (x > maxX) x = evt.clientX - rect.left - 280;
@@ -901,7 +1071,195 @@
         if (tooltipEl) tooltipEl.classList.remove('show');
     }
 
-    // ---------- ★ 双节点选择 + 路径 ----------
+        function showNodePopup(node) {
+            if (!nodePopupEl) return;
+            const text = node.description || '（暂无说明）';
+
+        const actionsHTML = window.ProfileUI
+            ? `<div class="popup-actions">
+                   ${window.ProfileUI.favoriteBtnHTML('node', node.id, { variant: 'text' })}
+                   ${window.ProfileUI.noteBtnHTML('node', node.id, { variant: 'text' })}
+               </div>`
+            : '';
+
+        nodePopupEl.innerHTML =
+            `<div class="popup-title">${node.label}</div>` +
+            `<div class="popup-body">${text}</div>` +
+            actionsHTML;
+
+        // 更新笔记弹窗副标题
+        nodePopupEl.querySelectorAll('[data-pui-id]').forEach(b => {
+            b.dataset.puiTitle = node.label;
+        });
+
+        nodePopupEl.classList.add('show');
+        if (window.ProfileUI) {
+            window.ProfileUI.bindAll(nodePopupEl);
+        }
+    }
+    function hideNodePopup() {
+        if (nodePopupEl) nodePopupEl.classList.remove('show');
+    }
+    /* ------------------------------------------------------------
+    邻居高亮：hover 时相邻节点/边发光，无关节点降透明度
+    ------------------------------------------------------------ */
+    function highlightNeighbors(nodeId) {
+        if (!gNodes || !gLinks) return;
+        const ids = new Set([nodeId]);
+        state.edges.forEach(e => {
+            const s = srcId(e), t = tgtId(e);
+            if (s === nodeId) ids.add(t);
+            if (t === nodeId) ids.add(s);
+        });
+        gNodes.selectAll('.g-node')
+            .classed('related', d => ids.has(d.id) && d.id !== nodeId)
+            .classed('self-hover', d => d.id === nodeId)
+            .classed('dimmed',  d => !ids.has(d.id));
+        gLinks.selectAll('.g-link')
+            .classed('related', e => srcId(e) === nodeId || tgtId(e) === nodeId)
+            .classed('dimmed',  e => !(ids.has(srcId(e)) && ids.has(tgtId(e))));
+    }
+    function clearNeighborHighlight() {
+        if (!gNodes || !gLinks) return;
+        gNodes.selectAll('.g-node')
+            .classed('related', false).classed('self-hover', false).classed('dimmed', false);
+        gLinks.selectAll('.g-link')
+            .classed('related', false).classed('dimmed', false);
+    }
+
+    /* ------------------------------------------------------------
+    背景星点 + 星云（独立图层，不参与 D3 变换）
+    ------------------------------------------------------------ */
+    function initStars() {
+        const cv = document.getElementById('galaxyStars');
+        if (!cv || cv._inited) return;
+        cv._inited = true;
+
+        const dpr = window.devicePixelRatio || 1;
+        const resize = () => {
+            const r = cv.parentElement.getBoundingClientRect();
+            cv.width  = r.width  * dpr;
+            cv.height = r.height * dpr;
+            cv.style.width  = r.width  + 'px';
+            cv.style.height = r.height + 'px';
+        };
+        resize();
+
+        const ctx = cv.getContext('2d');
+        const stars = Array.from({ length: 220 }, () => ({
+            x: Math.random() * cv.width,
+            y: Math.random() * cv.height,
+            r: (Math.random() * 1.1 + 0.25) * dpr,
+            a: Math.random() * 0.55 + 0.15,
+            tw: Math.random() * 6.28,          // 闪烁相位
+            sp: Math.random() * 0.9 + 0.35    // 闪烁速度
+        }));
+
+        let raf = null, t0 = performance.now();
+        let running = false;
+        function draw(t) {
+            if (!running) return;
+            const dt = (t - t0) / 1000;
+            const isNight = stage.classList.contains('theme-night');
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            for (const s of stars) {
+                const a = s.a * (0.55 + 0.45 * Math.sin(s.tw + dt * s.sp));
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r, 0, 6.283);
+                // 夜晚：淡蓝星光；白天：淡红细点（配合米白底）
+                ctx.fillStyle = isNight
+                    ? `rgba(200, 225, 255, ${a})`
+                    : `rgba(129, 28, 33, ${a * 0.30})`;
+                ctx.fill();
+            }
+            raf = requestAnimationFrame(draw);
+        }
+        function startStars() {
+            if (running) return;
+            running = true;
+            t0 = performance.now();
+            raf = requestAnimationFrame(draw);
+        }
+        function stopStars() {
+            running = false;
+            if (raf) cancelAnimationFrame(raf);
+        }
+        // ★ 按需动画：板块不在视野 / 页签隐藏时暂停，减轻整体负载
+        startStars();
+        document.addEventListener('visibilitychange', () => {
+            document.hidden ? stopStars() : startStars();
+        });
+        if ('IntersectionObserver' in window) {
+            new IntersectionObserver(entries => {
+                entries.forEach(en => en.isIntersecting ? startStars() : stopStars());
+            }).observe(cv.parentElement);
+        }
+
+        // 容器尺寸变化时重建
+        window.addEventListener('resize', () => {
+            cancelAnimationFrame(raf);
+            resize();
+            stars.forEach(s => { s.x = Math.random() * cv.width; s.y = Math.random() * cv.height; });
+            raf = requestAnimationFrame(draw);
+        });
+    }
+
+    /* ------------------------------------------------------------
+    星图主题：仅作用于 .galaxy-stage，不污染全站
+    ------------------------------------------------------------ */
+    function setupGalaxyTheme() {
+        const btn = document.getElementById('galaxyTheme');
+        if (!btn || !stage) return;
+        const KEY = 'sufe_galaxy_theme';
+        const saved = localStorage.getItem(KEY) || 'night';
+
+        const apply = (isNight) => {
+            stage.classList.toggle('theme-night', isNight);
+            // ★ 主题同步到整个星系板块（section + 子页面容器），不只是图谱舞台
+            const page = stage.closest('.galaxy-page');
+            if (page) page.classList.toggle('theme-night', isNight);
+            const sec = stage.closest('.page-section');
+            if (sec) sec.classList.toggle('theme-night', isNight);
+            btn.classList.toggle('active', isNight);
+            const txt = btn.querySelector('span:last-child');
+            if (txt) txt.textContent = isNight ? '星图主题 · 深空' : '星图主题 · 浅色';
+        };
+        apply(saved === 'night');
+
+        btn.addEventListener('click', () => {
+            const next = !stage.classList.contains('theme-night');
+            apply(next);
+            localStorage.setItem(KEY, next ? 'night' : 'day');
+        });
+    }
+        /* 为 popup 注入关闭按钮（幂等，只注入一次） */
+    function ensurePopupCloseBtn() {
+        if (!nodePopupEl) return;
+        if (nodePopupEl.querySelector('.popup-close')) return;
+        const btn = document.createElement('button');
+        btn.className = 'popup-close';
+        btn.setAttribute('aria-label', '关闭');
+        btn.textContent = '×';
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            hideNodePopup();          // 只关卡片，保留节点高亮
+        });
+        nodePopupEl.appendChild(btn);
+    }
+
+    /* 状态归零式关闭：卡片 + 聚焦 + 高亮一起清 */
+    function dismissPopup() {
+        hideNodePopup();
+        if (state.focusedId || state.highlightedIds.size) {
+            state.focusedId = null;
+            state.highlightedIds.clear();
+            render();
+        }
+    }
+
+    /* ------------------------------------------------------------
+       选择 & BFS
+    ------------------------------------------------------------ */
     function toggleNodeSelection(nodeId) {
         const idx = state.selectedIds.indexOf(nodeId);
         if (idx >= 0) {
@@ -926,11 +1284,10 @@
         render();
     }
 
-    // ★ BFS 最短路径
     function findPath(a, b) {
         if (a === b) return [a];
         const adj = new Map();
-        state.allEdges.forEach(e => {
+        state.edges.forEach(e => {
             const s = srcId(e), t = tgtId(e);
             if (!adj.has(s)) adj.set(s, []);
             if (!adj.has(t)) adj.set(t, []);
@@ -944,79 +1301,89 @@
             if (n === b) break;
             const nb = adj.get(n) || [];
             for (const m of nb) {
-                if (!prev.has(m)) {
-                    prev.set(m, n);
-                    q.push(m);
-                }
+                if (!prev.has(m)) { prev.set(m, n); q.push(m); }
             }
         }
         if (!prev.has(b)) return null;
         const path = [];
         let cur = b;
-        while (cur != null) {
-            path.unshift(cur);
-            cur = prev.get(cur);
-        }
+        while (cur != null) { path.unshift(cur); cur = prev.get(cur); }
         return path;
     }
 
-    // ---------- ★ 时间轴 ----------
-    function setupTimeline() {
-        const wrap    = document.getElementById('galaxyTimelineWrap');
-        const slider  = document.getElementById('galaxyTimeline');
-        const yearEl  = document.getElementById('galaxyTimelineYear');
-        const resetBtn= document.getElementById('galaxyTimelineReset');
-        if (!wrap || !slider || !yearEl) return;
+    /* ------------------------------------------------------------
+       ★ 修复 Bug 2：本地聚焦（无 sessionId 时的降级路径）
+    ------------------------------------------------------------ */
+    function localFocusNode(nodeId) {
+        const node = state.nodes.find(n => n.id === nodeId);
+        if (!node) return;
 
-        // 收集年份（缺省用稳定伪年份）
-        const years = [];
-        state.allNodes.forEach(n => {
-            let y = getNodeYear(n);
-            if (y == null) { y = fallbackYear(n); n._year = y; }
-            years.push(y);
+        // 1) 聚焦该节点
+        state.focusedId = nodeId;
+
+        // 2) 高亮 1 跳邻居（含自己）
+        const neighbors = new Set([nodeId]);
+        state.edges.forEach(e => {
+            const s = srcId(e), t = tgtId(e);
+            if (s === nodeId) neighbors.add(t);
+            if (t === nodeId) neighbors.add(s);
         });
-        if (!years.length) { wrap.style.display = 'none'; return; }
+        state.highlightedIds = neighbors;
 
-        const yMin = Math.min(...years);
-        const yMax = Math.max(...years);
-        if (yMax === yMin) { wrap.style.display = 'none'; return; }
-
-        state.timelineEnabled = true;
-        state.timelineMin = yMin;
-        state.timelineMax = yMax;
-        state.timelineValue = yMax;
-
-        slider.min = yMin;
-        slider.max = yMax;
-        slider.step = 1;
-        slider.value = yMax;
-        yearEl.textContent = yMax;
-
-        wrap.style.display = 'flex';
-
-        slider.addEventListener('input', e => {
-            state.timelineValue = +e.target.value;
-            yearEl.textContent = state.timelineValue;
-            render();
-        });
-        if (resetBtn) {
-            resetBtn.addEventListener('click', () => {
-                state.timelineValue = state.timelineMax;
-                slider.value = state.timelineMax;
-                yearEl.textContent = state.timelineMax;
-                render();
-            });
-        }
+        // 3) 重渲染 + 弹 popup
+        render();
+        showNodePopup(node);
     }
 
-    // ---------- ★ 自动漫游 ----------
+    async function handleNodeClick(nodeId, evt) {
+            // ★ 用户主动点击 → 停止漫游，避免漫游继续抢 popup
+        if (state.roaming) {
+            state.roamAbort = true;
+            // 让漫游循环自己走完当前这一拍
+        }
+
+        // Ctrl / Cmd + 点击 → 双节点选择（原有）
+        if (evt && (evt.ctrlKey || evt.metaKey)) {
+            toggleNodeSelection(nodeId);
+            return;
+        }
+
+        // 有 sessionId → 走后端
+        if (state.sessionId) {
+            try {
+                const r = await api('/api/graph/click', {
+                    node_id:    nodeId,
+                    session_id: state.sessionId
+                });
+                await handleResponse(r);
+                return;
+            } catch (e) {
+                console.warn('[galaxy] /api/graph/click 失败，降级到本地聚焦：', e);
+            }
+        }
+
+        // 无 sessionId（本地 JSON 模式）→ 本地聚焦
+        localFocusNode(nodeId);
+    }
+
+    /* ------------------------------------------------------------
+       时间轴
+    ------------------------------------------------------------ */
+    function setupTimeline() {
+        // 后端 galaxy.json 不提供 year 字段，时间轴关闭
+        const wrap = document.getElementById('galaxyTimelineWrap');
+        if (wrap) wrap.style.display = 'none';
+        state.timelineEnabled = false;
+        timelineInited = true;
+        return;
+    }
+    /* ------------------------------------------------------------
+       自动漫游
+    ------------------------------------------------------------ */
     async function startRoam() {
         const btn = document.getElementById('galaxyRoam');
 
-        if (state.roaming) {
-            state.roamAbort = true;
-            return;
-        }
+        if (state.roaming) { state.roamAbort = true; return; }
         if (!state.activePath || state.activePath.length < 2) {
             showToast('请先 Ctrl+点击 选中两个节点生成路径');
             return;
@@ -1024,11 +1391,14 @@
 
         state.roaming = true;
         state.roamAbort = false;
-        if (btn) { btn.classList.add('active'); btn.querySelector('span:last-child').textContent = '停止漫游'; }
+        if (btn) {
+            btn.classList.add('active');
+            btn.querySelector('span:last-child').textContent = '停止漫游';
+        }
 
         for (const id of state.activePath) {
             if (state.roamAbort) break;
-            const node = state.allNodes.find(n => n.id === id);
+            const node = state.nodes.find(n => n.id === id);
             if (!node) continue;
 
             await panToNode(node, 1.0, 700);
@@ -1036,12 +1406,14 @@
             await sleep(1400);
             hideNodePopup();
         }
-
+        hideNodePopup(); 
         state.roaming = false;
-        if (btn) { btn.classList.remove('active'); btn.querySelector('span:last-child').textContent = '自动漫游'; }
+        if (btn) {
+            btn.classList.remove('active');
+            btn.querySelector('span:last-child').textContent = '自动漫游';
+        }
     }
 
-    // 把某节点平移到屏幕中心
     function panToNode(node, scale, duration) {
         const s = scale || state.scale;
         const r = state.rotation * Math.PI / 180;
@@ -1051,46 +1423,31 @@
         return animateTo(s, -s * rx, -s * ry, state.rotation, duration);
     }
 
-    function showNodePopup(node) {
-        if (!nodePopupEl) return;
-        const text = (node.media && node.media.text) || '（暂无说明）';
-        nodePopupEl.innerHTML =
-            `<div class="popup-title">${node.label}</div>` +
-            `<div class="popup-body">${text}</div>`;
-        nodePopupEl.classList.add('show');
-    }
-    function hideNodePopup() {
-        if (nodePopupEl) nodePopupEl.classList.remove('show');
-    }
-
-    // ---------- ★ 回到宏观视角 ----------
+    /* ------------------------------------------------------------
+       宏观 / 心跳 / 证据
+    ------------------------------------------------------------ */
     function goMacro() {
         state.selectedIds = [];
         state.activePath  = null;
-        // 目标：scale 落到宏观区（≤0.4），平移归零，旋转归零 → 带"旋转飞回"感觉
+        hideNodePopup();
         animateTo(0.32, 0, 0, 0, 900).then(() => render());
     }
-        // ★ 新增：让一批节点心跳闪烁（场景4用）
+
     function pulseNodes(ids, duration) {
         if (!ids || !ids.length || !gNodes) return;
         const idSet = new Set(ids);
-        gNodes.selectAll('.g-node')
-            .classed('pulse', d => idSet.has(d.id));
-        // 到时自动清除
+        gNodes.selectAll('.g-node').classed('pulse', d => idSet.has(d.id));
         setTimeout(() => {
             gNodes.selectAll('.g-node.pulse').classed('pulse', false);
         }, duration || 3200);
     }
 
-    // ★ 新增：缩放 + 平移到包含指定节点的区域，并高亮证据路径
     function focusOnNodes(ids, edges) {
         if (!ids || !ids.length || !gRoot || !svg) return;
 
-        // 1) 高亮节点
         state.highlightedIds = new Set(ids);
 
-        // 2) 计算包围盒
-        const targets = state.allNodes.filter(n => ids.includes(n.id));
+        const targets = state.nodes.filter(n => ids.includes(n.id));
         if (!targets.length) return;
 
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -1104,20 +1461,15 @@
         const cxW = (minX + maxX) / 2;
         const cyW = (minY + maxY) / 2;
 
-        // 3) 计算合适缩放（留出边距）
         const rect = svg.node().getBoundingClientRect();
         const spanX = Math.max(120, maxX - minX) + 240;
         const spanY = Math.max(120, maxY - minY) + 240;
         const scale = Math.max(SCALE_MIN, Math.min(SCALE_MAX,
             Math.min(rect.width / spanX, rect.height / spanY)));
 
-        // 4) 计算平移：让世界坐标 (cxW, cyW) 落到画布中心
         const tx = -scale * cxW;
         const ty = -scale * cyW;
 
-        // 5) 证据连线：把 edges 转成 activePath
-        //    说明：现有路径高亮只支持"一条链"。
-        //    若后端返回多条边，将来可扩展 state.evidenceEdges 再改 render。
         if (edges && edges.length) {
             state.selectedIds = [];
             const first = edges[0];
@@ -1125,12 +1477,12 @@
         }
 
         state.focusedId = ids[0];
-
-        // 旋转归零 + 动画飞过去
         animateTo(scale, tx, ty, 0, 900).then(() => render());
     }
 
-    // ---------- ★ 沉浸模式 ----------
+    /* ------------------------------------------------------------
+       沉浸模式
+    ------------------------------------------------------------ */
     function toggleImmersive() {
         state.immersive = !state.immersive;
         document.body.classList.toggle('immersive', state.immersive);
@@ -1142,14 +1494,15 @@
             if (t) t.textContent = state.immersive ? '退出沉浸' : '沉浸模式';
         }
 
-        // 等布局稳定后再重算（stage 尺寸变了）
         requestAnimationFrame(() => {
             applyTransform();
-            if (simulation) simulation.alpha(0.15).restart();
+            
         });
     }
 
-    // ---------- 动作执行器 ----------
+    /* ------------------------------------------------------------
+       动作执行器
+    ------------------------------------------------------------ */
     async function runActions(actions) {
         if (!Array.isArray(actions)) return;
         for (const act of actions) {
@@ -1169,8 +1522,7 @@
                     render(); await sleep(dur); break;
                 case 'zoom':
                     if (act.params && act.params.mode === 'fit') {
-                        // ★ fit 改为按内容包围盒适配（原实现固定回中观层，节点散开后视野中心可能空白）
-                        fitViewToContent(600);
+                        animateTo(SCALE_DEFAULT, 0, 0, state.rotation, 600);
                     }
                     await sleep((act.params && act.params.duration) || 600);
                     break;
@@ -1186,84 +1538,106 @@
         }
     }
 
-    // ---------- 会话流程 ----------
+    /* ------------------------------------------------------------
+       会话流程 & 五图切换
+    ------------------------------------------------------------ */
     async function handleResponse(resp) {
         if (!resp) return;
         if (resp.session_id) state.sessionId = resp.session_id;
-
-        if (resp.code !== 0) {
-            showToast(resp.message || '请求失败');
-            return;
-        }
+        if (resp.code !== 0) { showToast(resp.message || '请求失败'); return; }
 
         state.highlightedIds.clear();
-        mergeGraph(resp.data);
-        // ★ 点击/提问返回的是"某节点邻域"这类子图时，把邻域节点标为 highlighted：
-        //   其余节点会被 fade_out 隐藏，高亮让"真正连着的节点"一眼可辨（微观层尤其明显）
-        const sub = resp.data && resp.data.nodes;
-        if (sub && sub.length && sub.length < state.allNodes.length) {
-            state.highlightedIds = new Set(sub.map(n => n.id));
-        }
+        mergeGraph(resp.data, false);      // 直接用后端结构
         render();
-
+        if (resp.actions?.some(a => a.type === 'fade_in')) startExpandAnimation();
         if (resp.degraded && resp.notice) showToast(resp.notice);
         await runActions(resp.actions);
+    }
+
+    async function loadGraphFromFile(graphId) {
+        const file = GRAPH_SOURCES[graphId];
+        if (!file) return null;
+        const url = GRAPH_BASE_PATH + file;
+        const res = await fetch(encodeURI(url));
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.json();           // 直接返回原始结构
     }
 
     async function load() {
         setLoading(true);
         try {
+            // ★ 2026-09-20：改为"只走后端"。原逻辑是"本地 JSON 优先、失败再回退后端"，
+            //   但按项目约定数据一律由后端提供（data/layered/ → /api/graph/load），
+            //   前端目录不放 galaxy.json 等数据文件，本地优先只会每次多一个 404。
+            //   如需临时离线看图，把下面整段注释放开即可。
+            // if (state.currentGraphId) {
+            //     try {
+            //         const data = await loadGraphFromFile(state.currentGraphId);
+            //         if (data && data.nodes && data.nodes.length) {
+            //             mergeGraph(data, true);
+            //             render();
+            //             startExpandAnimation();
+            //             return;
+            //         }
+            //     } catch (e) {
+            //         console.warn('[galaxy] 本地图谱加载失败，回退后端：', e.message);
+            //     }
+            // }
+
             const r = await api('/api/graph/load', {
                 session_id: state.sessionId,
-                graph_id:   state.graphId
+                graph_id:   state.currentGraphId
             });
             await handleResponse(r);
         } catch (e) {
             console.warn('加载图谱失败', e);
-            showToast('加载图谱失败，请检查后端服务 (localhost:8000)');
+            showToast('加载图谱失败，请检查本地 JSON 或后端服务');
         } finally {
             setLoading(false);
         }
     }
 
-    // ★ 切换图谱（图书选择框）：清空画布状态后按新 graph_id 重新加载
-    async function switchBook(graphId) {
-        if (!graphId || graphId === state.graphId) return;
-        state.graphId = graphId;
-        state.allNodes = [];
-        state.allEdges = [];
-        state.nodes = [];
-        state.edges = [];
-        state.renderNodes = [];
-        state.renderEdges = [];
-        state.degree = new Map();
-        _renderSet = new Set();
-        state.visibleIds = new Set();
+    async function switchGraph(graphId) {
+        if (!graphId || graphId === state.currentGraphId) return;
+        state.currentGraphId = graphId;
+
+        state.translateX = 0;
+        state.translateY = 0;
+        state.scale = SCALE_DEFAULT;
+        state.rotation = 0;
+        state.zoomLevel = 'meso';
         state.focusedId = null;
         state.highlightedIds.clear();
         state.selectedIds = [];
         state.activePath = null;
-        state.timelineValue = null;
+        hideNodePopup();
+        timelineInited = false;
+
+    
+
+        state.nodes = [];
+        state.edges = [];
+        state.visibleIds = new Set();
+        if (gNodes)      gNodes.selectAll('*').remove();
+        if (gLinks)      gLinks.selectAll('*').remove();
+        if (gLinkLabels) gLinkLabels.selectAll('*').remove();
+
+        applyTransform();
         await load();
     }
 
-    // ★ 点击节点：Ctrl/Cmd 是"选中"，否则走原聚焦 API
-    async function handleNodeClick(nodeId, evt) {
-        if (evt && (evt.ctrlKey || evt.metaKey)) {
-            toggleNodeSelection(nodeId);
-            return;
-        }
-        if (!state.sessionId) return;
-        try {
-            const r = await api('/api/graph/click', {
-                node_id:    nodeId,
-                session_id: state.sessionId,
-                graph_id:   state.graphId
+    function setupGraphTabs() {
+        const tabs = document.querySelectorAll('#galaxyTabs .galaxy-tab');
+        if (!tabs.length) return;
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const id = tab.dataset.graphId;
+                if (!id) return;
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                switchGraph(id);
             });
-            await handleResponse(r);
-        } catch (e) {
-            console.warn('节点点击失败', e);
-        }
+        });
     }
 
     async function handleQuery(text) {
@@ -1272,8 +1646,7 @@
         try {
             const r = await api('/api/graph/query', {
                 text:       text.trim(),
-                session_id: state.sessionId,
-                graph_id:   state.graphId
+                session_id: state.sessionId
             });
             await handleResponse(r);
         } catch (e) {
@@ -1284,12 +1657,14 @@
         }
     }
 
-    // ---------- 初始化 ----------
+    /* ------------------------------------------------------------
+       初始化
+    ------------------------------------------------------------ */
     function loadScript(src) {
         return new Promise(resolve => {
             const s = document.createElement('script');
             s.src = src;
-            s.onload = () => resolve(true);
+            s.onload  = () => resolve(true);
             s.onerror = () => resolve(false);
             document.head.appendChild(s);
         });
@@ -1308,6 +1683,7 @@
         state.highlightedIds.clear();
         state.selectedIds = [];
         state.activePath  = null;
+        hideNodePopup();
         state.timelineValue = state.timelineEnabled ? state.timelineMax : null;
         const slider = document.getElementById('galaxyTimeline');
         if (slider && state.timelineEnabled) slider.value = state.timelineMax;
@@ -1337,24 +1713,17 @@
 
         tooltipEl   = document.getElementById('galaxyTooltip');
         nodePopupEl = document.getElementById('galaxyNodePopup');
+        ensurePopupCloseBtn();
 
-        // 初始层级标记
         stage.setAttribute('data-zoom-level', state.zoomLevel);
+        initStars();
+        setupGalaxyTheme();
 
         setupInteraction();
+        setupGraphTabs();
 
         const resetBtn = document.getElementById('galaxyReset');
         if (resetBtn) resetBtn.addEventListener('click', resetView);
-
-        // ★ 切换图谱：新版 index.html 用"知识星系"顶部 5 个 tab（data-graph-id）切换，
-        //   取代原来右上角的下拉框（#galaxyBookSelect，若在则仍兼容）
-        const graphTabs = document.querySelectorAll('.galaxy-tab[data-graph-id]');
-        graphTabs.forEach(btn => btn.addEventListener('click', () => {
-            graphTabs.forEach(b => b.classList.toggle('active', b === btn));
-            switchBook(btn.dataset.graphId);
-        }));
-        const bookSelect = document.getElementById('galaxyBookSelect');
-        if (bookSelect) bookSelect.addEventListener('change', () => switchBook(bookSelect.value));
 
         const macroBtn = document.getElementById('galaxyMacro');
         if (macroBtn) macroBtn.addEventListener('click', goMacro);
@@ -1372,27 +1741,21 @@
         load();
     }
 
-    // ---------- 对外暴露 ----------
+    /* ------------------------------------------------------------
+       对外暴露
+    ------------------------------------------------------------ */
     window.GalaxyEngine = {
         init,
         load,
-        switchBook,                                   // ★ 切换图谱（图书选择框）
-        query:     handleQuery,
-        clickNode: (id) => handleNodeClick(id, null),
-        selectNode:(id) => toggleNodeSelection(id),   // ★ 供知识助手复用
-        goMacro,                                       // ★
-        roam: startRoam,                               // ★
+        query:      handleQuery,
+        clickNode:  (id) => handleNodeClick(id, null),
+        selectNode: (id) => toggleNodeSelection(id),
+        goMacro,
+        roam: startRoam,
         toggleImmersive,
-        pulseNodes,      // ★ 新增
-        focusOnNodes,    // ★ 新增
-        // ★ 调试辅助：控制台执行 GalaxyEngine.debug() 查看裁剪三级数量
-        debug: () => ({
-            allNodes:   state.allNodes.length,
-            active:     state.nodes.length,
-            rendered:   state.renderNodes.length,
-            edges:      { all: state.allEdges.length, active: state.edges.length, rendered: state.renderEdges.length },
-            view:       { tx: state.translateX, ty: state.translateY, scale: state.scale, rot: state.rotation },
-        }),
+        pulseNodes,
+        focusOnNodes,
+        switchGraph,
         get state() { return state; }
     };
 

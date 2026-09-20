@@ -282,15 +282,14 @@
         </div>
 
         <div class="galaxy-stage" id="galaxyStage" data-zoom-level="meso">
+            <canvas id="galaxyStars" class="galaxy-stars"></canvas>
+            <div class="galaxy-nebula" aria-hidden="true"></div>
+            <div class="galaxy-vignette" aria-hidden="true"></div>
             <svg id="galaxySvg"></svg>
 
             <div class="galaxy-tooltip" id="galaxyTooltip"></div>
             <div class="galaxy-node-popup" id="galaxyNodePopup"></div>
 
-            <div class="galaxy-hint">
-                滚轮缩放 · 左键平移 · <b>右键 或 Shift+左键</b> 旋转 · Ctrl+点击选两点
-                <br><span style="opacity:.6;font-size:11px;">Edge 用户如遇右键手势冲突，请用 Shift+左键，或在 edge://settings/accessibility 关闭鼠标手势</span>
-            </div>
             <div class="galaxy-toast" id="galaxyToast"></div>
             <div class="galaxy-loading" id="galaxyLoading">加载中…</div>
 
@@ -298,6 +297,12 @@
             <div class="galaxy-immersive-exit" id="galaxyImmersiveExit">
                 沉浸模式 · 按 Esc 或点击右下角按钮退出
             </div>
+        </div>
+
+        <!-- 操作提示（2026-09-20 随新 galaxy.js 移到舞台外部，不再遮挡图谱） -->
+        <div class="galaxy-hint">
+            滚轮缩放 · 左键平移 · <b>右键 或 Shift+左键</b> 旋转 · Ctrl+点击选两点
+            <span style="opacity:.6;font-size:11px;">&nbsp;Edge 用户如遇右键手势冲突，请用 Shift+左键</span>
         </div>
 
         <!-- ★ 2026-09-15：按用户要求先隐藏时间轴（代码保留，不删）。
@@ -321,6 +326,10 @@
             </button>
             <button class="galaxy-btn ghost" id="galaxyImmersive" title="全屏沉浸浏览">
                 <span class="btn-icon">⛶</span><span>沉浸模式</span>
+            </button>
+            <!-- 2026-09-20：星图主题（只作用于知识星系舞台；导航栏 🌓 仍为整页昼夜主题） -->
+            <button class="galaxy-btn ghost" id="galaxyTheme" title="切换星图主题（浅色/深空）">
+                <span class="btn-icon">🌓</span><span>星图主题</span>
             </button>
             <button class="galaxy-reset" id="galaxyReset" title="重置视图">
                 <span class="reset-icon">↺</span><span>重置视图</span>
