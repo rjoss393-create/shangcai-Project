@@ -23,6 +23,8 @@ import time
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
+from service.user_store import UserExistsError
+
 logger = logging.getLogger(__name__)
 
 TOKEN_TTL_SECONDS = 24 * 60 * 60    # 登录有效期：24 小时
@@ -32,17 +34,30 @@ TOKEN_TTL_SECONDS = 24 * 60 * 60    # 登录有效期：24 小时
 
 class AuthUser(BaseModel):
     """用户信息（对外）"""
+    id: str = ""                    # 与 username 相同（前端个人状态以它为缓存键）
     username: str
+    nickname: str = ""              # 展示名，注册时可空（默认与用户名相同）
     role: str                       # admin 管理员 / user 普通用户
     status: str                     # active 正常 / disabled 已停用
     created_at: str = ""
 
 
 class LoginResult(BaseModel):
-    """注册/登录成功的返回：令牌 + 用户信息"""
+    """注册/登录成功的返回：令牌 + 用户信息
+
+    code 字段是给前端的统一信封（0 成功，非 0 与 HTTP 状态码一致），
+    与 HTTP 状态码并存：REST 调用方看状态码，页面看 code/message。
+    """
+    code: int = 0
     token: str
     user: AuthUser
     message: str = "success"
+
+
+class MeResult(BaseModel):
+    """当前登录用户（前端刷新页面后校验令牌用）"""
+    code: int = 0
+    user: AuthUser
 
 
 class UserListResult(BaseModel):
@@ -51,12 +66,14 @@ class UserListResult(BaseModel):
 
 
 class MessageResult(BaseModel):
+    code: int = 0
     message: str
 
 
 class RegisterRequest(BaseModel):
     username: str
     password: str
+    nickname: str | None = None
 
 
 class LoginRequest(BaseModel):
@@ -125,13 +142,12 @@ def _bearer_token(authorization: str | None) -> str:
     return token.strip()
 
 
-def create_auth_router(user_store, token_manager: TokenManager | None = None) -> APIRouter:
-    """路由工厂：注入用户存储（service/user_store.UserStore）与令牌管理器"""
-    tokens = token_manager or TokenManager()
-    router = APIRouter(prefix="/api/auth", tags=["auth"])
+def make_current_user(user_store, tokens: TokenManager):
+    """构造"当前登录用户"依赖：/api/auth 与 /api/user 两组路由共用同一套令牌校验
 
+    未登录 / 已过期 / 已停用一律 401。
+    """
     async def current_user(authorization: str | None = Header(default=None)) -> dict:
-        """依赖：解析令牌得到当前用户；未登录/已过期/已停用一律 401"""
         username = tokens.resolve(_bearer_token(authorization))
         if username is None:
             raise HTTPException(status_code=401, detail="登录已失效，请重新登录")
@@ -139,6 +155,15 @@ def create_auth_router(user_store, token_manager: TokenManager | None = None) ->
         if user is None or user["status"] != "active":
             raise HTTPException(status_code=401, detail="账号不存在或已被停用")
         return user
+
+    return current_user
+
+
+def create_auth_router(user_store, token_manager: TokenManager | None = None) -> APIRouter:
+    """路由工厂：注入用户存储（service/user_store.UserStore）与令牌管理器"""
+    tokens = token_manager or TokenManager()
+    router = APIRouter(prefix="/api/auth", tags=["auth"])
+    current_user = make_current_user(user_store, tokens)
 
     async def require_admin(user: dict = Depends(current_user)) -> dict:
         """依赖：在 current_user 基础上要求管理员身份"""
@@ -152,7 +177,9 @@ def create_auth_router(user_store, token_manager: TokenManager | None = None) ->
     async def register(req: RegisterRequest):
         """注册并直接登录。系统第一个注册的用户自动成为管理员（便于初始化）"""
         try:
-            user = await user_store.create(req.username, req.password)
+            user = await user_store.create(req.username, req.password, nickname=req.nickname)
+        except UserExistsError as e:
+            raise HTTPException(status_code=409, detail=str(e))
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
         token = tokens.issue(user["username"])
@@ -176,10 +203,10 @@ def create_auth_router(user_store, token_manager: TokenManager | None = None) ->
         tokens.revoke(_bearer_token(authorization))
         return MessageResult(message="已退出登录")
 
-    @router.get("/me", response_model=AuthUser)
+    @router.get("/me", response_model=MeResult)
     async def me(user: dict = Depends(current_user)):
         """当前登录用户信息（前端刷新页面后可用它校验令牌是否仍有效）"""
-        return AuthUser(**user)
+        return MeResult(user=AuthUser(**user))
 
     @router.post("/password", response_model=MessageResult)
     async def change_password(req: ChangePasswordRequest, user: dict = Depends(current_user)):

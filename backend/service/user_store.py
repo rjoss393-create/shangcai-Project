@@ -4,7 +4,7 @@
 结构：
 
     {"users": [
-      {"username": "zhangsan", "password_hash": "pbkdf2_sha256$...",
+      {"username": "zhangsan", "nickname": "张三", "password_hash": "pbkdf2_sha256$...",
        "role": "admin", "status": "active", "created_at": "2026-09-17T10:00:00+00:00"}
     ]}
 
@@ -34,6 +34,11 @@ STATUSES = ("active", "disabled")
 USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9_\u4e00-\u9fff]{2,20}$")   # 中文/字母/数字/下划线，2~20 位
 MIN_PASSWORD_LENGTH = 6
 MAX_PASSWORD_LENGTH = 64
+MAX_NICKNAME_LENGTH = 20
+
+
+class UserExistsError(ValueError):
+    """用户名已被占用（控制层据此返回 409，与参数错误区分开）"""
 
 
 def hash_password(password: str, *, iterations: int = PBKDF2_ITERATIONS) -> str:
@@ -93,20 +98,23 @@ class UserStore:
 
     # ---------- 写入 ----------
 
-    async def create(self, username: str, password: str, role: str | None = None) -> dict:
+    async def create(self, username: str, password: str, role: str | None = None,
+                     nickname: str | None = None) -> dict:
         """注册新用户；role 为 None 时：第一个用户自动成为管理员，其余为普通用户"""
         username = (username or "").strip()
         self._validate_username(username)
         self._validate_password(password)
+        nickname = self._normalize_nickname(nickname, username)
         async with self._lock:
             if username in self._users:
-                raise ValueError("该用户名已被注册")
+                raise UserExistsError("该用户名已被注册")
             if role is None:
                 role = "admin" if not self._users else "user"
             if role not in ROLES:
                 raise ValueError(f"role 只能是 {'/'.join(ROLES)}")
             user = {
                 "username": username,
+                "nickname": nickname,
                 "password_hash": hash_password(password, iterations=self._iterations),
                 "role": role,
                 "status": "active",
@@ -158,13 +166,23 @@ class UserStore:
 
     @staticmethod
     def _public(user: dict) -> dict:
-        """对外信息：绝不包含 password_hash"""
+        """对外信息：绝不包含 password_hash（id 即用户名，个人状态等前端缓存以它为键）"""
         return {
+            "id": user["username"],
             "username": user["username"],
+            "nickname": user.get("nickname") or user["username"],
             "role": user["role"],
             "status": user["status"],
             "created_at": user["created_at"],
         }
+
+    @staticmethod
+    def _normalize_nickname(nickname: str | None, username: str) -> str:
+        """昵称：可空（默认与用户名相同），去空白，限制长度"""
+        text = (nickname or "").strip() or username
+        if len(text) > MAX_NICKNAME_LENGTH:
+            raise ValueError(f"昵称最长 {MAX_NICKNAME_LENGTH} 个字符")
+        return text
 
     @staticmethod
     def _validate_username(username: str) -> None:
@@ -195,6 +213,7 @@ class UserStore:
                 continue
             self._users[username] = {
                 "username": username,
+                "nickname": item.get("nickname") or username,
                 "password_hash": item["password_hash"],
                 "role": item.get("role") if item.get("role") in ROLES else "user",
                 "status": item.get("status") if item.get("status") in STATUSES else "disabled",

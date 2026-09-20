@@ -6,6 +6,7 @@
 装配：DataService（数据层） + QaAgentImpl(LLM_Navigator)（Agent 层）
      + create_router（控制层）
      + UserStore + create_auth_router（账号注册/登录/用户管理，data/users.json）
+     + ProfileStore + create_profile_router（个人状态：笔记/收藏/筛选，data/profiles.json）
      + create_media_router + mount_site（媒体数据 + 前端页面托管）
 启动事件：后台按顺序预热 5 个图谱（4 本书 + 经济综合，
          建图 + 加载/生成 embedding），把首次提问的冷启动成本转移到服务启动阶段。
@@ -58,14 +59,17 @@ def _load_api_config() -> None:
 
 _load_api_config()
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
-from controller.auth import create_auth_router
+from controller.auth import TokenManager, create_auth_router
 from controller.graph_ids import GRAPH_IDS
 from controller.media import create_media_router, mount_site
+from controller.profile import create_profile_router
 from controller.router import create_router
 from service.data_service import DataService
+from service.profile_store import ProfileStore
 from service.user_store import UserStore
 
 
@@ -100,6 +104,10 @@ service = DataService(data_dir=os.path.join(ROOT, "data"))
 qa_agent = _build_qa_agent()
 # 用户账号/权限数据（JSON 文件，首个注册的用户自动成为管理员）
 user_store = UserStore(path=os.path.join(ROOT, "data", "users.json"))
+# 个人状态（笔记/收藏/临时关系/筛选，按用户整体存取）
+profile_store = ProfileStore(path=os.path.join(ROOT, "data", "profiles.json"))
+# 令牌管理器：登录（/api/auth）与个人状态（/api/user）共用，重启后需重新登录
+token_manager = TokenManager()
 
 
 async def _preload_all_books() -> None:
@@ -128,8 +136,26 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="投资学知识图谱", version="1.0.0", lifespan=lifespan)
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    """错误响应补 code/message 字段（前端按 {code, message} 读取提示文案，detail 原样保留）"""
+    detail = exc.detail
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "code": exc.status_code,
+            "message": detail if isinstance(detail, str) else "请求有误",
+            "detail": detail,
+        },
+        headers=getattr(exc, "headers", None),
+    )
+
+
 app.include_router(create_router(service, qa_agent))
-app.include_router(create_auth_router(user_store))
+app.include_router(create_auth_router(user_store, token_manager))
+app.include_router(create_profile_router(user_store, profile_store, token_manager))
 app.include_router(create_media_router(MEDIA_DIR))
 
 # 跨域放行：页面已由本服务托管（同源），此配置保留给"页面另行托管"的场景

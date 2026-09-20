@@ -1,7 +1,9 @@
 """user_store 测试：账号存储 / 密码哈希 / 权限与启停 / JSON 落盘"""
+import json
+
 import pytest
 
-from service.user_store import UserStore, hash_password, verify_password
+from service.user_store import UserExistsError, UserStore, hash_password, verify_password
 
 
 @pytest.fixture
@@ -31,12 +33,22 @@ class TestUserStore:
         assert alice["role"] == "admin"          # 首个用户自动成为管理员
         assert bob["role"] == "user"
         assert alice["status"] == "active"
-        assert set(alice) == {"username", "role", "status", "created_at"}   # 不含密码字段
+        # 不含密码字段；id 与 username 相同（前端个人状态以它为缓存键）
+        assert set(alice) == {"id", "username", "nickname", "role", "status", "created_at"}
+        assert alice["id"] == "alice"
 
     async def test_duplicate_username(self, store):
         await store.create("alice", "pass123")
-        with pytest.raises(ValueError):
+        with pytest.raises(UserExistsError):
             await store.create("alice", "pass456")
+
+    async def test_nickname_defaults_to_username(self, store):
+        alice = await store.create("alice", "pass123")
+        bob = await store.create("bob", "pass123", nickname=" 小明 ")
+        assert alice["nickname"] == "alice"
+        assert bob["nickname"] == "小明"                    # 去首尾空白
+        with pytest.raises(ValueError):
+            await store.create("carol", "pass123", nickname="昵" * 21)   # 昵称过长
 
     async def test_chinese_username_allowed(self, store):
         user = await store.create("测试", "123456")
@@ -69,10 +81,21 @@ class TestUserStore:
         assert "password_hash" in raw and "pbkdf2_sha256$" in raw
 
     async def test_persisted_and_reloadable(self, store, tmp_path):
-        await store.create("alice", "pass123")
+        await store.create("alice", "pass123", nickname="爱丽丝")
         reloaded = UserStore(str(tmp_path / "users.json"))
         user = await reloaded.verify("alice", "pass123")
         assert user is not None and user["role"] == "admin"
+        assert user["nickname"] == "爱丽丝"          # 昵称随文件持久化
+
+    async def test_legacy_record_without_nickname(self, tmp_path):
+        """旧版 users.json（无 nickname 字段）加载后昵称回退为用户名"""
+        path = tmp_path / "users.json"
+        path.write_text(json.dumps({"users": [
+            {"username": "alice", "password_hash": hash_password("pass123"),
+             "role": "admin", "status": "active", "created_at": "2026-09-17T10:00:00+00:00"}
+        ]}), encoding="utf-8")
+        user = await UserStore(str(path)).verify("alice", "pass123")
+        assert user["nickname"] == "alice" and user["id"] == "alice"
 
     async def test_set_password_invalidates_old(self, store):
         await store.create("alice", "pass123")

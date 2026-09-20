@@ -39,11 +39,20 @@ class TestRegister:
         register(client, "alice")
         assert register(client, "bob").json()["user"]["role"] == "user"
 
-    def test_duplicate_username_400(self, client):
+    def test_duplicate_username_409(self, client):
         register(client, "alice")
         r = register(client, "alice")
-        assert r.status_code == 400
+        assert r.status_code == 409                    # 前端按 409 处理"账号已存在"
         assert "已被注册" in r.json()["detail"]
+
+    def test_nickname_and_code_envelope(self, client):
+        r = client.post("/api/auth/register",
+                        json={"username": "alice", "password": "pass123", "nickname": "爱丽丝"})
+        body = r.json()
+        assert body["code"] == 0                       # 前端按 code === 0 判成功
+        assert body["user"]["nickname"] == "爱丽丝"
+        assert body["user"]["id"] == "alice"
+        assert register(client, "bob").json()["user"]["nickname"] == "bob"   # 昵称缺省=用户名
 
     def test_chinese_username_register_and_login(self, client):
         body = register(client, "测试", "123456").json()
@@ -80,8 +89,9 @@ class TestLogin:
         assert client.get("/api/auth/me").status_code == 401
         assert client.get("/api/auth/me", headers=auth("bad-token")).status_code == 401
         r = client.get("/api/auth/me", headers=auth(token))
-        assert r.status_code == 200 and r.json()["username"] == "alice"
-        assert "password_hash" not in r.json()
+        assert r.status_code == 200
+        assert r.json()["code"] == 0 and r.json()["user"]["username"] == "alice"
+        assert "password_hash" not in r.json()["user"]
 
     def test_logout_revokes_token(self, client):
         token = register(client, "alice").json()["token"]

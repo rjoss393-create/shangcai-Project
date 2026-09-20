@@ -27,6 +27,9 @@ backend/dataset_files/
 # 用户账号数据（运行期状态，含密码哈希；首个注册用户自动成为管理员）
 data/users.json
 
+# 个人状态数据（笔记/收藏/临时关系/筛选，运行期状态；首次保存时才生成）
+data/profiles.json
+
 # 前端交付副本（已合并进 SUFE-Knowledge-Galaxy，验证后由用户删除）
 前端/SUFE-Knowledge-Galaxy(新)/
 前端/SUFE-Knowledge-Galaxy最新版/
