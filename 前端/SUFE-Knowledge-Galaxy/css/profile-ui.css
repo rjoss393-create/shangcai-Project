@@ -1,0 +1,331 @@
+/* ============================================================
+   个人状态 UI · 收藏按钮 + 笔记入口
+============================================================ */
+
+/* ---------- 通用按钮 ---------- */
+.pui-fav,
+.pui-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: none;
+    background: transparent;
+    color: #b8b3ab;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    transition: color .25s, background .25s, transform .25s;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 13px;
+    line-height: 1;
+}
+.pui-fav:hover,
+.pui-note:hover {
+    color: var(--main-red, #811C21);
+    background: rgba(129, 28, 33, .08);
+    transform: scale(1.08);
+}
+
+.pui-fav.active {
+    color: var(--main-red, #811C21);
+}
+.pui-fav.active svg {
+    filter: drop-shadow(0 0 6px rgba(129, 28, 33, .45));
+    animation: puiStarPop .4s cubic-bezier(.2, .8, .3, 1);
+}
+@keyframes puiStarPop {
+    0%   { transform: scale(.6); }
+    60%  { transform: scale(1.25); }
+    100% { transform: scale(1); }
+}
+
+.pui-note.has-note {
+    color: var(--main-red, #811C21);
+    position: relative;
+}
+.pui-note.has-note::after {
+    content: '';
+    position: absolute;
+    right: 2px;
+    top: 2px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--main-red, #811C21);
+}
+
+/* 尺寸 */
+.pui-fav.pui-sm,
+.pui-note.pui-sm { padding: 4px; }
+.pui-fav.pui-sm svg,
+.pui-note.pui-sm svg { width: 14px; height: 14px; }
+
+/* 文字变体 */
+.pui-fav.pui-text,
+.pui-note.pui-text {
+    border-radius: 18px;
+    padding: 6px 14px;
+    color: var(--main-red, #811C21);
+    border: 1px solid rgba(129, 28, 33, .22);
+    font-size: 12.5px;
+    letter-spacing: .5px;
+}
+.pui-fav.pui-text:hover,
+.pui-note.pui-text:hover {
+    background: rgba(129, 28, 33, .06);
+    transform: translateY(-1px);
+}
+.pui-fav.pui-text.active {
+    background: var(--main-red, #811C21);
+    color: #fff;
+    border-color: var(--main-red, #811C21);
+    box-shadow: 0 4px 12px rgba(129, 28, 33, .30);
+}
+
+/* ---------- 笔记编辑器 ---------- */
+.pui-note-mask {
+    position: fixed;
+    inset: 0;
+    z-index: 10300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(32, 10, 12, .55);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .3s, visibility .3s;
+}
+.pui-note-mask.show { opacity: 1; visibility: visible; }
+
+.pui-note-card {
+    position: relative;
+    width: min(520px, 100%);
+    background: var(--paper, #F1F0E9);
+    border-radius: 24px;
+    padding: 30px 32px 24px 32px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .40);
+    transform: translateY(20px) scale(.97);
+    transition: transform .35s cubic-bezier(.2, .8, .3, 1);
+}
+.pui-note-mask.show .pui-note-card {
+    transform: translateY(0) scale(1);
+}
+
+.pui-note-close {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(129, 28, 33, .08);
+    color: var(--main-red, #811C21);
+    font-family: "Times New Roman", serif;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    transition: .25s;
+}
+.pui-note-close:hover { background: var(--main-red, #811C21); color: #fff; }
+
+.pui-note-title {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 20px;
+    font-weight: normal;
+    color: var(--main-red, #811C21);
+    letter-spacing: 1px;
+}
+.pui-note-icon { font-size: 20px; }
+
+.pui-note-sub {
+    margin-top: 6px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 13px;
+    color: #9a9a9a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.pui-note-input {
+    width: 100%;
+    min-height: 160px;
+    max-height: 42vh;
+    resize: vertical;
+    margin-top: 18px;
+    padding: 14px 16px;
+    border: 1px solid rgba(129, 28, 33, .16);
+    border-radius: 14px;
+    background: #fff;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 14.5px;
+    line-height: 1.85;
+    color: #333;
+    outline: none;
+    transition: border-color .25s, box-shadow .25s;
+}
+.pui-note-input:focus {
+    border-color: var(--main-red, #811C21);
+    box-shadow: 0 0 0 3px rgba(129, 28, 33, .10);
+}
+.pui-note-input::placeholder { color: #b6b1aa; }
+
+.pui-note-tools {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.pui-note-count {
+    font-family: "Times New Roman", serif;
+    font-size: 12px;
+    color: #b1aca6;
+    letter-spacing: .5px;
+}
+.pui-note-actions { display: flex; gap: 10px; }
+.pui-note-cancel,
+.pui-note-save {
+    border: none;
+    padding: 10px 22px;
+    border-radius: 20px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 13.5px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: .25s;
+}
+.pui-note-cancel {
+    background: transparent;
+    color: #8a8a8a;
+    border: 1px solid rgba(0, 0, 0, .08);
+}
+.pui-note-cancel:hover { color: #4a4a4a; background: rgba(0, 0, 0, .04); }
+.pui-note-save {
+    background: var(--main-red, #811C21);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(129, 28, 33, .28);
+}
+.pui-note-save:hover {
+    background: var(--deep-red, #5A1818);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(129, 28, 33, .38);
+}
+
+/* ---------- 轻提示 ---------- */
+.pui-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 18%;
+    transform: translateX(-50%) translateY(16px);
+    padding: 10px 26px;
+    border-radius: 20px;
+    background: rgba(129, 28, 33, .94);
+    color: #fff;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 13.5px;
+    letter-spacing: .5px;
+    box-shadow: 0 10px 30px rgba(129, 28, 33, .35);
+    opacity: 0;
+    pointer-events: none;
+    transition: .32s;
+    z-index: 12000;
+}
+.pui-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* ---------- 集成到各板块的微调 ---------- */
+
+/* 论文列表右侧按钮组 */
+.si-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* 视频卡片右上角悬浮收藏 */
+.study-item-cover { position: relative; }
+.study-item-fav-wrap {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 2;
+    background: rgba(255, 255, 255, .88);
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+    opacity: 0;
+    transform: scale(.85);
+    transition: opacity .25s, transform .25s;
+}
+.study-item:hover .study-item-fav-wrap {
+    opacity: 1;
+    transform: scale(1);
+}
+.study-item-fav-wrap .pui-fav.active + * { opacity: 1; }
+.study-item-fav-wrap:has(.pui-fav.active) {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* 播放页操作条 */
+.sp-actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.sp-actions .pui-fav.pui-text,
+.sp-actions .pui-note.pui-text {
+    color: #e8b4b8;
+    border-color: rgba(232, 180, 184, .28);
+}
+.sp-actions .pui-fav.pui-text:hover,
+.sp-actions .pui-note.pui-text:hover {
+    background: rgba(255, 255, 255, .06);
+    color: #fff;
+}
+.sp-actions .pui-fav.pui-text.active {
+    background: var(--main-red, #811C21);
+    color: #fff;
+    border-color: var(--main-red, #811C21);
+}
+
+/* 书籍详情操作条 */
+.detail-actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* 知识星系节点 popup 操作条 */
+.galaxy-node-popup .popup-actions {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(129, 28, 33, .10);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 620px) {
+    .pui-note-card {
+        padding: 24px 22px 20px 22px;
+        border-radius: 20px;
+    }
+    .pui-note-input { min-height: 120px; }
+    .pui-note-cancel,
+    .pui-note-save { padding: 9px 16px; font-size: 12.5px; }
+    .study-item-fav-wrap { opacity: 1; transform: scale(1); }
+}

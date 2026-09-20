@@ -9,6 +9,8 @@
 <title>SUFE Economics Knowledge Galaxy</title>
 
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/auth.css">
+<link rel="stylesheet" href="css/profile-ui.css">
 
 <!-- 图表库 -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -54,6 +56,7 @@
         <button class="nav-item" data-target="study">学习资料</button>
         <button class="nav-item" data-target="paper">科学研究</button>
         <button class="nav-item" data-target="career">职业发展</button>
+        <button class="nav-item theme-toggle" id="themeToggle" title="切换主题">🌓</button>
     </nav>
 
 </header>
@@ -93,8 +96,12 @@
                 <button class="stock-tab active" data-stock="上证指数">上证指数</button>
                 <button class="stock-tab" data-stock="深证成指">深证成指</button>
                 <button class="stock-tab" data-stock="创业板指数">创业板指数</button>
+                <button class="stock-tab" data-stock="科创50">科创50</button>
+                <button class="stock-tab" data-stock="北证50">北证50</button>
                 <button class="stock-tab" data-stock="恒生指数">恒生指数</button>
                 <button class="stock-tab" data-stock="纳斯达克指数">纳斯达克指数</button>
+                <button class="stock-tab" data-stock="道琼斯工业指数">道琼斯工业指数</button>
+                <button class="stock-tab" data-stock="数据库">数据库</button>
             </div>
             <!-- 图表容器 -->
             <div style="height: 320px; position: relative;">
@@ -247,7 +254,9 @@
 
 
 
-<section class="page-section" id="galaxy">
+<section class="page-section" id="galaxy"
+         data-require-login="true"
+         data-guard-title="知识星系">
     <div class="section-title"><h1>知识星系</h1></div>
 
     <p class="galaxy-intro">
@@ -387,7 +396,9 @@
         </p>
     </div>
 </section>
-<section class="page-section" id="study">
+<section class="page-section" id="study"
+         data-require-login="true"
+         data-guard-title="学习资料">
 
     <div class="section-title">
         <h1>学习资料</h1>
@@ -707,6 +718,8 @@
 <script src="js/d3.min.js"></script>
 <script src="js/galaxy.js"></script>
 <script src="js/assistant.js"></script>   <!-- 新增 -->
+<script src="js/auth.js"></script>
+<script src="js/profile-ui.js"></script>
 <script src="js/main.js"></script>
 
 </body>

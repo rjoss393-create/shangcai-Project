@@ -41,16 +41,24 @@ const INDEX_CONFIG = [
     { name: '上证指数', secid: 'sh000001' },
     { name: '深证成指', secid: 'sz399001' },
     { name: '创业板指数', secid: 'sz399006' },
+    { name: '科创50',         secid: 'sh000688' },   // ★ 新增
+    { name: '北证50',         secid: 'bj899050' },   // ★ 新增
     { name: '恒生指数', secid: 'rt_hkHSI' },
-    { name: '纳斯达克指数', secid: 'gb_ixic' }
+    { name: '纳斯达克指数', secid: 'gb_ixic' },
+    { name: '道琼斯工业指数', secid: 'gb_dji' },      // ★ 新增
+    { name: '数据库',         secid: '' }
 ];
 
 const DEFAULT_VALUES = {
     '上证指数': 3940.55,
     '深证成指': 13703.21,
     '创业板指数': 3359.72,
+    '科创50':         958.42,      // ★ 新增，占位值，代理通了会被覆盖
+    '北证50':         1085.36,     // ★ 新增
     '恒生指数': 25317.18,
-    '纳斯达克指数': 18562.34
+    '纳斯达克指数': 18562.34,
+    '道琼斯工业指数': 42632.18,    // ★ 新增
+    '数据库':         0
 };
 
 // ===============================
@@ -136,6 +144,17 @@ async function updateDataInBackground() {
 async function fetchDataAndUpdateCache() {
     try {
         const results = await Promise.all(INDEX_CONFIG.map(async (cfg) => {
+            // ★ 没有 secid 的占位项，直接返回空数据
+            if (!cfg.secid) {
+                return {
+                    name: cfg.name,
+                    value: '—',
+                    direction: '',
+                    change: '—',
+                    history: []
+                };
+            }
+
             const url = `/api/kline?secid=${cfg.secid}`;
             try {
                 const response = await fetch(url);
@@ -308,8 +327,11 @@ function updateChart(stockName) {
             `<span class="${changeClass}">${stockData.change}</span>`;
     }
 
+    if (!chartInstance) return;
+
     const history = cachedHistory ? cachedHistory[stockName] : null;
-    if (chartInstance && history && history.length > 0) {
+
+    if (history && history.length > 0) {
         const labels = history.map(p => {
             const d = new Date(p.time);
             return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
@@ -318,6 +340,12 @@ function updateChart(stockName) {
         chartInstance.data.labels = labels;
         chartInstance.data.datasets[0].label = stockName;
         chartInstance.data.datasets[0].data = data;
+        chartInstance.update();
+    } else {
+        // ★ 关键：没有数据就清空，避免显示上一个指数的残留
+        chartInstance.data.labels = [];
+        chartInstance.data.datasets[0].label = stockName;
+        chartInstance.data.datasets[0].data = [];
         chartInstance.update();
     }
 }
@@ -410,28 +438,147 @@ function startRealtimeLoop() {
     }, 10000);
 }
 
-// ===============================
-// 14. 新闻（硬编码）
-// ===============================
+
+// 14. 新闻数据库（固定可跳转版）
+// --------------------------------------------------------------
+// 字段：{ title, url, source }
+//   title   新闻标题
+//   url     点击跳转地址（新窗口打开）
+//   source  来源机构（显示在标题末尾，灰色小字）
+//
+// ★ 后续接实时接口时，只需把 renderNews 里的 newsDatabase[type][category]
+//   换成来自 /api/news 的返回即可，渲染逻辑完全不变。
+// ================================
 const newsDatabase = {
     domestic: {
-        economy: [ "中国2026年一季度GDP同比增长5.2%，超市场预期", "CPI同比上涨0.3%，通胀水平温和可控", "制造业PMI连续四个月处于扩张区间" ],
-        policy: [ "央行宣布下调存款准备金率0.25个百分点", "财政部发布新一轮减税降费政策清单", "金融监管总局强化资本市场风险防控" ],
-        market: [ "A股三大指数集体走高，成交额突破万亿", "北向资金本周净流入超200亿元", "新能源板块领涨，市场情绪明显回暖" ]
+        economy: [
+            { title: '国家统计局：2025年国民经济运行总体平稳、稳中有进',
+              url: 'https://www.stats.gov.cn/sj/zxfb/',
+              source: '国家统计局' },
+            { title: '央行：实施适度宽松的货币政策，择机降准降息',
+              url: 'http://www.pbc.gov.cn/',
+              source: '中国人民银行' },
+            { title: '财政部：2025年积极的财政政策提质增效、更可持续',
+              url: 'http://www.mof.gov.cn/',
+              source: '财政部' }
+        ],
+        policy: [
+            { title: '央行宣布下调金融机构存款准备金率0.5个百分点',
+              url: 'http://www.pbc.gov.cn/',
+              source: '中国人民银行' },
+            { title: '金融监管总局：推动中长期资金入市，打通社保、保险资金入市障碍',
+              url: 'https://www.nfra.gov.cn/',
+              source: '金融监管总局' },
+            { title: '财政部发布新一轮减税降费政策清单，制造业与小微企业为重点',
+              url: 'http://www.mof.gov.cn/',
+              source: '财政部' }
+        ],
+        market: [
+            { title: 'A股三大指数集体收涨，两市成交额突破1.5万亿元',
+              url: 'https://finance.eastmoney.com/',
+              source: '东方财富' },
+            { title: '北向资金单日净买入超百亿，创年内新高',
+              url: 'https://finance.eastmoney.com/',
+              source: '东方财富' },
+            { title: '科创板做市商扩容至20家，市场流动性有望进一步提升',
+              url: 'https://finance.eastmoney.com/',
+              source: '东方财富' }
+        ]
     },
     international: {
-        "international-economy": [ "IMF上调2026年全球经济增长预期至3.2%", "美国非农就业数据超预期，劳动力市场依然强劲", "欧元区通胀率降至2.1%，接近欧央行目标" ],
-        "financial-markets": [ "美联储释放鸽派信号，全球股市应声上涨", "国际金价突破2400美元/盎司，再创历史新高", "美元指数持续走弱，非美货币普遍反弹" ],
-        "global-policy": [ "G20财长会议达成共识，协调全球供应链政策", "欧盟正式通过《数字市场法案》最终修正案", "OPEC+宣布延长减产协议至2027年" ]
+        'international-economy': [
+            { title: 'IMF：上调2025年全球经济增长预期至3.3%，中国贡献仍居首位',
+              url: 'https://www.imf.org/en/Publications/WEO',
+              source: 'IMF' },
+            { title: '美国12月非农就业新增25.6万人，远超市场预期',
+              url: 'https://www.bls.gov/news.release/empsit.nr0.htm',
+              source: 'U.S. BLS' },
+            { title: '欧元区12月CPI同比上涨2.4%，通胀继续向目标回落',
+              url: 'https://ec.europa.eu/eurostat',
+              source: 'Eurostat' }
+        ],
+        'financial-markets': [
+            { title: '美联储维持利率不变，点阵图暗示年内或降息两次',
+              url: 'https://www.federalreserve.gov/',
+              source: 'Federal Reserve' },
+            { title: '国际金价突破2700美元/盎司，再创历史新高',
+              url: 'https://www.reuters.com/markets/commodities/',
+              source: 'Reuters' },
+            { title: '美元指数走弱，非美货币普遍反弹，人民币汇率小幅升值',
+              url: 'https://www.reuters.com/markets/currencies/',
+              source: 'Reuters' }
+        ],
+        'global-policy': [
+            { title: 'G20财长会议聚焦全球贸易、债务与供应链韧性议题',
+              url: 'https://g20.org/',
+              source: 'G20' },
+            { title: '欧盟宣布对华电动汽车反补贴调查终裁结果，商务部回应',
+              url: 'https://ec.europa.eu/',
+              source: 'European Commission' },
+            { title: 'OPEC+决定延长自愿减产至2025年底，油价小幅震荡',
+              url: 'https://www.opec.org/',
+              source: 'OPEC' }
+        ]
     }
 };
 
 function renderNews(type, category) {
-    const list = type === 'domestic' ? document.getElementById('domestic-news') : document.getElementById('international-news');
-    const dataArray = newsDatabase[type]?.[category] || ['暂无相关新闻'];
-    list.innerHTML = dataArray.map(item => `<li>${item}</li>`).join('');
-}
+    const list = type === 'domestic'
+        ? document.getElementById('domestic-news')
+        : document.getElementById('international-news');
+    if (!list) return;
 
+    const dataArray = newsDatabase[type]?.[category] || [];
+    if (dataArray.length === 0) {
+        list.innerHTML = '<li>暂无相关新闻</li>';
+        return;
+    }
+
+    list.innerHTML = dataArray.map(item => {
+        const title  = typeof item === 'string' ? item  : (item.title  || '');
+        const url    = typeof item === 'string' ? ''    : (item.url    || '');
+        const source = typeof item === 'string' ? ''    : (item.source || '');
+
+        const safeTitle  = title.replace(/</g, '&lt;');
+        const sourceHtml = source ? `<span class="news-source">· ${source}</span>` : '';
+
+        if (url) {
+            return `<li>
+                <a href="${url}" target="_blank" rel="noopener noreferrer">${safeTitle}</a>
+                ${sourceHtml}
+            </li>`;
+        }
+        return `<li>${safeTitle}${sourceHtml}</li>`;
+    }).join('');
+}
+// ================================
+// 14.5 实时新闻加载（失败保留静态数据）
+// ================================
+let currentDomesticTab = 'economy';
+let currentInternationalTab = 'international-economy';
+
+async function loadNewsFromApi() {
+    try {
+        const res = await fetch('/api/news', { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const json = await res.json();
+
+        // 只在返回非空数组时才覆盖，否则保留静态
+        if (json.domestic && json.domestic.length > 0) {
+            newsDatabase.domestic.economy = json.domestic;
+        }
+        if (json.international && json.international.length > 0) {
+            newsDatabase.international['international-economy'] = json.international;
+        }
+
+        renderNews('domestic', currentDomesticTab);
+        renderNews('international', currentInternationalTab);
+        console.log('✅ 实时新闻已加载');
+    } catch (e) {
+        // 静默失败，页面继续显示静态新闻
+        console.warn('实时新闻获取失败，保留静态数据', e);
+    }
+}
 document.querySelectorAll('.news-tabs').forEach(tabsContainer => {
     const type = tabsContainer.dataset.newsType;
     tabsContainer.querySelectorAll('.tab').forEach(tab => {
@@ -502,6 +649,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initChart();
     setupStockTabs();
     startRealtimeLoop();
+    loadNewsFromApi(); 
     if (document.getElementById('job-list')) {
         renderJobs('all');
     }
@@ -756,6 +904,26 @@ function openBookDetail(id) {
         ? book.tags.map(t => `<span>${t}</span>`).join('')
         : '';
 
+    // ★ 收藏 + 笔记操作条
+    let actionsEl = document.getElementById('detailActions');
+    if (!actionsEl) {
+        actionsEl = document.createElement('div');
+        actionsEl.id = 'detailActions';
+        actionsEl.className = 'detail-actions';
+        tagsEl.after(actionsEl);
+    }
+    if (window.ProfileUI) {
+        actionsEl.innerHTML =
+            window.ProfileUI.favoriteBtnHTML('book', book.id,
+                { variant: 'text' }) +
+            window.ProfileUI.noteBtnHTML('book', book.id,
+                { variant: 'text' });
+        window.ProfileUI.bindAll(actionsEl);
+        actionsEl.querySelectorAll('[data-pui-id]').forEach(b => {
+            b.dataset.puiTitle = book.titleCn || ('第 ' + book.id + ' 本');
+        });
+    }
+
     document.getElementById('detailIntro').textContent = book.intro || '（中文简介待补充）';
     document.getElementById('detailIntroEn').textContent = book.introEn || '';
 
@@ -774,9 +942,8 @@ function openBookDetail(id) {
 //   }
 // ===============================
 
-// ★ 后端地址与 galaxy.js 的 API_BASE 一致（前端由 3000 端口托管，必须用绝对地址，
-//   否则相对路径会打到 proxy-server 上，proxy-server 没有 /api/graph 代理）
-const BOOK_GRAPH_API = 'http://localhost:8000/api/graph/book';
+// ★ 页面由后端 :8000 单端口托管（同源），用相对路径即可
+const BOOK_GRAPH_API = '/api/graph/book';
 
 // ★ 节点七色配色：红橙黄绿青蓝紫，按节点 id 哈希稳定分配（与 galaxy.js 规则一致）
 const NODE_COLORS = ['#c0392b', '#e67e22', '#f0b400', '#27ae60', '#16a085', '#2980b9', '#8e44ad'];
@@ -1341,7 +1508,20 @@ function renderJournal(key) {
                     <b>${p.cited ? p.cited.toLocaleString('en-US') : '—'}</b>
                     cited by
                 </div>
-                <button class="si-pdf-btn" data-idx="${idx}" ${hasPdf ? '' : 'disabled style="opacity:.45;cursor:not-allowed;"'}>
+                <div class="si-actions">
+                    ${window.ProfileUI ? window.ProfileUI.favoriteBtnHTML('paper', `${key}::${p.title}`, { size: 'sm' }) : ''}
+                    ${window.ProfileUI ? window.ProfileUI.noteBtnHTML('paper', `${key}::${p.title}`, { size: 'sm' }) : ''}
+                    <button class="si-pdf-btn" data-idx="${idx}" ${hasPdf ? '' : 'disabled style="opacity:.45;cursor:not-allowed;"'}>
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none"
+                            stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        <span>${hasPdf ? 'PDF 原文' : '待补充'}</span>
+                    </button>
+                </div>
+            </div>
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none"
                          stroke="currentColor" stroke-width="1.8"
                          stroke-linecap="round" stroke-linejoin="round">
@@ -1353,6 +1533,7 @@ function renderJournal(key) {
             </div>
         </div>`;
     }).join('');
+    if (window.ProfileUI) window.ProfileUI.bindAll(listEl);
 
     // 绑定：标题点击 / PDF 按钮点击
     listEl.querySelectorAll('.si-title, .si-pdf-btn').forEach(el => {
@@ -1431,6 +1612,7 @@ async function openPdf(paper) {
     // ★ 2026-09-15：每次打开都用带时间戳的新地址 + #page=1，关掉浏览器内置 PDF 阅读器的
     //   "回到上次阅读位置"（同一 URL 会被它记住上次滚动位置）
     const viewUrl = url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now() + '#page=1';
+
 
     titleEl.textContent = paper.title;
     openLink.href = url;
@@ -1808,6 +1990,9 @@ function renderStudyVideos() {
             <div class="study-item-cover">
                 <img src="${v.cover}" alt="${v.title}" loading="lazy" draggable="false">
                 ${v.duration ? `<span class="study-duration">${v.duration}</span>` : ''}
+                <div class="study-item-fav-wrap">
+                    ${window.ProfileUI ? window.ProfileUI.favoriteBtnHTML('video', v.id, { size: 'sm' }) : ''}
+                </div>
             </div>
             <div class="study-item-title">${v.title}</div>
             <div class="study-item-author">${v.author}</div>
@@ -1816,6 +2001,7 @@ function renderStudyVideos() {
         frag.appendChild(el);
     });
     grid.appendChild(frag);
+    if (window.ProfileUI) window.ProfileUI.bindAll(grid);
 }
 
 // ===============================
@@ -1899,7 +2085,22 @@ function openStudyPlayer(video) {
     document.getElementById('spStats').textContent = `${video.views} 次播放 · ${video.date}`;
     document.getElementById('spTags').innerHTML = video.tags.map(t => `<span>${t}</span>`).join('');
     document.getElementById('spDesc').textContent = video.desc;
-
+        // ★ 收藏 + 笔记操作条
+    const spActionsWrap = document.createElement('div');
+    spActionsWrap.className = 'sp-actions';
+    if (window.ProfileUI) {
+        spActionsWrap.innerHTML =
+            window.ProfileUI.favoriteBtnHTML('video', video.id,
+                { variant: 'text', size: 'sm' }) +
+            window.ProfileUI.noteBtnHTML('video', video.id,
+                { variant: 'text', size: 'sm' });
+        document.getElementById('spTags').after(spActionsWrap);
+        window.ProfileUI.bindAll(spActionsWrap);
+        // 更新笔记按钮的 dataset.puiTitle（可选，用于弹窗副标题）
+        spActionsWrap.querySelectorAll('[data-pui-id]').forEach(b => {
+            b.dataset.puiTitle = video.title;
+        });
+    }
     // 重置倍速
     videoEl.playbackRate = 1;
     document.querySelectorAll('#spSpeed .speed-btn').forEach(b => {
@@ -2104,4 +2305,59 @@ function closeStudyPlayer() {
     } else {
         run();
     }
+})();
+// ===============================
+// 29. 认证模块联动（★ 新增1）
+// ===============================
+// 说明：其余板块无需任何改动，auth.js 会自动接管登录页/导航栏/守卫。
+// 下面只是让"知识助手"等模块知道当前是否登录，做条件渲染示范。
+(function bindAuthIntegration() {
+    if (!window.Auth) return;
+
+    window.Auth.onChange(({ user, isLoggedIn }) => {
+        // 示例：未登录时禁用悬浮球（知识助手需要图谱联动）
+        const fab = document.getElementById('assistantFab');
+        if (fab) {
+            fab.style.display = isLoggedIn ? '' : 'none';
+        }
+
+        // 示例：登录态变化后刷新个人筛选（学习资料板块）
+        if (typeof studyActiveTags !== 'undefined') {
+            const saved = window.Auth.profile.getFilter('study');
+            if (saved && Array.isArray(saved.tags)) {
+                studyActiveTags.clear();
+                saved.tags.forEach(t => studyActiveTags.add(t));
+            }
+        }
+
+        console.log('[Auth] 状态变化：', isLoggedIn ? '已登录' : '未登录',
+                    user ? `(${user.nickname || user.username})` : '');
+    });
+})();
+// ===============================
+// 30. 深色主题（★ 新增，同新版前端）
+// ===============================
+(function initTheme() {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    function apply() {
+        document.body.classList.toggle('theme-night', mq.matches);
+    }
+    apply();
+    mq.addEventListener('change', apply);
+})();
+(function initThemeToggle() {
+    const btn = document.getElementById('themeToggle');
+    const KEY = 'sufe_theme';
+    const saved = localStorage.getItem(KEY);
+
+    if (saved === 'night')      document.body.classList.add('theme-night');
+    else if (saved === 'day')   document.body.classList.remove('theme-night');
+    else if (window.matchMedia('(prefers-color-scheme: dark)').matches)
+        document.body.classList.add('theme-night');
+
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        const isNight = document.body.classList.toggle('theme-night');
+        localStorage.setItem(KEY, isNight ? 'night' : 'day');
+    });
 })();

@@ -385,6 +385,34 @@ td,th{
     object-fit:cover;
     display:block;
 }
+/* 新闻可点击链接 */
+.news-content li a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: color .22s ease, border-color .22s ease;
+}
+.news-content li a:hover {
+    color: var(--main-red);
+    border-bottom-color: var(--main-red);
+}
+
+/* 来源标签（灰色小字） */
+.news-content li .news-source {
+    margin-left: 8px;
+    font-size: 12.5px;
+    color: #b1aca6;
+    font-family: "Times New Roman", "Microsoft YaHei", sans-serif;
+    letter-spacing: .3px;
+}
+
+/* 空态 */
+.news-content li.news-empty {
+    list-style: none;
+    color: #b1aca6;
+    font-size: 15px;
+    margin-left: -20px;
+}
 
 /* =====================
 其他模块占位
@@ -3983,3 +4011,190 @@ body.immersive .galaxy-immersive-exit{
 }
 /* 缓冲区节点：视觉上比视口内节点略淡（可选） */
 .galaxy-stage[data-cull="buffer"] .g-node { opacity: .92; }
+/* ============================================================
+   星系图谱 · 双主题
+   ============================================================ */
+.galaxy-stage {
+    --g-bg:        #F1F0E9;
+    --g-edge:      rgba(129, 28, 33, 0.22);
+    --g-edge-hi:   rgba(129, 28, 33, 0.75);
+    --g-label:     #4a4a4a;
+    --g-star:      rgba(129, 28, 33, 0.04);
+
+    --g-domain:    #7A1218;   --g-domain-glow: rgba(122, 18, 24, 0.55);
+    --g-macro:     #B83A3A;   --g-macro-glow:  rgba(184, 58, 58, 0.45);
+    --g-meso:      #D08A3E;   --g-meso-glow:   rgba(208, 138, 62, 0.40);
+    --g-micro:     #E8DFD0;   --g-micro-glow:  rgba(200, 170, 130, 0.35);
+
+    background: var(--g-bg);
+}
+
+.theme-night .galaxy-stage {
+    --g-bg:        #0A0A1A;
+    --g-edge:      rgba(150, 190, 255, 0.22);
+    --g-edge-hi:   rgba(180, 220, 255, 0.85);
+    --g-label:     #A8B8D8;
+    --g-star:      rgba(255, 255, 255, 0.02);
+
+    --g-domain:    #FFD060;   --g-domain-glow: rgba(255, 208, 96, 0.90);
+    --g-macro:     #8FB8FF;   --g-macro-glow:  rgba(143, 184, 255, 0.80);
+    --g-meso:      #6EE6E6;   --g-meso-glow:   rgba(110, 230, 230, 0.70);
+    --g-micro:     #C8D8F0;   --g-micro-glow:  rgba(160, 190, 230, 0.55);
+
+    background:
+        radial-gradient(circle at 30% 30%, rgba(80, 90, 180, 0.14), transparent 60%),
+        radial-gradient(circle at 75% 65%, rgba(180, 100, 160, 0.10), transparent 60%),
+        var(--g-bg);
+}
+
+/* —— 节点：分等级配色 + 发光 —— */
+.g-node circle {
+    transition: r .35s cubic-bezier(.16,.84,.32,1),
+                fill .35s, stroke .35s, filter .35s;
+}
+.g-node.lvl-domain circle {
+    fill: var(--g-domain); stroke: #fff; stroke-width: 2;
+    filter: drop-shadow(0 0 14px var(--g-domain-glow));
+}
+.g-node.lvl-macro circle {
+    fill: var(--g-macro); stroke: #fff; stroke-width: 1.6;
+    filter: drop-shadow(0 0 10px var(--g-macro-glow));
+}
+.g-node.lvl-meso circle {
+    fill: var(--g-meso); stroke: #fff; stroke-width: 1.2;
+    filter: drop-shadow(0 0 6px var(--g-meso-glow));
+}
+.g-node.lvl-micro circle {
+    fill: var(--g-micro); stroke: rgba(255,255,255,.7); stroke-width: 1;
+    filter: drop-shadow(0 0 4px var(--g-micro-glow));
+}
+.theme-night .g-node.lvl-micro circle { stroke: rgba(200, 220, 255, .35); }
+
+.g-node.highlighted circle { filter: drop-shadow(0 0 18px var(--g-domain-glow)); }
+.g-node.focused circle     { filter: drop-shadow(0 0 22px var(--g-domain-glow)); }
+
+/* —— 标签 —— */
+.g-label              { fill: var(--g-label); }
+.g-label.ring-core    { fill: var(--g-domain); }
+
+/* —— 连线：星座直线 —— */
+.g-link {
+    stroke: var(--g-edge);
+    stroke-width: 1;
+    stroke-linecap: round;
+    transition: stroke .3s, stroke-width .3s, opacity .35s;
+}
+.g-link.highlighted { stroke: var(--g-edge-hi); stroke-width: 1.8; }
+.g-link-label       { fill: var(--g-label); opacity: .55; stroke: var(--g-bg); }
+/* ============ 星系视觉 ============ */
+.galaxy-stage {
+    --g-bg:        #F7F5EF;
+    --g-bg-2:      #EFEBE0;
+    --g-edge:      rgba(129, 28, 33, 0.13);
+    --g-edge-hi:   rgba(129, 28, 33, 0.72);
+    --g-label:     #5a5650;
+
+    --g-domain:    #6B0F14;  --g-domain-glow: rgba(107, 15, 20, 0.55);
+    --g-macro:     #A93338;  --g-macro-glow:  rgba(169, 51, 56, 0.42);
+    --g-meso:      #C98B3F;  --g-meso-glow:   rgba(201, 139, 63, 0.35);
+    --g-micro:     #D9D2C2;  --g-micro-glow:  rgba(180, 160, 120, 0.22);
+
+    background:
+        radial-gradient(circle at 50% 50%, rgba(129,28,33,.03), transparent 62%),
+        linear-gradient(160deg, var(--g-bg), var(--g-bg-2));
+}
+
+.theme-night .galaxy-stage {
+    --g-bg:        #07070F;
+    --g-bg-2:      #0E0E1E;
+    --g-edge:      rgba(140, 175, 240, 0.16);
+    --g-edge-hi:   rgba(180, 215, 255, 0.85);
+    --g-label:     #9BA8C4;
+
+    --g-domain:    #F5C871;  --g-domain-glow: rgba(245, 200, 113, 0.95);
+    --g-macro:     #7AAEFF;  --g-macro-glow:  rgba(122, 174, 255, 0.85);
+    --g-meso:      #6FE3D0;  --g-meso-glow:   rgba(111, 227, 208, 0.70);
+    --g-micro:     #8899C0;  --g-micro-glow:  rgba(120, 150, 200, 0.35);
+
+    background:
+        radial-gradient(circle at 28% 32%, rgba(70, 80, 160, 0.16), transparent 62%),
+        radial-gradient(circle at 74% 68%, rgba(150, 90, 160, 0.12), transparent 62%),
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,.015), transparent 70%),
+        linear-gradient(160deg, var(--g-bg), var(--g-bg-2));
+}
+
+/* 节点：分层 + 发光 */
+.g-node circle { transition: r .35s cubic-bezier(.22,.9,.28,1), fill .35s, stroke .35s, filter .35s; }
+
+.g-node.lvl-domain circle {
+    fill: var(--g-domain); stroke: rgba(255,255,255,.9); stroke-width: 2;
+    filter: drop-shadow(0 0 18px var(--g-domain-glow)) drop-shadow(0 0 36px var(--g-domain-glow));
+}
+.g-node.lvl-macro circle {
+    fill: var(--g-macro); stroke: rgba(255,255,255,.85); stroke-width: 1.5;
+    filter: drop-shadow(0 0 12px var(--g-macro-glow));
+}
+.g-node.lvl-meso circle {
+    fill: var(--g-meso); stroke: rgba(255,255,255,.7); stroke-width: 1;
+    filter: drop-shadow(0 0 8px var(--g-meso-glow));
+}
+.g-node.lvl-micro circle {
+    fill: var(--g-micro); stroke: none;
+    filter: drop-shadow(0 0 5px var(--g-micro-glow));
+}
+
+.g-node.focused circle {
+    filter: drop-shadow(0 0 22px var(--g-domain-glow)) drop-shadow(0 0 44px var(--g-domain-glow));
+}
+.g-node.highlighted circle {
+    filter: drop-shadow(0 0 16px var(--g-domain-glow));
+}
+
+/* 标签：默认只显示高层级 */
+.g-label {
+    fill: var(--g-label);
+    transition: opacity .4s ease;
+    opacity: 0;
+    paint-order: stroke;
+    stroke: var(--g-bg);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+}
+.g-node.lvl-domain .g-label { opacity: .95; font-weight: 600; }
+.g-node.lvl-macro  .g-label { opacity: .82; }
+.galaxy-stage[data-zoom-level="micro"] .g-node.lvl-meso  .g-label { opacity: .70; }
+.galaxy-stage[data-zoom-level="micro"] .g-node.lvl-micro .g-label { opacity: .48; font-size: 10px; }
+.g-node:hover .g-label,
+.g-node.focused .g-label,
+.g-node.highlighted .g-label { opacity: 1 !important; }
+
+/* 直线连线 */
+.g-link {
+    stroke: var(--g-edge);
+    stroke-width: 1;
+    stroke-linecap: round;
+    transition: stroke .3s, stroke-width .3s, opacity .35s;
+}
+.g-link.highlighted { stroke: var(--g-edge-hi); stroke-width: 1.6; }
+.g-link-label       { opacity: 0; transition: opacity .3s; }
+.galaxy-stage[data-zoom-level="micro"] .g-link-label { opacity: .55; }
+
+/* ============================================================
+   深色主题 · 本项目节点类适配（course / concept / other）
+   ------------------------------------------------------------
+   前端版的 .g-node.lvl-* 规则对应不上我们的类名（我们按
+   09-15 的方案用 course/concept/other + zoom-*），这里按同一套
+   夜色配色补一份，保证深色底上节点与标签仍然可读。
+
+   注意：节点圆填充由 JS 内联赋值（main.js / galaxy.js 的七色配色，
+   内联样式优先级高于这里的规则），因此夜色下只改描边和标签颜色，
+   七个色相在两套主题里都保留，便于区分章节。
+   ============================================================ */
+.theme-night .g-node.course circle  { stroke: rgba(255, 255, 255, .88); }
+.theme-night .g-node.concept circle { stroke: #7AAEFF; }
+.theme-night .g-node.other circle   { stroke: rgba(255, 255, 255, .55); }
+
+.theme-night .g-node .g-label { fill: rgba(214, 222, 242, .90); }
+.theme-night .g-node.zoom-macro.course .g-label { fill: rgba(255, 168, 148, .95); }
+.theme-night .g-node.zoom-meso .g-label         { fill: rgba(214, 222, 242, .90); }
+.theme-night .g-link-label { stroke: var(--g-bg); }
