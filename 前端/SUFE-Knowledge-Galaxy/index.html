@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="css/auth.css">
 <link rel="stylesheet" href="css/profile-ui.css">
 <link rel="stylesheet" href="css/course-galaxy.css">
+<link rel="stylesheet" href="css/knowledge-galaxy.css">
 
 <!-- 图表库 -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -262,82 +263,124 @@
     <div class="section-title"><h1>知识星系</h1></div>
 
     <p class="galaxy-intro">
-        以「投资学核心课程」为枢纽，将概念、理论、案例编织成可探索的知识网络。
-        滚轮缩放切换信息层级 · 右键拖拽旋转视角 · Ctrl+点击选中两点查看关联路径。
+        投资学的「全景学科词典」—— 三大领域、28 门学科、280 个主题、1675 个知识点逐层展开。
+        点击学科进入星域，点击主题进入星团，点击知识点阅读详解；
+        视野边缘的虚线「星门」通向其它学科的关联知识，点击即可穿越。
     </p>
 
-    <div class="galaxy-tabs" id="galaxyTabs">
-        <button class="galaxy-tab active" data-graph-id="econ">经济综合</button>
-        <button class="galaxy-tab" data-graph-id="corp_fin">公司金融</button>
-        <button class="galaxy-tab" data-graph-id="intl_inv">国际投资学</button>
-        <button class="galaxy-tab" data-graph-id="ma">并购与重组</button>
-        <button class="galaxy-tab" data-graph-id="invest">投资学</button>
-    </div>
+    <!-- ★ 知识星系 · 分层轨道星图（v6 数据）
+         结构约定：.galaxy-page[data-galaxy-page-content="main"] 可被课程星系移植；
+         #galaxyStage / #galaxySvg / #galaxyLoading 为兼容钩子 -->
 
-    <div class="galaxy-page active" data-galaxy-page-content="main" data-zoom-level="meso">
-        <!-- 缩放层级指示器 -->
-        <div class="galaxy-zoom-indicator" id="galaxyZoomLevel">
-            <span class="zoom-pct" id="galaxyZoomPct">70%</span>
-            <span class="zoom-name" id="galaxyZoomName">中观脉络层</span>
-        </div>
+    <div class="galaxy-page active" data-galaxy-page-content="main" data-zoom-level="orbit">
+        <div class="kg-root" id="kgRoot" data-theme="light">
 
-        <div class="galaxy-stage" id="galaxyStage" data-zoom-level="meso">
-            <canvas id="galaxyStars" class="galaxy-stars"></canvas>
-            <div class="galaxy-nebula" aria-hidden="true"></div>
-            <div class="galaxy-vignette" aria-hidden="true"></div>
-            <svg id="galaxySvg"></svg>
-
-            <div class="galaxy-tooltip" id="galaxyTooltip"></div>
-            <div class="galaxy-node-popup" id="galaxyNodePopup"></div>
-
-            <div class="galaxy-toast" id="galaxyToast"></div>
-            <div class="galaxy-loading" id="galaxyLoading">加载中…</div>
-
-            <!-- 沉浸模式退出提示 -->
-            <div class="galaxy-immersive-exit" id="galaxyImmersiveExit">
-                沉浸模式 · 按 Esc 或点击右下角按钮退出
+            <!-- 顶栏：面包屑 + 搜索 + 工具 -->
+            <div class="kg-topbar">
+                <nav class="kg-breadcrumb" id="kgBreadcrumb"></nav>
+                <div class="kg-search">
+                    <input type="text" id="kgSearchInput" placeholder="搜索知识点 / 关键词…"
+                           autocomplete="off" maxlength="40">
+                    <div class="kg-search-drop" id="kgSearchDrop"></div>
+                </div>
+                <div class="kg-top-actions">
+                    <button class="kg-icon-btn" id="kgThemeBtn">
+                        <span>◐</span><span>深空模式</span>
+                    </button>
+                    <button class="kg-icon-btn" id="kgResetBtn" title="重置视图">
+                        <span>↺</span><span>重置</span>
+                    </button>
+                </div>
             </div>
-        </div>
 
-        <!-- 操作提示（2026-09-20 随新 galaxy.js 移到舞台外部，不再遮挡图谱） -->
-        <div class="galaxy-hint">
-            滚轮缩放 · 左键平移 · <b>右键 或 Shift+左键</b> 旋转 · Ctrl+点击选两点
-            <span style="opacity:.6;font-size:11px;">&nbsp;Edge 用户如遇右键手势冲突，请用 Shift+左键</span>
-        </div>
+            <!-- 左侧：学科目录 -->
+            <aside class="kg-sidebar" id="kgSidebar">
+                <div class="kg-side-head">星图加载中…</div>
+            </aside>
 
-        <!-- ★ 2026-09-15：按用户要求先隐藏时间轴（代码保留，不删）。
-             恢复方法：删掉本段外层注释即可；galaxy.js 的 setupTimeline() 取不到元素会自动跳过。
-             原注释：时间轴（有年份数据时才显示）
-        <div class="galaxy-timeline-wrap" id="galaxyTimelineWrap" style="display:none;">
-            <span class="timeline-label">时间轴</span>
-            <input type="range" class="galaxy-timeline" id="galaxyTimeline">
-            <span class="timeline-year" id="galaxyTimelineYear">—</span>
-            <button class="timeline-reset" id="galaxyTimelineReset" title="回到最新">⇥</button>
-        </div>
-        -->
+            <!-- 舞台 -->
+            <div class="kg-stage" id="galaxyStage">
+                <canvas id="kgStars" class="kg-stars"></canvas>
+                <svg id="galaxySvg" class="kg-svg"></svg>
 
-        <!-- 动作按钮组 -->
-        <div class="galaxy-reset-wrap">
-            <button class="galaxy-btn ghost" id="galaxyMacro" title="回到宏观总览">
-                <span class="btn-icon">⌂</span><span>回到宏观视角</span>
-            </button>
-            <button class="galaxy-btn ghost" id="galaxyRoam" title="沿路径自动漫游">
-                <span class="btn-icon">▶</span><span>自动漫游</span>
-            </button>
-            <button class="galaxy-btn ghost" id="galaxyImmersive" title="全屏沉浸浏览">
-                <span class="btn-icon">⛶</span><span>沉浸模式</span>
-            </button>
-            <!-- 2026-09-20：星图主题（只作用于知识星系舞台；导航栏 🌓 仍为整页昼夜主题） -->
-            <button class="galaxy-btn ghost" id="galaxyTheme" title="切换星图主题（浅色/深空）">
-                <span class="btn-icon">🌓</span><span>星图主题</span>
-            </button>
-            <button class="galaxy-reset" id="galaxyReset" title="重置视图">
-                <span class="reset-icon">↺</span><span>重置视图</span>
-            </button>
+                <div class="kg-level-badge">
+                    <span class="lb-step" data-step="0"></span>
+                    <span class="lb-step" data-step="1"></span>
+                    <span class="lb-step" data-step="2"></span>
+                    <span class="lb-name" id="kgLevelName">星系总览</span>
+                    <span id="kgLevelSteps" hidden></span>
+                </div>
+
+                <div class="kg-tooltip" id="kgTooltip"></div>
+                <div class="kg-loading" id="galaxyLoading">星图加载中…</div>
+
+                <div class="kg-stage-hint">
+                    滚轮缩放 · 拖拽平移 · 双击空白处返回上一层 · 点击节点逐层下潜
+                </div>
+
+                <!-- 右下工具条 -->
+                <div class="kg-toolbar">
+                    <div class="kg-toolbar-row">
+                        <span class="kg-tb-label">视图</span>
+                        <button class="kg-chip kg-vm-btn is-on" data-mode="invest">投资学视图</button>
+                        <button class="kg-chip kg-vm-btn" data-mode="extend">扩展视图</button>
+                    </div>
+                    <div class="kg-toolbar-row">
+                        <span class="kg-tb-label">关系</span>
+                        <button class="kg-chip kg-rel-chip is-on" data-rel="前置">前置</button>
+                        <button class="kg-chip kg-rel-chip is-on" data-rel="应用">应用</button>
+                        <button class="kg-chip kg-rel-chip is-on" data-rel="影响">影响</button>
+                        <button class="kg-chip kg-rel-chip is-on" data-rel="度量">度量</button>
+                        <button class="kg-chip kg-rel-chip is-on" data-rel="映射">映射</button>
+                    </div>
+                    <div class="kg-toolbar-row">
+                        <button class="kg-chip is-on" id="kgCrossBtn">跨域航线</button>
+                    </div>
+                </div>
+
+                <!-- 左下图例 -->
+                <div class="kg-legend" id="kgLegend">
+                    <div class="kg-legend-title">星图图例</div>
+                    <div class="kg-legend-row"><span class="lg-dot" style="background:var(--kg-dom-1)"></span>宏观金融</div>
+                    <div class="kg-legend-row"><span class="lg-dot" style="background:var(--kg-dom-2)"></span>微观金融</div>
+                    <div class="kg-legend-row"><span class="lg-dot" style="background:var(--kg-dom-3)"></span>交叉学科</div>
+                    <div class="kg-legend-row"><span class="lg-dot" style="background:transparent;border:1.5px dashed var(--kg-gate)"></span>星门 = 外部关联入口</div>
+                    <div class="kg-legend-row"><span class="lg-swatch" style="border-top:2px solid var(--kg-dom-2)"></span>节点越大 · 知识点越多</div>
+                </div>
+            </div>
+
+            <!-- 右侧详情面板 -->
+            <aside class="kg-detail" id="kgDetail">
+                <div class="kg-detail-head">
+                    <div class="kg-detail-title" id="kgDetailTitle">知识点</div>
+                    <button class="kg-detail-close" id="kgDetailClose" aria-label="关闭">×</button>
+                </div>
+                <div class="kg-detail-body">
+                    <div class="kg-detail-path" id="kgDetailPath"></div>
+                    <div class="kg-detail-badges" id="kgDetailBadges"></div>
+                    <div class="kg-detail-section">
+                        <h4>学科与关键词</h4>
+                        <div class="kg-subnode-list" id="kgDetailKw"></div>
+                    </div>
+                    <div class="kg-detail-section">
+                        <h4>详解</h4>
+                        <p class="kg-detail-desc" id="kgDetailDesc"></p>
+                        <div class="kg-importance-bar"><i id="kgDetailImpBar" style="width:0"></i></div>
+                    </div>
+                    <div class="kg-detail-section">
+                        <h4>扩展内容（公式 / 案例 / 人物…）</h4>
+                        <div class="kg-subnode-list" id="kgDetailSub"></div>
+                    </div>
+                    <div class="kg-detail-section">
+                        <h4>关联知识点</h4>
+                        <div class="kg-rel-list" id="kgDetailRels"></div>
+                    </div>
+                </div>
+            </aside>
+
         </div>
     </div>
 
-    
 </section>
 
 <!-- ==========  course-galaxy 课程星系板块（新增，2026-09-19 前端负责人交付） ========== -->
@@ -776,7 +819,7 @@
     </svg>
 </button>
 <script src="js/d3.min.js"></script>
-<script src="js/galaxy.js"></script>
+<script src="js/knowledge-galaxy.js"></script>
 <script src="js/assistant.js"></script>   <!-- 新增 -->
 <script src="js/auth.js"></script>
 <script src="js/profile-ui.js"></script>
