@@ -22,6 +22,8 @@ GRAPH_FILES: dict[str, str] = {
     "intl_inv": "layered/intl_inv_layered.json",
     "invest": "layered/invest_layered.json",
     "econ": "layered/econ_layered.json",
+    # v6 统一知识星系（前端 v6 引擎数据，由 scripts/import_v6_galaxy.py 转换而来）
+    "v6": "layered/v6_layered.json",
 }
 
 

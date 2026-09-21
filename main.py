@@ -8,7 +8,7 @@
      + UserStore + create_auth_router（账号注册/登录/用户管理，data/users.json）
      + ProfileStore + create_profile_router（个人状态：笔记/收藏/筛选，data/profiles.json）
      + create_media_router + mount_site（媒体数据 + 前端页面托管）
-启动事件：后台按顺序预热 5 个图谱（4 本书 + 经济综合，
+启动事件：后台按顺序预热全部已登记图谱（4 本书 + 经济综合 + v6 统一知识星系，
          建图 + 加载/生成 embedding），把首次提问的冷启动成本转移到服务启动阶段。
 
 访问：启动后浏览器打开 http://localhost:8000/ 即为完整网页（页面/数据/接口同一个端口）
@@ -111,7 +111,8 @@ token_manager = TokenManager()
 
 
 async def _preload_all_books() -> None:
-    """启动后台任务：按顺序预热 5 个图谱（4 本书 + 经济综合）。单本失败只记日志，不影响服务。"""
+    """启动后台任务：按顺序预热 GRAPH_IDS 中登记的全部图谱。
+    单图失败只记日志，不影响服务。"""
     for graph_id in GRAPH_IDS:
         if qa_agent is None:
             return
@@ -128,7 +129,7 @@ async def _preload_all_books() -> None:
 async def lifespan(app: FastAPI):
     if qa_agent is not None:
         task = asyncio.create_task(_preload_all_books())
-        logger.info("已在后台启动 5 个图谱的 embedding 预热任务")
+        logger.info("已在后台启动 %d 个图谱的 embedding 预热任务", len(GRAPH_IDS))
         yield
         task.cancel()
     else:

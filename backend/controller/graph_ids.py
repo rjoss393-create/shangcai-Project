@@ -9,13 +9,15 @@
 from typing import Final
 
 # graph_id -> 图谱名称（展示/日志用）
-# 4 本书 + 经济综合（经济综合为四书融合图谱）；分层文件见 data/layered/
+# 4 本书 + 经济综合（经济综合为四书融合图谱）+ v6 统一知识星系（前端 v6 星系引擎数据）；
+# 分层文件见 data/layered/
 GRAPH_IDS: Final[dict[str, str]] = {
     "ma": "并购与重组",
     "corp_fin": "公司金融",
     "intl_inv": "国际投资学",
     "invest": "投资学",
     "econ": "经济综合",
+    "v6": "统一知识星系（v6）",
 }
 
 # graph_id -> 数据文件（供数据层/Service 层对照；控制层不读文件，仅作文档）
@@ -25,6 +27,7 @@ GRAPH_FILES: Final[dict[str, str]] = {
     "intl_inv": "layered/intl_inv_layered.json",
     "invest": "layered/invest_layered.json",
     "econ": "layered/econ_layered.json",
+    "v6": "layered/v6_layered.json",
 }
 
 
