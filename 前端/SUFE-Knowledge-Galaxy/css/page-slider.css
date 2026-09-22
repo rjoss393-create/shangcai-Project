@@ -1,0 +1,217 @@
+/* ============================================================
+   页面左右切换（Page Slider）
+   ------------------------------------------------------------
+   由 js/page-slider.js 给 <body> 加上 .pgs 后生效。
+   不加载该脚本时，本文件不产生任何影响，页面保持原有纵向滚动。
+   切换机制：非激活页 absolute 浮在 main 顶部，激活页参与文档流，
+   main 的高度由脚本同步为「当前页高度」，因此页面仍可纵向滚动。
+   ============================================================ */
+
+body.pgs {
+    overflow-x: hidden;
+}
+
+body.pgs main {
+    position: relative;
+}
+
+/* ------------------------------------------------------------
+   各页默认状态：藏在右侧、缩小、透明
+   ★ 注意 :not(.pg-active) —— 入场方向的规则特异性若与
+     .pg-active 持平，会连当前页一起位移，导致整页左偏。
+     这里显式排除激活页，从根上杜绝。
+   ------------------------------------------------------------ */
+body.pgs .page-section {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate3d(9%, 0, 0) scale(0.982);
+    transition:
+        transform 0.78s cubic-bezier(0.22, 0.9, 0.24, 1),
+        opacity 0.52s ease,
+        visibility 0s linear 0.78s;
+}
+
+/* 反向（向左切）时，新页从左侧进来 */
+body.pgs[data-pg-dir="prev"] .page-section:not(.pg-active) {
+    transform: translate3d(-9%, 0, 0) scale(0.982);
+}
+
+/* 激活页：回到文档流，撑开 main 的高度；全程不变形、不位移 */
+body.pgs .page-section.pg-active {
+    position: relative;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
+    transition-delay: 0s;
+}
+
+/* 只有动画进行中才开 3D 透视 / will-change，
+   平时保持干净，避免给页内 fixed 元素（沉浸星图）制造包含块 */
+body.pgs.pg-anim main {
+    perspective: 1900px;
+}
+body.pgs.pg-anim .page-section {
+    will-change: transform, opacity;
+}
+body.pgs.pg-anim .page-section.pg-leaving {
+    opacity: 0;
+    transition-delay: 0s;
+}
+
+/* ============================================================
+   切换过渡：财大红翻页幕布 + 米白页码铭牌
+   ------------------------------------------------------------
+   幕布为不透明实体色块，完全遮住底下的旧页面内容
+   （不再是半透明扫光带），推进 → 覆盖 → 继续推走。
+   ============================================================ */
+.pg-curtain {
+    position: fixed;
+    inset: 0;
+    z-index: 10050;
+    pointer-events: none;
+    overflow: hidden;
+    --pg-anim: 1.08s;
+}
+
+.pg-curtain .pg-veil {
+    position: absolute;
+    inset: -2px;                       /* 外扩 2px，避免缩放/圆角处露缝 */
+    opacity: 0;
+    transform: translate3d(103%, 0, 0);
+    background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.18) 0%, rgba(0, 0, 0, 0) 20%),
+        linear-gradient(100deg, #6d171b 0%, var(--main-red, #811c21) 38%, #9d2c31 100%);
+    box-shadow: 0 0 90px 26px rgba(129, 28, 33, 0.42);
+}
+
+/* 迎头的一道米白细边：翻页前沿 */
+.pg-curtain .pg-veil::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 2px;
+    background: linear-gradient(180deg,
+        rgba(241, 240, 233, 0) 0%,
+        rgba(241, 240, 233, 0.9) 26%,
+        rgba(241, 240, 233, 1) 50%,
+        rgba(241, 240, 233, 0.9) 74%,
+        rgba(241, 240, 233, 0) 100%);
+}
+
+/* 向左切时，前沿改到幕布右缘 */
+.pg-curtain.play[data-dir="prev"] .pg-veil::after {
+    left: auto;
+    right: 0;
+}
+
+.pg-curtain.play .pg-veil {
+    animation: pgVeilSweep var(--pg-anim) cubic-bezier(0.5, 0, 0.34, 1) both;
+    will-change: transform;
+}
+.pg-curtain.play[data-dir="prev"] .pg-veil {
+    animation-direction: reverse;
+}
+
+/* 推进 → 停住（此刻内容在幕布后完成交换）→ 继续推走 */
+@keyframes pgVeilSweep {
+    0%   { transform: translate3d(103%, 0, 0); opacity: 1; }
+    38%  { transform: translate3d(0, 0, 0);    opacity: 1; }
+    62%  { transform: translate3d(0, 0, 0);    opacity: 1; }
+    100% { transform: translate3d(-103%, 0, 0); opacity: 1; }
+}
+
+/* 中央页码铭牌：01 ／ 09 + 页面名（米白字，落在财红底上） */
+.pg-curtain .pg-card {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    opacity: 0;
+    transform: translate3d(-50%, -50%, 0);
+    color: var(--paper, #F1F0E9);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    white-space: nowrap;
+    text-shadow: 0 2px 20px rgba(90, 24, 24, 0.5);
+}
+.pg-curtain.play .pg-card {
+    animation: pgCardIn var(--pg-anim) cubic-bezier(0.18, 0.86, 0.22, 1) both;
+}
+@keyframes pgCardIn {
+    0%   { opacity: 0; transform: translate3d(-50%, -52%, 0) scale(0.94); letter-spacing: 0.5em; }
+    32%  { opacity: 0; }
+    48%  { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1); letter-spacing: 0.14em; }
+    76%  { opacity: 1; }
+    100% { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(1.04); letter-spacing: 0.2em; }
+}
+
+.pg-curtain .pg-card-idx {
+    display: inline-flex;
+    align-items: baseline;
+    font-family: "Times New Roman", serif;
+    font-size: 70px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: var(--paper, #F1F0E9);
+}
+.pg-curtain .pg-card-idx b { font-weight: 700; }
+.pg-curtain .pg-card-idx i {
+    font-style: normal;
+    font-size: 17px;
+    letter-spacing: 0.08em;
+    margin-left: 6px;
+    opacity: 0.62;
+}
+.pg-curtain .pg-card-sep {
+    width: 1px;
+    height: 42px;
+    background: currentColor;
+    opacity: 0.4;
+}
+.pg-curtain .pg-card-name {
+    font-size: 27px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    color: var(--paper, #F1F0E9);
+}
+
+/* ---------- 导航项：当前页常亮 ---------- */
+.nav-item.is-current {
+    background: var(--main-red, #811c21);
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(129, 28, 33, 0.22);
+}
+.nav-item.is-current:hover {
+    color: #fff;
+}
+
+/* 进度条：顶部细线，指示当前处于第几页 */
+.pg-progress {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 2px;
+    z-index: 9999;
+    width: 0;
+    background: linear-gradient(90deg, rgba(129, 28, 33, 0.25), var(--main-red, #811c21));
+    transition: width 0.6s cubic-bezier(0.22, 0.9, 0.24, 1);
+    pointer-events: none;
+    opacity: 0;
+}
+body.pgs.pg-ready .pg-progress { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+    body.pgs .page-section { transition-duration: 0.01ms; }
+    .pg-curtain { --pg-anim: 0.01ms; }
+}

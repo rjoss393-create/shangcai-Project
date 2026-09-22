@@ -24,6 +24,8 @@ GRAPH_FILES: dict[str, str] = {
     "econ": "layered/econ_layered.json",
     # v6 统一知识星系（前端 v6 引擎数据，由 scripts/import_v6_galaxy.py 转换而来）
     "v6": "layered/v6_layered.json",
+    # v12 统一知识星系（前端 v12 引擎数据，六层钻取，由 scripts/import_v12_galaxy.py 转换而来）
+    "v12": "layered/v12_layered.json",
 }
 
 

@@ -18,6 +18,7 @@ GRAPH_IDS: Final[dict[str, str]] = {
     "invest": "投资学",
     "econ": "经济综合",
     "v6": "统一知识星系（v6）",
+    "v12": "统一知识星系（v12）",
 }
 
 # graph_id -> 数据文件（供数据层/Service 层对照；控制层不读文件，仅作文档）
@@ -28,6 +29,7 @@ GRAPH_FILES: Final[dict[str, str]] = {
     "invest": "layered/invest_layered.json",
     "econ": "layered/econ_layered.json",
     "v6": "layered/v6_layered.json",
+    "v12": "layered/v12_layered.json",
 }
 
 

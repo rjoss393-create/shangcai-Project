@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """把前端负责人的 v6 统一知识星系数据转成后端分层数据契约
 
-源文件：newcssSUFE-Knowledge-Galaxy/data/galaxy_v6_clustered.json（v6，3661 节点 / 6058 边）
+源文件：原为 newcssSUFE-Knowledge-Galaxy/data/galaxy_v6_clustered.json
+        （交付包已于 2026-09-22 合并进 前端/ 后删除；原始 JSON 备份在
+        E:/galaxy_probe/backup_root_packages_2026-09-22/newcssSUFE-Knowledge-Galaxy/data/）
+        产物 data/layered/v6_layered.json 已入库，通常无需重跑；若默认路径不存在，用参数显式传源路径。
 产物  ：data/layered/v6_layered.json（与 data/layered/*.json 同构，供 DataService 直接加载）
 
 字段映射（v6 -> 后端 {id,label,type,page,layer,media,extra}）：

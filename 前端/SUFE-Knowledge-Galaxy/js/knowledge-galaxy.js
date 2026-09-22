@@ -1,45 +1,128 @@
 /* ============================================================
-   知识星系 · 分层轨道星图引擎 (v6 数据)
+   知识星系 · 分层轨道星图引擎 (v12 数据 · 六层钻取)
    ------------------------------------------------------------
    设计核心：
-   ① 分层钻取代替一锅粥的力导向图 ——
-      星系总览(3域·28学科) → 学科星域(10主题环绕) → 主题星团(知识点)
-      每层同屏节点 ≤ 30 个，标签永不重叠
+   ① 六层逐级下潜，每层同屏节点有限、标签按同心环错开，互不重叠 ——
+      星系总览(5 领域 · 88 学科)
+        → 学科星域(该学科的主题簇)
+        → 主题星团(主题下的知识点)
+        → 知识节点(该知识点的「名词解释」+ 深层内容总览)
+        → 名词解释(释义全文 + 其下子内容)
+        → 深层内容(案例/公式/人物/历史/争议 全文)
+      ★ 后三层都是「点得进去」的正经层级，不是同屏卫星面板。
    ② 跨领域关系「委婉呈现」——
       总览层：学科间知识边聚合为绕外侧的渐变弧线（默认极淡）
       下层  ：跨域关联收进「星门」——放在视野边缘的门户节点，
               点击即跳转，线不横穿画面
-   ③ 数据契约：galaxy_v6_clustered.json
-      层级树用 parent_id (domain→macro→meso→micro→explanation)
+   ③ 数据契约：见下方 DATA_SOURCE 注释块（local 本地 JSON / api 后端接口）
+      层级树用 parent_id：
+        domain(5) → macro(88) → meso(1119) → micro(10326)
+                  → explanation(10326) → detail(9565)
       知识边 6 种关系：前置/应用/影响/度量/映射/包含(不渲染)
    ④ 兼容：window.GalaxyEngine 对外接口与旧引擎一致
-      (selectNode/pulseNodes/focusOnNodes/switchGraph/state)
-      知识助手联动不受影响
+      (clickNode/selectNode/pulseNodes/focusOnNodes/switchGraph/goMacro/state)
+      知识助手 / 课程星系联动不受影响
    ============================================================ */
 (function () {
     'use strict';
 
     /* --------------------------------------------------------
-       数据来源（2026-09-21 改为走后端，见 文档/记录/v6图谱接入后端记录.md）
-       - GRAPH_ID：后端 controller/graph_ids.py 里登记的统一知识星系图谱
-       - API_BASE：与页面同源；若页面不是由后端托管，写成 'http://localhost:8000'
-       - 原值 'data/galaxy_v6_clustered.json' 不再使用（避免前端/后端两份数据不同步）
-    -------------------------------------------------------- */
-    const GRAPH_ID = 'v6';
-    const API_BASE = '';
-    const DATA_URL = 'data/galaxy_v6_clustered.json';   /* 保留作参考，已不再使用 */
+       ★ 数据源契约（与后端对接的唯一开关，改动时请同步《对接文档》）
+       ----------------------------------------------------------
+       local —— 读 LOCAL_URL（当前默认，静态页面即可独立运行）
+       api   —— POST {API_BASE}/api/graph/load {graph_id: GRAPH_ID}
+                后端须在 backend/controller/graph_ids.py 里登记 GRAPH_ID
+                接口异常或未登记时自动回退 local，页面不会白屏
+       合并到后端只需三步：
+         ① 后端把本 JSON 原样存入 data/layered/（与 v6 同目录）
+         ② 在 backend/controller/graph_ids.py 里加一行 GRAPH_ID 登记
+         ③ 切数据源：优先用 window.__KG_DATA_SOURCE__='api'（不改代码），
+            或直接把 DATA_SOURCE_DEFAULT 改成 'api'
+       后端若按统一契约 {id,label,type,page,layer,media,extra} 返回，
+       由 adaptBackendData() 自动还原（原样 JSON 与统一契约两种形态都吃）；
+       extra 里必须保留 level / parent_id 这两个字段名（分层树靠它们）。
+       ★ state.graphId 恒等于「画布此刻真正显示的那张图」（v12），
+         不是 currentGraphId 的别名，switchGraph() 不会改它。
+       -------------------------------------------------------- */
+    /* ★ DATA_SOURCE 可以在「不改这一行代码」的情况下被覆盖（合并到后端时最省事）：
+         ① 页面上加 <script>window.__KG_DATA_SOURCE__='api'</script>（建议后端模板用这个）
+         ② URL 追加 ?kgSrc=api（调试/灰度用，如 …/index.html?kgSrc=api）
+         ③ 都没有 → 用下面这行的默认值 'local'（静态页面可独立运行）
+       取值 'local' = 读 LOCAL_URL；'api' = POST {API_BASE}/api/graph/load。 */
+    const DATA_SOURCE_DEFAULT = 'local';
+    const DATA_SOURCE = (function () {
+        let forced = null;
+        try { forced = window.__KG_DATA_SOURCE__; } catch (e) { /* ignore */ }
+        if (!forced) {
+            const m = /[?&]kgSrc=(local|api)/.exec(
+                (typeof location !== 'undefined' && location.search) || '');
+            if (m) forced = m[1];
+        }
+        return (forced === 'api' || forced === 'local') ? forced : DATA_SOURCE_DEFAULT;
+    })();
+    const GRAPH_ID    = 'v12';                      /* 后端 controller/graph_ids.py 里登记的新图谱 id */
+    let API_BASE      = '';                         /* 与页面同源；跨源时写 'http://localhost:8000' */
+    try { if (window.__KG_API_BASE__) API_BASE = window.__KG_API_BASE__; } catch (e) { /* ignore */ }
+    const LOCAL_URL   = 'data/galaxy_v12.json';     /* 与后端同源的那份 JSON（api 拉不到时兜底） */
 
-    const DOMAINS = ['宏观金融', '微观金融', '交叉学科'];
-    const DOM_VAR = { '宏观金融': '--kg-dom-1', '微观金融': '--kg-dom-2', '交叉学科': '--kg-dom-3' };
-    const DOM_EN  = { '宏观金融': 'MACRO FINANCE', '微观金融': 'MICRO FINANCE', '交叉学科': 'INTERDISCIPLINARY' };
+    /* 领域：前 3 个是投资学本体（默认视图），后 2 个是扩展域（扩展视图） */
+    const DOMAINS_CORE = ['宏观金融', '微观金融', '交叉学科'];
+    const DOM_VAR = {
+        '宏观金融': '--kg-dom-1', '微观金融': '--kg-dom-2', '交叉学科': '--kg-dom-3',
+        '财经扩展': '--kg-dom-4', '跨学科知识': '--kg-dom-5'
+    };
+    const DOM_EN = {
+        '宏观金融': 'MACRO FINANCE', '微观金融': 'MICRO FINANCE', '交叉学科': 'INTERDISCIPLINARY',
+        '财经扩展': 'FINANCE EXPANSION', '跨学科知识': 'CROSS-DISCIPLINE'
+    };
 
     const KNOW_RELS = ['前置', '应用', '影响', '度量', '映射'];
     const REL_DASH   = { '前置': null, '应用': null, '影响': '8 5', '度量': '2 6', '映射': '4 3' };
     const REL_ARROW  = { '前置': 'end', '应用': null, '影响': null, '度量': null, '映射': 'both' };
     const REL_NOTE   = { '前置': '学后先学前', '应用': '前者用于后者', '影响': '前者变动引起后者变动', '度量': '前者量化后者', '映射': '同一概念的不同表述' };
 
-    const VIEW_LABEL = { overview: '星系总览', macro: '学科星域', meso: '主题星团' };
-    const VIEW_ORDER = ['overview', 'macro', 'meso'];
+    /* 六层视图（顺序即层级徽标的步进顺序） */
+    const VIEW_LABEL = {
+        overview: '星系总览', macro: '学科星域', meso: '主题星团',
+        micro: '知识节点', explanation: '名词解释', detail: '深层内容'
+    };
+    const VIEW_ORDER = ['overview', 'macro', 'meso', 'micro', 'explanation', 'detail'];
+
+    /* 深层内容类型（detail.detail_type → 图形元数据）
+       ★ 颜色契约：六种内容类型各有专属色（css --kg-dt-*），
+         与五个领域色完全错开 —— 全站任何层看到同类型节点都是同一个颜色，
+         进入对应层后中央主节点也沿用该色 + 同款字形（见 drawContentCore）。 */
+    const DT_META = {
+        explanation: { label: '释义', glyph: '释', colorVar: '--kg-dt-expl' },
+        formula:     { label: '公式', glyph: 'ƒ', colorVar: '--kg-dt-formula' },
+        case:        { label: '案例', glyph: '▶', colorVar: '--kg-dt-case' },
+        person:      { label: '人物', glyph: '人', colorVar: '--kg-dt-person' },
+        history:     { label: '历史', glyph: '史', colorVar: '--kg-dt-history' },
+        debate:      { label: '争议', glyph: '辩', colorVar: '--kg-dt-debate' }
+    };
+    const DT_ORDER = ['explanation', 'formula', 'case', 'person', 'history', 'debate'];
+    function dtColor(kind, domainColor) {
+        const m = DT_META[kind];
+        return (m && m.colorVar) ? 'var(' + m.colorVar + ')' : (domainColor || 'var(--kg-accent)');
+    }
+    /* 一个知识点下最多展示的深层内容节点（超出部分收进面板列表） */
+    const DT_MAX_ON_STAGE = 12;
+
+    /* 同心环半径（相对基准半径 u），环数按同屏节点数自适应 */
+    const RING_LEVELS = [
+        [0.56],
+        [0.40, 0.68],
+        [0.33, 0.52, 0.71],
+        [0.29, 0.46, 0.63, 0.80],
+        [0.26, 0.39, 0.52, 0.65, 0.78]
+    ];
+    function ringsFor(n) {
+        if (n <= 9) return 1;
+        if (n <= 20) return 2;
+        if (n <= 38) return 3;
+        if (n <= 62) return 4;
+        return 5;
+    }
 
     /* --------------------------------------------------------
        状态
@@ -49,9 +132,14 @@
         data: null,
         idx: null,
 
-        view: 'overview',         // overview | macro | meso
+        view: 'overview',         // overview | macro | meso | micro | explanation | detail
         macroId: null,
         mesoId: null,
+        microId: null,            /* L4 知识节点（最小知识点） */
+        explId: null,             /* L5 名词解释 */
+        detailId: null,           /* L6 深层内容（公式/案例/人物/历史/争议） */
+        originView: null,         /* 进入 L5/L6 前所在的层 —— 双击返回时回到来源层而非客观上层 */
+        originId: null,           /* 来路节点 id —— 进 L5/L6 后只亮它和中心，其余罩半透明遮罩 */
 
         viewMode: 'invest',       // invest 投资学视图 | extend 扩展视图
         relOn: new Set(KNOW_RELS),
@@ -60,20 +148,13 @@
 
         sessionId: null,
         currentGraphId: 'econ',   /* 兼容旧引擎契约（课程星系移植时读写） */
-        /* ★ 知识助手提问用的 graph_id（assistant.js 读 state.graphId）。
-           画布显示的永远是后端的 v6 图谱，所以这里固定 'v6'，
-           不要写成 currentGraphId 的别名 —— course-galaxy.js 跳转时会 switchGraph(...) 改写它。 */
-        graphId: 'v6',
+        /* ★ 画布此刻真正显示的那张图。只由「画布显示内容」决定，
+           不能写成 currentGraphId 的别名（对接约定第六条）。 */
+        graphId: GRAPH_ID,
 
         /* 相机 */
         tx: 0, ty: 0, scale: 1
     };
-
-    /* 兼容旧引擎的 state.nodes：course-galaxy.js 用它按 id 找节点 */
-    Object.defineProperty(state, 'nodes', {
-        get() { return (state.data && state.data.nodes) || []; },
-        enumerable: true, configurable: true
-    });
 
     /* --------------------------------------------------------
        DOM
@@ -81,6 +162,8 @@
     let root, stage, svg, starsCanvas;
     let gView, gSector, gOrbit, gEdges, gGateLines, gNodes, gGates, defs;
     let zoomBehavior;
+    /* 标签记录：每帧重建，缩放时据此重算「放得下几个字 / 是否显示」 */
+    let labelRecs = [];
     let W = 800, H = 640;
 
     let tooltipEl, detailEl, detailBody, breadcrumbEl, levelBadgeEl;
@@ -104,11 +187,15 @@
             gate:     cs.getPropertyValue('--kg-gate').trim(),
             dom1:     cs.getPropertyValue('--kg-dom-1').trim(),
             dom2:     cs.getPropertyValue('--kg-dom-2').trim(),
-            dom3:     cs.getPropertyValue('--kg-dom-3').trim()
+            dom3:     cs.getPropertyValue('--kg-dom-3').trim(),
+            dom4:     cs.getPropertyValue('--kg-dom-4').trim(),
+            dom5:     cs.getPropertyValue('--kg-dom-5').trim()
         };
         PALETTE['宏观金融'] = PALETTE.dom1;
         PALETTE['微观金融'] = PALETTE.dom2;
         PALETTE['交叉学科'] = PALETTE.dom3;
+        PALETTE['财经扩展'] = PALETTE.dom4;
+        PALETTE['跨学科知识'] = PALETTE.dom5;
     }
 
     function domColor(domain) { return PALETTE[domain] || PALETTE.dom1; }
@@ -118,22 +205,34 @@
     -------------------------------------------------------- */
     function buildIndex(data) {
         const byId = new Map();
-        data.nodes.forEach(n => byId.set(n.id, n));
+        (data.nodes || []).forEach(n => byId.set(n.id, n));
 
-        const domains = [], macros = [], mesos = [], micros = [], explanations = [];
+        const domains = [], macros = [], mesos = [], micros = [], explanations = [], details = [];
         byId.forEach(n => {
+            /* 兼容旧引擎 / 课程星系的 label 字段（course-galaxy.js 读 n.label） */
+            if (n.label == null) n.label = n.name;
             if (n.level === 'domain') domains.push(n);
             else if (n.level === 'macro') macros.push(n);
             else if (n.level === 'meso') mesos.push(n);
             else if (n.level === 'micro') micros.push(n);
             else if (n.level === 'explanation') explanations.push(n);
+            else if (n.level === 'detail') details.push(n);
         });
 
-        /* 层级树（parent_id） */
-        const childrenOf = new Map();          // id -> [child nodes]
-        const macroOfMeso = new Map();         // mesoId -> macroId
-        const mesoOfMicro = new Map();         // microId -> mesoId
+        /* 层级树（parent_id）：通用 childrenOf + 逐层快捷映射 */
+        const childrenOf = new Map();
+        byId.forEach(n => {
+            if (!n.parent_id) return;
+            const arr = childrenOf.get(n.parent_id) || [];
+            arr.push(n); childrenOf.set(n.parent_id, arr);
+        });
+        const macroOfMeso = new Map();
+        const mesoOfMicro = new Map();
         const macroOfMicro = new Map();
+        mesos.forEach(m => {
+            const mac = byId.get(m.parent_id);
+            if (mac && mac.level === 'macro') macroOfMeso.set(m.id, mac.id);
+        });
         micros.forEach(m => {
             const meso = byId.get(m.parent_id);
             if (meso && meso.level === 'meso') {
@@ -142,35 +241,44 @@
                 if (mac && mac.level === 'macro') macroOfMicro.set(m.id, mac.id);
             }
         });
-        mesos.forEach(m => {
-            const mac = byId.get(m.parent_id);
-            if (mac && mac.level === 'macro') macroOfMeso.set(m.id, mac.id);
-        });
+
+        /* 领域归属 + 领域清单（本体 3 域优先，其余按学科数降序） */
         macros.forEach(mac => {
             const dom = byId.get(mac.parent_id);
             mac._domain = (dom && dom.level === 'domain') ? dom.name : (mac.domain || '交叉学科');
         });
-        /* 宏观金融域下的学科按数据修正（mac.domain 字段兜底） */
-        macros.forEach(mac => {
-            if (!DOMAINS.includes(mac._domain)) mac._domain = mac.domain || '交叉学科';
-        });
+        const domNames = domains.map(d => d.name);
+        const macroCntOf = name => macros.filter(m => m._domain === name).length;
+        const domOrder = DOMAINS_CORE.filter(d => domNames.includes(d))
+            .concat(domNames.filter(d => !DOMAINS_CORE.includes(d))
+                .sort((a, b) => macroCntOf(b) - macroCntOf(a)));
+        const macrosOfDomain = new Map();
+        domOrder.forEach(name => macrosOfDomain.set(name, macros.filter(m => m._domain === name)));
 
-        mesos.forEach(ms => {
-            const arr = childrenOf.get(ms.parent_id) || [];
-            arr.push(ms); childrenOf.set(ms.parent_id, arr);
-        });
-        micros.forEach(mi => {
-            const arr = childrenOf.get(mi.parent_id) || [];
-            arr.push(mi); childrenOf.set(mi.parent_id, arr);
-        });
-
-        /* L5 解释 */
+        /* 内容层 L4：名词解释（explanation，micro 的直属子节点，1:1） */
+        const expNodeOfMicro = new Map();
         const explByMicro = new Map();
+        const microOfExp = new Map();
         explanations.forEach(e => {
-            if (e.parent_id) explByMicro.set(e.parent_id, e.content || '');
+            if (!e.parent_id) return;
+            expNodeOfMicro.set(e.parent_id, e);
+            explByMicro.set(e.parent_id, e.content || '');
+            microOfExp.set(e.id, e.parent_id);
         });
 
-        /* 知识边（非包含） */
+        /* 内容层 L5：子内容（detail，挂在知识点下 0-N 条） */
+        const detailByMicro = new Map();
+        const microOfDetail = new Map();
+        details.forEach(d => {
+            if (!d.parent_id) return;
+            const arr = detailByMicro.get(d.parent_id) || [];
+            arr.push(d); detailByMicro.set(d.parent_id, arr);
+            microOfDetail.set(d.id, d.parent_id);
+        });
+        detailByMicro.forEach(arr => arr.sort((a, b) =>
+            DT_ORDER.indexOf(a.detail_type) - DT_ORDER.indexOf(b.detail_type)));
+
+        /* 知识边（非包含，且两端都是知识点） */
         const knowEdges = [];
         (data.edges || []).forEach(e => {
             if (e.relation === '包含') return;
@@ -189,11 +297,10 @@
             adjByMicro.get(e.target).push({ edge: e, other: e.source, dir: 'in' });
         });
 
-        /* 聚合：macro ↔ macro */
-        const macroAgg = new Map();   // "a|b"(有序化) -> {a,b,count,rels}
+        /* 聚合：meso ↔ meso / macro ↔ macro */
+        const macroAgg = new Map();   // "a|b"(有序化) -> {a,b,count}
         const mesoAgg = new Map();
         knowEdges.forEach(e => {
-            if (e.relation === '包含') return;
             const ms = mesoOfMicro.get(e.source), mt = mesoOfMicro.get(e.target);
             if (!ms || !mt || ms === mt) return;
             const key1 = ms < mt ? ms + '|' + mt : mt + '|' + ms;
@@ -221,7 +328,6 @@
         /* meso 外部关联（跳星门用） */
         const mesoRel = new Map();
         knowEdges.forEach(e => {
-            if (e.relation === '包含') return;
             const ms = mesoOfMicro.get(e.source), mt = mesoOfMicro.get(e.target);
             if (!ms || !mt || ms === mt) return;
             if (!mesoRel.has(ms)) mesoRel.set(ms, []);
@@ -230,43 +336,132 @@
             mesoRel.get(mt).push({ other: ms, count: 1, edge: e });
         });
 
-        /* 总览方位（保持星门空间一致性） */
-        const overviewPos = layoutOverviewPositions(macros);
+        /* 总览方位（按当前视图模式算；切视图时 recomputeOverviewPos 重算） */
+        const overviewPos = layoutOverviewPositions(macros, domOrder, state.viewMode);
 
         /* 统计 */
         const bridgeEdges = knowEdges.filter(e => e.is_bridge === true).length;
         const externalMicros = micros.filter(m => m.is_external === true).length;
 
         return {
-            byId, domains, macros, mesos, micros, childrenOf,
+            byId, domains, macros, mesos, micros, explanations, details,
+            childrenOf, domOrder, macrosOfDomain,
             macroOfMeso, mesoOfMicro, macroOfMicro,
-            explByMicro, knowEdges, adjByMicro,
+            expNodeOfMicro, explByMicro, microOfExp, detailByMicro, microOfDetail,
+            knowEdges, adjByMicro,
             macroAgg, mesoAgg, macroRel, mesoRel,
             overviewPos,
             stats: {
-                nodes: data.nodes.length,
-                edges: data.edges.length,
+                nodes: (data.nodes || []).length,
+                edges: (data.edges || []).length,
                 knowEdges: knowEdges.length,
-                clusters: new Set(micros.map(m => m.cluster_id)).size,
-                bridgeEdges, externalMicros
+                clusters: new Set(micros.map(m => m.cluster_name).filter(Boolean)).size,
+                bridgeEdges, externalMicros,
+                detailCnt: details.length
             }
         };
     }
 
-    /* 总览布局：3 扇区 + 28 学科（双环交错，全局交错避免域边界撞环），
-       供各层引用方位 */
-    function layoutOverviewPositions(macros) {
-        const total = macros.length;
+    /* 当前视图下可见的领域（扩展视图才含「财经扩展 / 跨学科知识」） */
+    function visibleDomains() {
+        const idx = state.idx;
+        if (!idx) return [];
+        return state.viewMode === 'extend'
+            ? idx.domOrder
+            : idx.domOrder.filter(d => DOMAINS_CORE.includes(d));
+    }
+    function recomputeOverviewPos() {
+        const idx = state.idx;
+        if (!idx) return;
+        idx.overviewPos = layoutOverviewPositions(idx.macros, idx.domOrder, state.viewMode);
+    }
+
+    /* --------------------------------------------------------
+       布局工具：同心环
+    -------------------------------------------------------- */
+    /* 扇区内多环：把 list 铺在 [a0, a0+sweep] 扇形的 rings 个同心环上；
+       交错分配（i % rings）→ 每环角度均匀，且同领域节点在角度上连续 */
+    function bandLayout(list, a0, sweep, rings) {
+        const pos = new Map();
+        if (!list.length) return pos;
+        const buckets = [];
+        for (let i = 0; i < rings; i++) buckets.push([]);
+        list.forEach((m, i) => buckets[i % rings].push(m));
+        buckets.forEach((arr, ri) => {
+            arr.forEach((m, j) => {
+                pos.set(m.id, {
+                    angle: a0 + ((j + 0.5) / arr.length) * sweep,
+                    ring: ri, inRing: arr.length, rings
+                });
+            });
+        });
+        return pos;
+    }
+
+    /* 全环：n 个节点铺在同心环上（环数自适应），返回每槽位 {ring, angle, R, inRing, rings} */
+    function ringLayout(n, u) {
+        const rings = ringsFor(n);
+        const radii = RING_LEVELS[rings - 1].map(f => f * u);
+        const slots = [];
+        for (let i = 0; i < n; i++) slots.push({ ring: i % rings, R: radii[i % rings] });
+        const inRing = new Array(rings).fill(0);
+        slots.forEach(s => inRing[s.ring]++);
+        const cursor = new Array(rings).fill(0);
+        slots.forEach(s => {
+            const k = cursor[s.ring]++;
+            s.angle = deg(-90) + ((k + 0.5) / inRing[s.ring]) * TAU;
+            s.inRing = inRing[s.ring];
+            s.rings = rings;
+        });
+        return slots;
+    }
+
+    /* 节点半径：基础半径按「所在环的弧长间距」夹紧，避免同环粘连 */
+    function fitRadius(baseR, R, inRing) {
+        const chord = R * TAU / Math.max(inRing, 1);
+        return Math.max(4.5, Math.min(baseR, chord * 0.40));
+    }
+
+    /* 标签：沿半径朝外，按象限选锚点（复用原总览的避让逻辑） */
+    function labelOffset(angle, r, gap) {
+        const cosA = Math.cos(angle), sinA = Math.sin(angle);
+        if (cosA > 0.35) return { x: r + gap, y: 4, anchor: 'start' };
+        if (cosA < -0.35) return { x: -(r + gap), y: 4, anchor: 'end' };
+        if (sinA < 0) return { x: 0, y: -(r + gap), anchor: 'middle' };
+        return { x: 0, y: r + gap + 12, anchor: 'middle' };
+    }
+
+    function truncate(s, n) {
+        s = String(s || '');
+        return s.length > n ? s.slice(0, n - 1) + '…' : s;
+    }
+
+    /* 数据里数组字段形态不稳（v12 部分节点 keywords/disciplines 是字符串或 null），
+       统一收敛成数组，避免 .join/.forEach 直接炸掉 */
+    function asArr(v) {
+        if (Array.isArray(v)) return v;
+        if (v == null || v === '') return [];
+        return [v];
+    }
+    function keywordsOf(n) {
+        const t = n && n.tags;
+        if (!t) return [];
+        return asArr(t.keywords).map(k => String(k)).filter(Boolean);
+    }
+
+    /* 总览布局：领域扇区 × 多环交错（供各层引用方位） */
+    function layoutOverviewPositions(macros, domOrder, viewMode) {
+        const names = viewMode === 'extend' ? domOrder.slice() : domOrder.filter(d => DOMAINS_CORE.includes(d));
+        const list = macros.filter(m => names.includes(m._domain));
+        const total = list.length || 1;
+        const rings = ringsFor(total);
         const pos = new Map();
         let a0 = deg(-90);
-        let ringToggle = 0;
-        DOMAINS.forEach(dom => {
-            const list = macros.filter(m => m._domain === dom);
-            const sweep = (list.length / total) * TAU;
-            list.forEach((m, i) => {
-                const a = a0 + ((i + 0.5) / list.length) * sweep;
-                pos.set(m.id, { angle: a, ring: ringToggle++ % 2, count: list.length, sweep, idx: i });
-            });
+        names.forEach(dom => {
+            const arr = list.filter(m => m._domain === dom);
+            if (!arr.length) return;
+            const sweep = (arr.length / total) * TAU;
+            bandLayout(arr, a0, sweep, rings).forEach((v, k) => pos.set(k, v));
             a0 += sweep;
         });
         return pos;
@@ -285,7 +480,9 @@
         detailEl = document.getElementById('kgDetail');
         detailBody = document.getElementById('kgDetailBody');
         breadcrumbEl = document.getElementById('kgBreadcrumb');
-        levelBadgeEl = document.getElementById('kgLevelSteps');
+        /* ★ 徽标容器本身（.kg-level-badge），不是里面的计数 span——
+           之前错拿 kgLevelSteps，querySelectorAll('.lb-step') 永远为空，点从来不亮 */
+        levelBadgeEl = document.querySelector('.kg-level-badge');
         searchInput = document.getElementById('kgSearchInput');
         searchDrop = document.getElementById('kgSearchDrop');
 
@@ -306,6 +503,7 @@
                 const t = ev.transform;
                 state.tx = t.x; state.ty = t.y; state.scale = t.k;
                 gView.attr('transform', `translate(${t.x},${t.y}) scale(${t.k})`);
+                refreshLabels();   /* 放大后自动长出新标签，缩小则收束 */
             });
         svg.call(zoomBehavior).on('dblclick.zoom', null);
 
@@ -356,31 +554,77 @@
 
     /* --------------------------------------------------------
        数据载入
+       · local：直接读 JSON
+       · api  ：POST /api/graph/load { graph_id }，按后端统一契约适配
+       两条路都保证 level / parent_id 原样可用（引擎分层树只认这两个字段）
     -------------------------------------------------------- */
     let loadPromise = null;
+
+    /* 后端契约 {id,label,type,page,layer,media,extra} → 引擎字段
+       extra 里保留了 level / parent_id / content 等全部原始字段 */
+    /* 后端统一契约 {id,label,type,page,layer,media,extra} → 引擎内部形态。
+       ★ 兼容两种返回形态（合并期间后端有可能两种都给）：
+         ① 统一契约：层级在 extra.level / extra.parent_id
+         ② 原样 JSON：字段就平铺在节点上（level / parent_id / content …）
+       所以先铺节点本体，再让 extra 覆盖，最后兜住 id / name。
+       parent_id 缺失时退到 extra.parents[0]（老版后端只给 parents 数组）。 */
+    function adaptBackendData(d) {
+        return {
+            nodes: (d.nodes || []).map(n => {
+                const o = Object.assign({}, n, n.extra || {}, {
+                    id: n.id, name: n.label || n.name || n.id
+                });
+                if (!o.parent_id && Array.isArray(o.parents) && o.parents.length) {
+                    o.parent_id = o.parents[0];
+                }
+                if (!o.level && o.layer) o.level = o.layer;
+                return o;
+            }),
+            edges: (d.edges || []).map(e => {
+                const o = Object.assign({}, e, e.extra || {}, {
+                    source: e.source || e.from, target: e.target || e.to,
+                    relation: e.relation || e.label
+                });
+                if (!o.relation) o.relation = '关联';
+                return o;
+            }),
+            metadata: d.metadata || null
+        };
+    }
+
+    function fetchGraph() {
+        if (DATA_SOURCE === 'api') {
+            return fetch(API_BASE + '/api/graph/load', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ graph_id: GRAPH_ID })
+            })
+                .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                .then(resp => {
+                    if (!resp || resp.code !== 0) throw new Error((resp && resp.message) || '接口返回异常');
+                    const data = adaptBackendData(resp.data || {});
+                    if (!data.nodes.length) throw new Error('图谱为空');
+                    return data;
+                })
+                .catch(err => {
+                    /* 后端还没登记这张图谱时，本地 JSON 兜底，页面不至于空白 */
+                    console.warn('[知识星系] 后端图谱不可用，回退本地 JSON：', err.message);
+                    return fetchLocalGraph();
+                });
+        }
+        return fetchLocalGraph();
+    }
+
+    function fetchLocalGraph() {
+        return fetch(LOCAL_URL)
+            .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+    }
+
     function load() {
         if (loadPromise) return loadPromise;
         const loadingEl = document.getElementById('galaxyLoading');
-        loadPromise = fetch(API_BASE + '/api/graph/load', {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body:    JSON.stringify({ graph_id: GRAPH_ID })
-            })
-            .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-            .then(resp => {
-                if (!resp || resp.code !== 0) throw new Error((resp && resp.message) || '接口返回异常');
-                const d = resp.data || {};
-                /* 后端契约 {id,label,page,layer,media,extra} -> v6 引擎原字段名。
-                   v6 的原始字段（level/parent_id/content/cluster_id/domain/tags/…）
-                   由后端原样保留在 extra 里，这里一行即可还原。 */
-                const data = {
-                    nodes: (d.nodes || []).map(n =>
-                        Object.assign({}, n.extra || {}, { id: n.id, name: n.label })),
-                    edges: (d.edges || []).map(e =>
-                        Object.assign({}, e.extra || {}, {
-                            source: e.source, target: e.target, relation: e.relation
-                        }))
-                };
+        loadPromise = fetchGraph()
+            .then(data => {
                 state.data = data;
                 state.idx = buildIndex(data);
                 state.loaded = true;
@@ -473,13 +717,15 @@
         });
         document.getElementById('kgResetBtn').addEventListener('click', () => resetCamera());
 
-        /* 视图模式 */
+        /* 视图模式（投资学视图 3 域 / 扩展视图 5 域）：总览方位需重算 */
         document.querySelectorAll('.kg-vm-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const mode = btn.dataset.mode;
                 if (mode === state.viewMode) return;
                 state.viewMode = mode;
                 document.querySelectorAll('.kg-vm-btn').forEach(b => b.classList.toggle('is-on', b === btn));
+                recomputeOverviewPos();
+                renderSidebar();
                 if (state.loaded) render(false);
             });
         });
@@ -502,8 +748,24 @@
             if (state.loaded && state.view === 'overview') render(false);
         });
 
-        /* 详情面板关闭 */
+        /* 详情面板：关闭 + 顶栏随时开关 */
         document.getElementById('kgDetailClose').addEventListener('click', hideDetail);
+        const tgl = document.getElementById('kgDetailToggle');
+        if (tgl) tgl.addEventListener('click', () => {
+            if (detailEl.classList.contains('show')) { hideDetail(); return; }
+            const idx = state.idx;
+            const mi = state.microId ? idx.byId.get(state.microId) : null;
+            if (state.view === 'micro' && mi) showDetail(mi);
+            else if (state.view === 'explanation' && mi) {
+                const exp = idx.byId.get(state.explId) || idx.expNodeOfMicro.get(mi.id);
+                if (exp) showExplanationDetail(exp, mi); else if (mi) showDetail(mi);
+            } else if (state.view === 'detail' && mi) {
+                const d = idx.byId.get(state.detailId);
+                if (d) showDetailNode(d, mi); else showDetail(mi);
+            } else {
+                showKgToast('进入知识节点（第 4 层）后可查看详情面板');
+            }
+        });
 
         /* 搜索 */
         searchInput.addEventListener('input', debounce(onSearchInput, 140));
@@ -529,13 +791,14 @@
 
     /* --------------------------------------------------------
        深链接：?kgview=macro&kgid=kp_macro_005（可分享指定视图）
-       深链接直达时跳过入场动画，保证打开即完整呈现
+       支持六层：overview / macro / meso / micro / explanation / detail
     -------------------------------------------------------- */
     function applyDeepLink() {
         try {
             const q = new URLSearchParams(location.search);
             const view = q.get('kgview');
             const id = q.get('kgid');
+            const mode = q.get('kgmode');
             const theme = q.get('kgtheme');
             if (theme === 'dark' || theme === 'light') {
                 root.dataset.theme = theme;
@@ -545,11 +808,20 @@
                 if (btn) btn.querySelector('span:last-child').textContent =
                     theme === 'light' ? '深空模式' : '浅色星图';
             }
+            if (mode === 'extend' || mode === 'invest') {
+                state.viewMode = mode;
+                document.querySelectorAll('.kg-vm-btn').forEach(b =>
+                    b.classList.toggle('is-on', b.dataset.mode === mode));
+                recomputeOverviewPos();
+                renderSidebar();
+            }
             if (!view || !id) return;
             state.deepLink = true;
             if (view === 'macro') enterMacro(id);
             else if (view === 'meso') enterMeso(id);
-            else if (view === 'micro') jumpToMicro(id);
+            else if (view === 'micro') enterMicro(id);
+            else if (view === 'explanation') enterExplanationByMicro(id);
+            else if (view === 'detail') enterDetail(id);
             state.deepLink = false;
         } catch (e) { /* 忽略非法参数 */ }
     }
@@ -561,32 +833,28 @@
         const box = document.getElementById('kgSidebar');
         if (!box) return;
         const idx = state.idx;
+        const names = visibleDomains();
         let html = '<div class="kg-side-head">学科目录 · DICTIONARY</div>';
-        DOMAINS.forEach(dom => {
-            const list = idx.macros.filter(m => m._domain === dom);
-            const microCnt = list.reduce((s, m) => {
-                let c = 0;
-                (idx.childrenOf.get(m.id) || []).forEach(ms => { c += (idx.childrenOf.get(ms.id) || []).length; });
-                return s + c;
-            }, 0);
+        names.forEach(dom => {
+            const list = idx.macrosOfDomain.get(dom) || [];
+            const domMicro = list.reduce((s, m) => s + microCountOfMacro(m.id), 0);
             html += `<div class="kg-side-group">
                 <div class="kg-side-group-title">
                     <span class="dot" style="background:${domColor(dom)}"></span>
-                    ${dom}<span class="cnt">${list.length} 学科</span>
+                    ${dom}<span class="cnt">${list.length} 学科 · ${domMicro} 知识点</span>
                 </div>`;
             list.forEach(m => {
-                let c = 0;
-                (idx.childrenOf.get(m.id) || []).forEach(ms => { c += (idx.childrenOf.get(ms.id) || []).length; });
-                html += `<button class="kg-side-item" data-macro="${m.id}">
-                    ${m.name}<span class="micro-cnt">${c} 点</span></button>`;
+                html += `<button class="kg-side-item" data-macro="${m.id}" title="${escapeHtml(m.name)}">
+                    ${escapeHtml(m.name)}<span class="micro-cnt">${microCountOfMacro(m.id)} 点</span></button>`;
             });
             html += `</div>`;
         });
         const st = idx.stats;
         html += `<div class="kg-side-stat">
-            <b>${st.nodes}</b> 节点 · <b>${st.knowEdges}</b> 知识关联<br>
-            <b>${st.clusters}</b> 知识簇 · <b>${st.externalMicros}</b> 跨学科延伸<br>
-            <b>${idx.macros.length}</b> 学科 · <b>${idx.mesos.length}</b> 主题
+            <b>${st.nodes.toLocaleString()}</b> 节点 · <b>${st.knowEdges.toLocaleString()}</b> 知识关联<br>
+            <b>${idx.macros.length}</b> 学科 · <b>${idx.mesos.length.toLocaleString()}</b> 主题 · <b>${idx.micros.length.toLocaleString()}</b> 知识点<br>
+            <b>${idx.explanations.length.toLocaleString()}</b> 名词解释 · <b>${idx.details.length.toLocaleString()}</b> 深层内容<br>
+            <b>${st.externalMicros}</b> 跨学科延伸${state.viewMode === 'invest' ? '（扩展视图可见）' : ''}
         </div>`;
         box.innerHTML = html;
         box.querySelectorAll('.kg-side-item').forEach(btn => {
@@ -595,52 +863,81 @@
     }
 
     function syncSidebar() {
+        const idx = state.idx;
+        let curMac = state.macroId;
+        if (state.microId) curMac = idx.macroOfMicro.get(state.microId) || curMac;
+        else if (state.mesoId) curMac = idx.macroOfMeso.get(state.mesoId) || curMac;
         document.querySelectorAll('.kg-side-item').forEach(btn => {
             btn.classList.toggle('is-active',
-                (state.view === 'macro' && btn.dataset.macro === state.macroId) ||
-                (state.view === 'meso' && state.idx.macroOfMeso.get(state.mesoId) === btn.dataset.macro));
+                state.view !== 'overview' && curMac === btn.dataset.macro);
         });
     }
 
     /* --------------------------------------------------------
-       面包屑 / 层级徽标
+       面包屑 / 层级徽标（六层）
     -------------------------------------------------------- */
     function renderBreadcrumb() {
         const idx = state.idx;
+        const v = state.view;
         const parts = [];
         parts.push(`<button class="kg-crumb is-home" data-act="home">◉ 星系总览</button>`);
-        if (state.view === 'macro' || state.view === 'meso') {
-            const mac = idx.byId.get(state.macroId);
-            if (mac) {
-                parts.push(`<span class="kg-crumb-sep">›</span>`);
-                parts.push(`<button class="kg-crumb" data-act="domain" style="color:${domColor(mac._domain)}">${mac._domain}</button>`);
-                if (state.view === 'macro') {
-                    parts.push(`<span class="kg-crumb-sep">›</span><span class="kg-crumb is-current">${mac.name}</span>`);
-                } else {
-                    parts.push(`<span class="kg-crumb-sep">›</span>`);
-                    parts.push(`<button class="kg-crumb" data-act="macro">${mac.name}</button>`);
-                    const ms = idx.byId.get(state.mesoId);
-                    parts.push(`<span class="kg-crumb-sep">›</span><span class="kg-crumb is-current">${ms ? ms.name : ''}</span>`);
-                }
-            }
+        const sep = () => parts.push('<span class="kg-crumb-sep">›</span>');
+        const link = (txt, act, color) => parts.push(
+            `<button class="kg-crumb" data-act="${act}"${color ? ` style="color:${color}"` : ''}>${txt}</button>`);
+        const cur = txt => parts.push(`<span class="kg-crumb is-current">${txt}</span>`);
+
+        const mac = state.macroId ? idx.byId.get(state.macroId) : null;
+        const ms = state.mesoId ? idx.byId.get(state.mesoId) : null;
+        const mi = state.microId ? idx.byId.get(state.microId) : null;
+        const isContent = (v === 'micro' || v === 'explanation' || v === 'detail');
+
+        if (v !== 'overview' && mac) {
+            sep(); link(mac._domain, 'home', domColor(mac._domain));
+            sep(); if (v === 'macro') cur(mac.name); else link(mac.name, 'macro');
         }
+        if ((v === 'meso' || isContent) && ms) {
+            sep(); if (v === 'meso') cur(ms.name); else link(ms.name, 'meso');
+        }
+        if (isContent && mi) {
+            sep(); if (v === 'micro') cur(mi.name); else link(mi.name, 'micro');
+        }
+        if (v === 'explanation') {
+            sep(); cur('名词解释');
+        }
+        if (v === 'detail') {
+            const exp = idx.expNodeOfMicro.get(state.microId);
+            if (exp) { sep(); link('名词解释', 'explanation'); }
+            const d = idx.byId.get(state.detailId);
+            const dl = d ? (DT_META[d.detail_type] || DT_META.case).label : '深层内容';
+            sep(); cur(dl + (d && d.name ? ' · ' + escapeHtml(d.name) : ''));
+        }
+
         breadcrumbEl.innerHTML = parts.join('');
         breadcrumbEl.querySelectorAll('button').forEach(btn => {
             btn.addEventListener('click', () => {
                 const act = btn.dataset.act;
                 if (act === 'home') goOverview();
-                else if (act === 'domain') goOverview();
                 else if (act === 'macro') enterMacro(state.macroId);
+                else if (act === 'meso') enterMeso(state.mesoId);
+                else if (act === 'micro') enterMicro(state.microId);
+                else if (act === 'explanation') enterExplanationByMicro(state.microId);
             });
         });
-        /* 层级徽标 */
+
+        /* 层级徽标（6 步）：走到第几层就亮几个点，当前层额外放大高亮 */
         if (levelBadgeEl) {
-            const cur = VIEW_ORDER.indexOf(state.view);
+            const curIdx = VIEW_ORDER.indexOf(v);
+            /* detail 层把「名词解释」那一步也点亮（它确实经过了释义层） */
             levelBadgeEl.querySelectorAll('.lb-step').forEach((d, i) => {
-                d.classList.toggle('is-on', i <= cur);
+                d.classList.toggle('is-on', i <= curIdx);
+                d.classList.toggle('is-cur', i === curIdx);
             });
             const nameEl = document.getElementById('kgLevelName');
-            if (nameEl) nameEl.textContent = VIEW_LABEL[state.view];
+            if (nameEl) {
+                const stepEl = document.getElementById('kgLevelSteps');
+                if (stepEl) stepEl.textContent = (curIdx + 1) + '/' + VIEW_ORDER.length;
+                nameEl.textContent = VIEW_LABEL[v] || '';
+            }
         }
     }
 
@@ -650,11 +947,15 @@
     function render(animate) {
         if (!state.loaded) return;
         defs.selectAll('*').remove();
+        labelRecs = [];
         renderBreadcrumb();
         syncSidebar();
         if (state.view === 'overview') renderOverview(animate);
         else if (state.view === 'macro') renderMacroView(animate);
         else if (state.view === 'meso') renderMesoView(animate);
+        else if (state.view === 'micro') renderMicroView(animate);
+        else if (state.view === 'explanation') renderExplanationView(animate);
+        else if (state.view === 'detail') renderDetailView(animate);
     }
 
     function clearLayers() {
@@ -674,25 +975,125 @@
            .style('opacity', 1);
     }
 
+    /* --------------------------------------------------------
+       统一节点绘制（六层通用）
+       spots: [{ item, x, y, angle, R, ring, inRing }]
+         item = { id, name, sub, color, baseR, glyph, halo, external, data }
+       → 返回 { group, spots }，spots 里补齐实际半径 r
+    -------------------------------------------------------- */
+    function drawNodeList(spots, opt) {
+        const nodeG = (opt.gParent || gNodes).append('g');
+        const out = [];
+        spots.forEach((sp, i) => {
+            const it = sp.item;
+            const x = sp.x, y = sp.y;
+            const inRing = sp.inRing || 1;
+            const chord = sp.R * TAU / inRing;                 // 世界坐标弧长间距
+            const chordScreen = chord * (state.scale || 1);    // 屏幕坐标间距（缩放后）
+            const r = fitRadius(it.baseR || 15, sp.R, inRing);
+            const isOuterRing = sp.rings == null || sp.ring === sp.rings - 1;
+
+            const g = nodeG.append('g')
+                .attr('class', 'kg-node g-node' + (it.cls ? ' ' + it.cls : ''))
+                .attr('data-id', it.id)
+                .attr('transform', `translate(${x},${y})`)
+                .style('opacity', 0);
+            if (it.halo) g.append('circle').attr('class', 'kg-halo')
+                .attr('r', r + 6).attr('stroke', it.color).attr('stroke-width', 1);
+            if (it.ring) g.append('circle').attr('class', 'kg-ring')
+                .attr('r', r + 2.5).attr('fill', 'none')
+                .attr('stroke', it.color).attr('stroke-width', 1).attr('opacity', 0.55);
+            g.append('circle').attr('class', 'kg-node-body').attr('r', r)
+                .attr('fill', it.color)
+                .style('fill-opacity', it.external ? 0.22 : 1);
+            if (it.external) {
+                g.append('circle').attr('r', r).attr('fill', 'none')
+                    .attr('stroke', it.color).attr('stroke-width', 1.3)
+                    .attr('stroke-dasharray', '3 3');
+            }
+            if (it.glyph) g.append('text').attr('class', 'kg-glyph')
+                .attr('y', Math.min(r * 0.34, 5)).attr('text-anchor', 'middle')
+                .style('font-size', Math.max(9, Math.min(r * 1.05, 15)) + 'px')
+                .text(it.glyph);
+            /* ★ 名字常显：所有节点下方都挂名字（低不透明度，见 css .kg-node-label），
+               不再依赖悬停；字号随节点半径，超长截断，tooltip 仍有全文 */
+            const font = Math.max(10, Math.min(r * 0.62, 14));
+            const maxChars = Math.max(4, Math.round(150 / font));
+            const labelEl = g.append('text').attr('class', 'kg-node-label')
+                .attr('x', 0).attr('y', r + font + 2).attr('text-anchor', 'middle')
+                .style('font-size', font + 'px')
+                .text(it.bold ? it.name : truncate(it.name, maxChars));
+            /* sub（计数等补充信息）仍在空间充裕时才显示，避免和名字挤在一起 */
+            const subEl = it.sub ? g.append('text').attr('class', 'kg-node-sublabel')
+                .attr('x', 0).attr('y', r + font * 2 + 6).attr('text-anchor', 'middle') : null;
+            const rec = {
+                el: labelEl, subEl, name: it.name, sub: it.sub,
+                chord, force: !!it.forceLabel || !!it.bold, isOuter: isOuterRing,
+                font, maxChars
+            };
+            labelRecs.push(rec);
+            labelFit(rec);
+            g.on('mouseenter', ev => {
+                    if (opt.tipOf) showTip(ev, it.name, opt.tipOf(it));
+                    if (opt.hotOf) opt.hotOf(it);
+                })
+             .on('mousemove', moveTip)
+             .on('mouseleave', () => { hideTip(); if (opt.coolOf) opt.coolOf(it); })
+             .on('click', () => { if (opt.clickOf) { hideTip(); opt.clickOf(it); } });
+
+            fadeNode(g, opt.animate, (opt.staggerFrom || 0) + i * (opt.staggerStep == null ? 16 : opt.staggerStep));
+            out.push({ item: it, x, y, r, angle: sp.angle, ring: sp.ring, R: sp.R });
+        });
+        return { group: nodeG, spots: out };
+    }
+
+    /* 标签常显（节点下方）：名字永远显示，只在缩放过小时把补充行收起来。
+       名字本体不再隐藏 —— 由低不透明度样式保证不喧宾夺主。 */
+    function labelFit(rec) {
+        const scale = state.scale || 1;
+        rec.el.style.display = '';
+        rec.el.textContent = rec.force ? rec.name : truncate(rec.name, rec.maxChars || 12);
+        if (rec.subEl) {
+            const ok = rec.chord * scale >= 92;
+            rec.subEl.style.display = ok ? '' : 'none';
+            if (ok) rec.subEl.textContent = truncate(rec.sub, Math.round((rec.maxChars || 12) * 0.9));
+        }
+    }
+    function refreshLabels() {
+        for (let i = 0; i < labelRecs.length; i++) labelFit(labelRecs[i]);
+    }
+
+    /* 一个学科下的知识点总数 */
+    function microCountOfMacro(macId) {
+        const idx = state.idx;
+        return (idx.childrenOf.get(macId) || [])
+            .reduce((s, ms) => s + (idx.childrenOf.get(ms.id) || []).length, 0);
+    }
+
     /* ========================================================
        视图一：星系总览
-       3 大领域扇区 + 28 学科双环 + 聚合弧线（跨域绕外）
+       领域扇区 + 学科多环（投资学视图 3 域 / 扩展视图 5 域）
+       + 跨域聚合弧线（绕外，默认极淡）
     ======================================================== */
     function renderOverview(animate) {
         clearLayers();
         const idx = state.idx;
         const cx = W / 2, cy = H / 2;
         const u = Math.min(W, H) / 2;                  // 基准半径
-        const R_IN = u * 0.30, R_OUT = u * 0.965;
-        const R2A = u * 0.62, R2B = u * 0.80;
+        const R_IN = u * 0.32, R_OUT = u * 0.985;
+        const names = visibleDomains();
         const pos = idx.overviewPos;
+        const total = names.reduce((s, d) => s + (idx.macrosOfDomain.get(d) || []).length, 0) || 1;
+        const rings = ringsFor(total);
+        const radii = RING_LEVELS[rings - 1].map(f => f * u);
 
-        /* --- 扇区底色 + 领域标签 --- */
+        /* --- 扇区底色 --- */
         let a0 = deg(-90);
         const domSectors = [];
-        DOMAINS.forEach(dom => {
-            const list = idx.macros.filter(m => m._domain === dom);
-            const sweep = (list.length / idx.macros.length) * TAU;
+        names.forEach(dom => {
+            const list = idx.macrosOfDomain.get(dom) || [];
+            if (!list.length) return;
+            const sweep = (list.length / total) * TAU;
             const color = domColor(dom);
 
             /* 环形扇面 */
@@ -708,12 +1109,12 @@
             a0 += sweep;
         });
 
-        /* 领域名：放扇区外缘；在中线 ±18° 内自动滑到外环节点标签的空当，
+        /* 领域名：放扇区外缘；在中线 ±20° 内自动滑到外环节点标签的空当，
            配合小字号 + 底色光晕，避免大标题压住学科节点标签 */
         const outerAngles = [];
         idx.macros.forEach(m => {
             const p = pos.get(m.id);
-            if (p && p.ring === 1) outerAngles.push(fmtAngle(p.angle));
+            if (p && p.ring === rings - 1) outerAngles.push(fmtAngle(p.angle));
         });
         function labelClearance(aDeg) {
             let best = 360;
@@ -725,11 +1126,10 @@
             return best;
         }
         const domLabels = domSectors.slice().sort((a, b) => fmtAngle(a.mid) - fmtAngle(b.mid));
-        const domMinGap = deg(30);
         let prevMid = null;
         domLabels.forEach(s => {
             let bestA = fmtAngle(s.mid), bestC = -1;
-            for (let off = -18; off <= 18; off += 3) {
+            for (let off = -20; off <= 20; off += 2) {
                 const aD = fmtAngle(s.mid + off * Math.PI / 180);
                 const c = labelClearance(aD);
                 if (c > bestC) { bestC = c; bestA = aD; }
@@ -738,13 +1138,12 @@
             if (prevMid != null) {
                 let dA = fmtAngle(s._angle) - fmtAngle(prevMid);
                 if (dA < 0) dA += 360;
-                if (dA < 30) s._angle = (fmtAngle(prevMid) + 30) * Math.PI / 180;
+                if (dA < 26) s._angle = (fmtAngle(prevMid) + 26) * Math.PI / 180;
             }
             prevMid = s._angle;
         });
-
         domLabels.forEach(s => {
-            const lp = polar(cx, cy, R_OUT + 5, s._angle);
+            const lp = polar(cx, cy, R_OUT - 13, s._angle);
             gSector.append('text').attr('class', 'kg-domain-label')
                 .attr('x', lp[0]).attr('y', lp[1] - 3)
                 .attr('text-anchor', 'middle').attr('fill', s.color)
@@ -756,7 +1155,7 @@
         });
 
         /* --- 轨道参考圈 --- */
-        [R2A, R2B].forEach(R => {
+        radii.forEach(R => {
             gOrbit.append('circle').attr('cx', cx).attr('cy', cy).attr('r', R)
                 .attr('fill', 'none')
                 .attr('stroke', 'var(--kg-orbit)')
@@ -764,35 +1163,61 @@
                 .attr('stroke-width', 1);
         });
 
-        /* --- 聚合边 --- */
+        /* --- 学科节点定位（扇区内多环交错） --- */
+        const spots = [];
+        idx.macros.forEach(m => {
+            const p = pos.get(m.id);
+            if (!p) return;
+            const R = radii[p.ring];
+            const [x, y] = polar(cx, cy, R, p.angle);
+            const c = microCountOfMacro(m.id);
+            m._x = x; m._y = y; m._r = 0;
+            spots.push({
+                item: {
+                    id: m.id, name: m.name, sub: c + ' 知识点',
+                    color: domColor(m._domain),
+                    baseR: Math.min(9 + Math.sqrt(c) * 0.9, 20),
+                    data: m
+                },
+                angle: p.angle, R, ring: p.ring, inRing: p.inRing, x, y
+            });
+        });
+        const posOf = new Map(spots.map(s => [s.item.id, s]));
+
+        /* --- 聚合边：同域内凹、跨域绕外 --- */
         const gradDefs = defs.append('g');
         const edgesG = gEdges.append('g');
-        idx.macroAgg.forEach(rec => {
-            if (!state.relOn.size) return;
+        if (state.relOn.size) idx.macroAgg.forEach(rec => {
             const ma = idx.byId.get(rec.a), mb = idx.byId.get(rec.b);
             if (!ma || !mb) return;
-            const pa = pos.get(rec.a), pb = pos.get(rec.b);
-            if (!pa || !pb) return;
+            const sa = posOf.get(rec.a), sb = posOf.get(rec.b);
+            if (!sa || !sb) return;
             const isCross = ma._domain !== mb._domain;
             if (isCross && !state.crossLinks) return;
 
-            const A = polar(cx, cy, pa.ring ? R2B : R2A, pa.angle);
-            const B = polar(cx, cy, pb.ring ? R2B : R2A, pb.angle);
+            const A = [sa.x, sa.y], B = [sb.x, sb.y];
 
-            /* 控制点：同域内凹，跨域外绕（低弧、贴中圈，避免穿越外缘标签） */
-            let CR;
+            /* 控制点：同域走「弦中点内凹」（短弧、不穿心），跨域贴外圈绕行 */
+            let C;
             if (isCross) {
-                let dAng = Math.abs(fmtAngle(pa.angle) - fmtAngle(pb.angle));
+                let dAng = Math.abs(fmtAngle(sa.angle) - fmtAngle(sb.angle));
                 if (dAng > 180) dAng = 360 - dAng;
-                CR = Math.min(u * (0.90 + dAng / 180 * 0.08), u * 1.0);
+                const CR = Math.min(u * (0.90 + dAng / 180 * 0.07), u * 0.99);
+                C = polar(cx, cy, CR, (sa.angle + sb.angle) / 2);
             } else {
-                CR = R_IN + (R2A - R_IN) * 0.30;
+                const mx = (A[0] + B[0]) / 2, my = (A[1] + B[1]) / 2;
+                const dx = mx - cx, dy = my - cy;
+                const dl = Math.hypot(dx, dy) || 1;
+                const k = 0.16;                     /* 内凹比例，仅作轻微收束 */
+                const nr = dl * (1 - k);
+                /* 若弦中点已贴近核心（跨扇区的大跨），改为沿外圈轻弧，避免穿过中心 */
+                C = nr >= u * 0.30
+                    ? [mx - dx * k, my - dy * k]
+                    : polar(cx, cy, u * 0.40, (sa.angle + sb.angle) / 2);
             }
-            const midA = (pa.angle + pb.angle) / 2;
-            const C = polar(cx, cy, CR, midA);
 
             const w = Math.min(1 + Math.log2(1 + rec.count) * 0.85, 3.4) * (isCross ? 0.72 : 1);
-            const op = isCross ? 0.20 : 0.42;   /* 默认若隐若现，hover 才亮起 */
+            const op = isCross ? 0.18 : 0.38;   /* 默认若隐若现，hover 才亮起 */
 
             let stroke;
             if (isCross) {
@@ -818,72 +1243,31 @@
 
         /* --- 中心恒星 --- */
         const core = gNodes.append('g').attr('class', 'kg-node kg-core');
-        core.append('circle').attr('cx', cx).attr('cy', cy).attr('r', u * 0.145)
+        core.append('circle').attr('cx', cx).attr('cy', cy).attr('r', u * 0.155)
             .attr('fill', 'none').attr('stroke', 'var(--kg-accent)').attr('stroke-width', 1).attr('opacity', 0.35);
-        core.append('circle').attr('cx', cx).attr('cy', cy).attr('r', u * 0.105)
+        core.append('circle').attr('cx', cx).attr('cy', cy).attr('r', u * 0.112)
             .attr('fill', 'none').attr('stroke', 'var(--kg-accent)').attr('stroke-width', 1.5).attr('opacity', 0.55);
-        core.append('circle').attr('cx', cx).attr('cy', cy).attr('r', u * 0.062)
+        core.append('circle').attr('cx', cx).attr('cy', cy).attr('r', u * 0.066)
             .attr('fill', 'var(--kg-accent)').attr('opacity', 0.92);
         core.append('text').attr('class', 'kg-core-label')
-            .attr('x', cx).attr('y', cy + u * 0.062 + 24).attr('text-anchor', 'middle')
+            .attr('x', cx).attr('y', cy + u * 0.066 + 24).attr('text-anchor', 'middle')
             .text('投资学知识星系');
+        core.append('text').attr('class', 'kg-core-sub')
+            .attr('x', cx).attr('y', cy + u * 0.066 + 40).attr('text-anchor', 'middle')
+            .text(idx.macros.length + ' 学科 · ' + idx.micros.length + ' 知识点 · 六层钻取');
 
         /* --- 学科节点 --- */
-        const nodeG = gNodes.append('g');
-        idx.macros.forEach((m, i) => {
-            const p = pos.get(m.id);
-            const R = p.ring ? R2B : R2A;
-            const [x, y] = polar(cx, cy, R, p.angle);
-            /* 大小 = 下辖知识点数 */
-            let c = 0;
-            (idx.childrenOf.get(m.id) || []).forEach(ms => { c += (idx.childrenOf.get(ms.id) || []).length; });
-            const r = 15 + Math.sqrt(c) * 1.35;
-            m._r = r; m._x = x; m._y = y;   /* 缓存，供 hover/跳转 */
-
-            const g = nodeG.append('g')
-                .attr('class', 'kg-node g-node')
-                .attr('data-id', m.id)
-                .attr('transform', `translate(${x},${y})`)
-                .style('opacity', 0);
-
-            g.append('circle').attr('class', 'kg-halo').attr('r', r + 7)
-                .attr('stroke', domColor(m._domain)).attr('stroke-width', 1);
-            g.append('circle').attr('class', 'kg-node-body').attr('r', r)
-                .attr('fill', domColor(m._domain));
-
-            /* 标签：内环节点朝内放、外环节点朝外放，内外永不打架 */
-            const inward = p.ring === 0;   /* 内环 → 标签朝圆心 */
-            const cosA = Math.cos(p.angle), sinA = Math.sin(p.angle);
-            let lx = 0, ly = 0, anchor = 'middle';
-            if (cosA > 0.35) {
-                /* 右侧：朝外 anchor=start / 朝内 anchor=end */
-                lx = inward ? -(r + 8) : (r + 8);
-                anchor = inward ? 'end' : 'start';
-                ly = 4;
-            } else if (cosA < -0.35) {
-                lx = inward ? (r + 8) : -(r + 8);
-                anchor = inward ? 'start' : 'end';
-                ly = 4;
-            } else if (sinA < 0) {
-                /* 上方：朝外向上，朝内向下 */
-                ly = inward ? (r + 16) : -(r + 10);
-                anchor = 'middle'; lx = 0;
-            } else {
-                ly = inward ? -(r + 10) : (r + 16);
-                anchor = 'middle'; lx = 0;
-            }
-            g.append('text').attr('class', 'kg-node-label')
-                .attr('x', lx).attr('y', ly).attr('text-anchor', anchor)
-                .text(m.name);
-            g.append('text').attr('class', 'kg-node-sublabel')
-                .attr('x', lx).attr('y', ly + 13).attr('text-anchor', anchor)
-                .text(c + ' 知识点');
-
-            g.on('mouseenter', () => hotMacro(m.id, true))
-             .on('mouseleave', () => hotMacro(m.id, false))
-             .on('click', () => enterMacro(m.id));
-
-            fadeNode(g, animate, i * 16);
+        const nodeR = drawNodeList(spots, {
+            cx, cy, animate, gParent: gNodes,
+            tipOf: it => {
+                const m = it.data;
+                const mesoCnt = (idx.childrenOf.get(m.id) || []).length;
+                return `${m._domain} · ${mesoCnt} 主题 · ${microCountOfMacro(m.id)} 知识点<br>点击进入学科星域`;
+            },
+            clickOf: it => enterMacro(it.id),
+            hotOf: it => hotMacro(it.id, true),
+            coolOf: it => hotMacro(it.id, false),
+            staggerStep: 12
         });
 
         /* hover 学科：亮起相关边 */
@@ -894,16 +1278,15 @@
                 el.classed('is-hot', on && hit);
                 el.classed('is-dim', on && !hit);
             });
-            nodeG.selectAll('.kg-node').classed('is-dim', on && function () {
+            nodeR.group.selectAll('.kg-node').classed('is-dim', on && function () {
                 return this.dataset.id !== id;
             });
-            /* 邻居高亮由边亮起自然带动 */
         }
     }
 
     /* ========================================================
        视图二：学科星域
-       中央学科恒星 + 10 主题轨道 + 外圈星门
+       中央学科恒星 + 主题多环 + 外圈星门（通往关联学科）
     ======================================================== */
     function renderMacroView(animate) {
         clearLayers();
@@ -912,9 +1295,9 @@
         if (!mac) { goOverview(); return; }
         const cx = W / 2, cy = H / 2;
         const u = Math.min(W, H) / 2;
-        const R_MESO = u * 0.55;
-        const R_GATE = u * 0.88;
+        const R_GATE = u * 0.92;
         const color = domColor(mac._domain);
+        const mesos = idx.childrenOf.get(mac.id) || [];
 
         /* 中央学科 */
         const core = gNodes.append('g')
@@ -926,48 +1309,38 @@
             .attr('y', 56).attr('text-anchor', 'middle').text(mac.name);
         core.append('text').attr('class', 'kg-node-sublabel')
             .attr('y', 72).attr('text-anchor', 'middle')
-            .text(mac._domain + ' · ' + (idx.childrenOf.get(mac.id) || []).length + ' 主题');
+            .text(mac._domain + ' · ' + mesos.length + ' 主题');
 
         /* 主题轨道圈 */
-        gOrbit.append('circle').attr('cx', cx).attr('cy', cy).attr('r', R_MESO)
-            .attr('fill', 'none').attr('stroke', 'var(--kg-orbit)')
-            .attr('stroke-dasharray', '1 7');
+        const rings = ringsFor(mesos.length);
+        const radii = RING_LEVELS[rings - 1].map(f => f * u);
+        radii.forEach(R => {
+            gOrbit.append('circle').attr('cx', cx).attr('cy', cy).attr('r', R)
+                .attr('fill', 'none').attr('stroke', 'var(--kg-orbit)')
+                .attr('stroke-dasharray', '1 7');
+        });
 
-        /* 主题节点 */
-        const mesos = idx.childrenOf.get(mac.id) || [];
-        const n = mesos.length;
-        const nodeG = gNodes.append('g');
-        mesos.forEach((ms, i) => {
-            const a = deg(-90) + (i / n) * TAU;
-            const [x, y] = polar(cx, cy, R_MESO, a);
+        /* 主题节点（多环交错） */
+        const slots = ringLayout(mesos.length, u);
+        const spots = mesos.map((ms, i) => {
+            const s = slots[i];
+            const [x, y] = polar(cx, cy, s.R, s.angle);
             const micros = (idx.childrenOf.get(ms.id) || []).filter(visibleMicro);
-            const r = 13 + Math.sqrt(micros.length) * 2.4;
-            ms._x = x; ms._y = y; ms._r = r;
-
-            const g = nodeG.append('g').attr('class', 'kg-node g-node')
-                .attr('data-id', ms.id)
-                .attr('transform', `translate(${x},${y})`)
-                .style('opacity', 0);
-            g.append('circle').attr('class', 'kg-node-body').attr('r', r)
-                .attr('fill', color);
-            g.append('text').attr('class', 'kg-node-label')
-                .attr('y', r + 15).attr('text-anchor', 'middle').text(ms.name);
-            g.append('text').attr('class', 'kg-node-sublabel')
-                .attr('y', r + 28).attr('text-anchor', 'middle').text(micros.length + ' 知识点');
-
-            g.on('mouseenter', ev => showTip(ev, ms.name,
-                `${mac.name} · ${micros.length} 个知识点<br>点击进入主题星团`))
-             .on('mousemove', moveTip)
-             .on('mouseleave', hideTip)
-             .on('click', () => { hideTip(); enterMeso(ms.id); });
-
-            fadeNode(g, animate, 80 + i * 30);
+            ms._x = x; ms._y = y;
+            return {
+                item: {
+                    id: ms.id, name: ms.name, sub: micros.length + ' 知识点',
+                    color, baseR: 12 + Math.sqrt(micros.length) * 2.0, data: ms
+                },
+                angle: s.angle, R: s.R, ring: s.ring, inRing: s.inRing, x, y
+            };
         });
 
         /* 主题间聚合边（当前学科内部） */
         const edgesG = gEdges.append('g');
-        mesoAggForMacro(mac.id).forEach(rec => {
-            const A = rec._a, B = rec._b;
+        const posMap = new Map(spots.map(s => [s.item.id, s]));
+        idx.mesoAgg.forEach(rec => {
+            const A = posMap.get(rec.a), B = posMap.get(rec.b);
             if (!A || !B) return;
             const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
             const dxc = mx - cx, dyc = my - cy;
@@ -980,6 +1353,13 @@
                 .attr('stroke', 'var(--kg-edge)')
                 .attr('stroke-width', w)
                 .attr('opacity', 0.9);
+        });
+
+        drawNodeList(spots, {
+            cx, cy, animate, gParent: gNodes,
+            tipOf: it => `${mac.name} · ${it.sub}<br>点击进入主题星团`,
+            clickOf: it => enterMeso(it.id),
+            staggerFrom: 80, staggerStep: 26
         });
 
         /* --- 星门：与本学科有关联的其它学科 --- */
@@ -999,30 +1379,9 @@
         });
     }
 
-    /* 当前学科的 meso 聚合边（含位置缓存） */
-    function mesoAggForMacro(macId) {
-        const idx = state.idx;
-        const mesos = idx.childrenOf.get(macId) || [];
-        const set = new Set(mesos.map(m => m.id));
-        const out = [];
-        idx.mesoAgg.forEach(rec => {
-            if (!set.has(rec.a) || !set.has(rec.b)) return;
-            out.push({
-                a: rec.a, b: rec.b, count: rec.count,
-                _a: locate(rec.a), _b: locate(rec.b)
-            });
-        });
-        function locate(mesoId) {
-            const ms = idx.byId.get(mesoId);
-            if (!ms || ms._x == null) return null;
-            return { x: ms._x, y: ms._y };
-        }
-        return out;
-    }
-
     /* ========================================================
        视图三：主题星团
-       中央主题 + 知识点环绕 + 关系线型 + 外部星门
+       中央主题 + 知识点多环 + 关系线型 + 外部星门
     ======================================================== */
     function renderMesoView(animate) {
         clearLayers();
@@ -1032,9 +1391,12 @@
         const mac = idx.byId.get(idx.macroOfMeso.get(state.mesoId)) || { name: '', _domain: '交叉学科' };
         const cx = W / 2, cy = H / 2;
         const u = Math.min(W, H) / 2;
-        const R_MICRO = u * 0.50;
-        const R_GATE = u * 0.86;
+        const R_GATE = u * 0.92;
         const color = domColor(mac._domain);
+
+        /* 知识点（延伸知识点在投资学视图下默认隐藏；若本单位全是延伸节点则照常展示） */
+        let micros = (idx.childrenOf.get(ms.id) || []).filter(visibleMicro);
+        if (!micros.length) micros = idx.childrenOf.get(ms.id) || [];
 
         /* 中央主题 */
         const core = gNodes.append('g')
@@ -1046,51 +1408,35 @@
             .attr('y', 48).attr('text-anchor', 'middle').text(ms.name);
         core.append('text').attr('class', 'kg-node-sublabel')
             .attr('y', 63).attr('text-anchor', 'middle')
-            .text(mac.name);
+            .text(mac.name + ' · ' + micros.length + ' 知识点');
 
-        /* 知识点 */
-        const micros = (idx.childrenOf.get(ms.id) || []).filter(visibleMicro);
-        const nm = micros.length;
-        const nodeG = gNodes.append('g');
-        micros.forEach((mi, i) => {
-            const a = deg(-90) + (i / nm) * TAU + (nm === 1 ? 0 : 0);
-            const [x, y] = polar(cx, cy, R_MICRO, a);
-            const r = 15 + (mi.core ? 3.5 : 0) + (Number(mi.importance) || 0) * 9;
-            mi._x = x; mi._y = y; mi._r = r;
+        /* 轨道圈 */
+        const rings = ringsFor(micros.length);
+        const radii = RING_LEVELS[rings - 1].map(f => f * u);
+        radii.forEach(R => {
+            gOrbit.append('circle').attr('cx', cx).attr('cy', cy).attr('r', R)
+                .attr('fill', 'none').attr('stroke', 'var(--kg-orbit)')
+                .attr('stroke-dasharray', '1 7');
+        });
 
-            const g = nodeG.append('g').attr('class', 'kg-node g-node')
-                .attr('data-id', mi.id)
-                .attr('transform', `translate(${x},${y})`)
-                .style('opacity', 0);
-
-            if (mi.core) {
-                g.append('circle').attr('class', 'kg-halo').attr('r', r + 6)
-                    .attr('stroke', color).attr('stroke-width', 1);
-            }
-            g.append('circle').attr('class', 'kg-node-body').attr('r', r)
-                .attr('fill', color)
-                .style('fill-opacity', mi.is_external ? 0.22 : 1);
-            if (mi.is_external) {
-                g.append('circle').attr('r', r).attr('fill', 'none')
-                    .attr('stroke', color).attr('stroke-width', 1.4).attr('stroke-dasharray', '3 3');
-            }
-            g.append('text').attr('class', 'kg-node-label')
-                .attr('y', r + 16).attr('text-anchor', 'middle')
-                .text(mi.name);
-
-            g.on('mouseenter', ev => {
-                    const d = idx.explByMicro.get(mi.id) || mi.description || '';
-                    const meta = [];
-                    if (mi.cluster_name) meta.push('簇 · ' + mi.cluster_name);
-                    if (mi.difficulty) meta.push('难度 ' + '●'.repeat(mi.difficulty) + '○'.repeat(5 - mi.difficulty));
-                    if (d) meta.push(d.slice(0, 46) + (d.length > 46 ? '…' : ''));
-                    showTip(ev, mi.name, meta.join('<br>') || '点击查看详解');
-                })
-                .on('mousemove', moveTip)
-                .on('mouseleave', hideTip)
-                .on('click', () => { hideTip(); selectMicro(mi.id); });
-
-            fadeNode(g, animate, 60 + i * 45);
+        /* 知识点定位（多环交错） */
+        const slots = ringLayout(micros.length, u);
+        const spots = micros.map((mi, i) => {
+            const s = slots[i];
+            const [x, y] = polar(cx, cy, s.R, s.angle);
+            const dtCnt = (idx.detailByMicro.get(mi.id) || []).length;
+            mi._x = x; mi._y = y;
+            return {
+                item: {
+                    id: mi.id, name: mi.name,
+                    sub: dtCnt ? dtCnt + ' 深层内容' : '暂无深层内容',
+                    color,
+                    baseR: 11 + (mi.core ? 3 : 0) + (Number(mi.importance) || 0) * 8,
+                    external: mi.is_external === true,
+                    data: mi
+                },
+                angle: s.angle, R: s.R, ring: s.ring, inRing: s.inRing, x, y
+            };
         });
 
         /* 知识边（团内） */
@@ -1141,6 +1487,22 @@
             .attr('markerWidth', 7).attr('markerHeight', 7).attr('orient', 'auto-start-reverse');
         mk2.append('path').attr('d', 'M10,1L1,5L10,9z').attr('style', 'fill:var(--kg-ink-dim)');
 
+        drawNodeList(spots, {
+            cx, cy, animate, gParent: gNodes,
+            tipOf: it => {
+                const mi = it.data;
+                const d = idx.explByMicro.get(mi.id) || mi.description || '';
+                const meta = [];
+                if (mi.is_external) meta.push('跨学科延伸 · ' + (mi.source_discipline || '外延'));
+                if (mi.cluster_name) meta.push('簇 · ' + mi.cluster_name);
+                if (d) meta.push(escapeHtml(d.slice(0, 52)) + (d.length > 52 ? '…' : ''));
+                meta.push('点击进入知识节点');
+                return meta.join('<br>');
+            },
+            clickOf: it => enterMicro(it.id),
+            staggerFrom: 60, staggerStep: 24
+        });
+
         /* --- 星门：外部关联的主题 --- */
         const gateMap = new Map();
         (idx.mesoRel.get(ms.id) || []).forEach(r => {
@@ -1173,6 +1535,311 @@
         });
     }
 
+    /* ========================================================
+       内容层公共件（知识节点 / 名词解释 / 深层内容 三层共用）
+    ======================================================== */
+    function contentCtx(mi, animate) {
+        const idx = state.idx;
+        const meso = idx.byId.get(idx.mesoOfMicro.get(mi.id));
+        const mac = idx.byId.get(idx.macroOfMicro.get(mi.id));
+        return {
+            idx, mi, meso, mac, animate,
+            cx: W / 2, cy: H / 2, u: Math.min(W, H) / 2,
+            color: domColor(mac ? mac._domain : '交叉学科'),
+            exp: idx.expNodeOfMicro.get(mi.id) || null,
+            details: idx.detailByMicro.get(mi.id) || []
+        };
+    }
+
+    /* 中央恒星：知识点 / 名词解释 / 深层内容 都长这样（文字即内容主体）。
+       style = { color, glyph, ring, halo }：
+       - 知识节点用领域色；名词解释 / 深层内容主节点必须沿用该内容类型的
+         专属色 + 字形（与它在上一层作为卫星节点时的样子一致，避免迷路）。 */
+    function drawContentCore(ctx, title, sub, onClick, style) {
+        const s = style || {};
+        const color = s.color || ctx.color;
+        const { cx, cy } = ctx;
+        const core = gNodes.append('g')
+            .attr('class', 'kg-node g-node kg-core-node')
+            .attr('transform', `translate(${cx},${cy})`);
+        if (s.halo !== false)
+            core.append('circle').attr('class', 'kg-halo').attr('r', 42)
+                .attr('stroke', color).attr('stroke-width', 1.2);
+        if (s.ring)
+            core.append('circle').attr('class', 'kg-ring').attr('r', 33)
+                .attr('fill', 'none').attr('stroke', color)
+                .attr('stroke-width', 1).attr('opacity', 0.55);
+        core.append('circle').attr('class', 'kg-node-body').attr('r', 29).attr('fill', color);
+        if (s.glyph)
+            core.append('text').attr('class', 'kg-glyph')
+                .attr('y', 6).attr('text-anchor', 'middle')
+                .style('font-size', '17px').text(s.glyph);
+        core.append('text').attr('class', 'kg-core-label')
+            .attr('y', 58).attr('text-anchor', 'middle').text(truncate(title, 22));
+        if (sub) core.append('text').attr('class', 'kg-node-sublabel')
+            .attr('y', 74).attr('text-anchor', 'middle').text(sub);
+        if (onClick) core.style('cursor', 'pointer').on('click', onClick);
+        fadeNode(core, ctx.animate, 0);
+        return core;
+    }
+
+    /* 子节点环（释义 + 深层内容，最多两环） */
+    function drawContentRing(ctx, items, animate) {
+        const { cx, cy, u } = ctx;
+        if (!items.length) return null;
+        const rings = items.length <= 8 ? 1 : 2;
+        const radii = rings === 1 ? [u * 0.50] : [u * 0.38, u * 0.68];
+        const buckets = [];
+        for (let i = 0; i < rings; i++) buckets.push([]);
+        items.forEach((it, i) => buckets[i % rings].push(it));
+        const spots = [];
+        buckets.forEach((arr, ri) => {
+            arr.forEach((it, j) => {
+                const a = deg(-90) + ((j + 0.5) / arr.length) * TAU;
+                const R = radii[ri];
+                const [x, y] = polar(cx, cy, R, a);
+                spots.push({ item: it, angle: a, R, ring: ri, inRing: arr.length, x, y });
+            });
+        });
+
+        /* 中心 → 子节点连线 */
+        const eg = gEdges.append('g');
+        spots.forEach(sp => {
+            eg.append('line').attr('class', 'kg-edge g-node')
+                .attr('x1', cx).attr('y1', cy).attr('x2', sp.x).attr('y2', sp.y)
+                .attr('stroke', 'var(--kg-edge)').attr('stroke-width', 1.2)
+                .attr('opacity', 0.7);
+        });
+
+        return drawNodeList(spots, {
+            cx, cy, animate, gParent: gNodes,
+            tipOf: it => it.tip || '',
+            clickOf: it => { if (it.onClick) it.onClick(it); },
+            staggerFrom: 90, staggerStep: 45
+        });
+    }
+
+    /* 一个知识点的「名词解释 + 深层内容」节点清单 */
+    function contentChildItems(ctx, opt) {
+        const o = opt || {};
+        const items = [];
+        if (ctx.exp && !o.skipExpl) {
+            items.push({
+                id: ctx.exp.id, kind: 'explanation', cls: 'kg-node-expl',
+                name: '名词解释', sub: '点开看释义全文',
+                color: dtColor('explanation', ctx.color), baseR: 20, glyph: '释', ring: true, halo: true,
+                tip: '名词解释 · ' + escapeHtml(ctx.mi.name) + '<br>' +
+                     escapeHtml((ctx.exp.content || '').slice(0, 56)) + '…<br>点击进入第 5 层',
+                onClick: () => enterExplanationByMicro(ctx.mi.id)
+            });
+        }
+        ctx.details.slice(0, DT_MAX_ON_STAGE).forEach(d => {
+            const meta = DT_META[d.detail_type] || DT_META.case;
+            const nm = d.name || meta.label;
+            items.push({
+                id: d.id, kind: d.detail_type, cls: 'kg-node-detail',
+                name: meta.label + ' · ' + nm, sub: '',
+                color: dtColor(d.detail_type, ctx.color), baseR: 14, glyph: meta.glyph,
+                tip: meta.label + ' · ' + escapeHtml(nm) + '<br>' +
+                     escapeHtml((d.content || '').slice(0, 60)) + '<br>点击进入第 6 层',
+                onClick: () => enterDetail(d.id)
+            });
+        });
+        return items;
+    }
+
+    /* 关联知识点星门（内容三层共用） */
+    function microGateItems(microId, limit) {
+        const idx = state.idx;
+        const gateMap = new Map();
+        (idx.adjByMicro.get(microId) || []).forEach(a => {
+            if (!state.relOn.has(a.edge.relation)) return;
+            const other = idx.byId.get(a.other);
+            if (!other) return;
+            const g = gateMap.get(a.other) || { count: 0, rels: new Set() };
+            g.count += 1; g.rels.add(a.edge.relation);
+            gateMap.set(a.other, g);
+        });
+        return [...gateMap.entries()]
+            .map(([oid, g]) => {
+                const o = idx.byId.get(oid);
+                if (!o) return null;
+                const omac = idx.byId.get(idx.macroOfMicro.get(oid));
+                const pos = omac ? idx.overviewPos.get(omac.id) : null;
+                return {
+                    key: 'm:' + oid, id: oid, kind: 'micro',
+                    count: g.count, edges: [...g.rels],
+                    label: o.name,
+                    sub: omac ? omac.name : '延伸知识点',
+                    _posAngle: pos ? pos.angle : undefined
+                };
+            })
+            .filter(Boolean)
+            .sort((a, b) => b.count - a.count)
+            .slice(0, limit || 10);
+    }
+
+    /* ========================================================
+       视图四：知识节点（micro · 第 4 层）
+       中央知识点恒星 + 「名词解释」入口 + 深层内容节点 + 关联知识点星门
+       —— 点「名词解释」下潜第 5 层，点深层内容直接下潜第 6 层
+    ======================================================== */
+    /* 来源聚焦：进入 L5/L6 后，只保留「来路节点 + 中央恒星」全亮，
+       其余卫星节点与星门罩一层半透明遮罩（悬停恢复）——一眼看清自己从哪儿来 */
+    function applyOriginFocus(originId) {
+        if (!originId) return;
+        gNodes.selectAll('.kg-node').classed('is-dim', function () {
+            if (this.classList.contains('kg-core-node')) return false;
+            return this.dataset.id !== originId;
+        });
+        gGates.selectAll('.kg-gate').classed('is-dim', true);
+    }
+
+    function renderMicroView(animate) {
+        clearLayers();
+        const idx = state.idx;
+        const mi = idx.byId.get(state.microId);
+        if (!mi || mi.level !== 'micro') { goOverview(); return; }
+        const ctx = contentCtx(mi, animate);
+        const { cx, cy, u } = ctx;
+
+        /* ★ 标题用中文名（mi.name），id 只在 tooltip / 面板里出现 */
+        drawContentCore(ctx, mi.name, [
+            ctx.meso ? ctx.meso.name : (mi.is_external ? '跨学科延伸' : ''),
+            (ctx.details.length ? ctx.details.length + ' 条深层内容' : '暂无深层内容')
+        ].filter(Boolean).join(' · '), () => showDetail(mi));
+
+        const items = contentChildItems(ctx);
+        if (!items.length) {
+            gSector.append('text').attr('class', 'kg-sat-empty')
+                .attr('x', cx).attr('y', cy - u * 0.30)
+                .attr('text-anchor', 'middle')
+                .text('该知识点暂无释义 / 深层内容 · 双击空白返回主题星团');
+        }
+        drawContentRing(ctx, items, animate);
+
+        renderGates({
+            cx, cy, R_GATE: u * 0.92, u, animate,
+            relItems: microGateItems(mi.id, 10),
+            centerLabel: mi.name,
+            isMeso: true
+        });
+    }
+
+    /* ========================================================
+       视图五：名词解释（explanation · 第 5 层）
+       中央释义恒星 + 其下子内容环 + 关联知识点星门
+    ======================================================== */
+    function renderExplanationView(animate) {
+        clearLayers();
+        const idx = state.idx;
+        const mi = idx.byId.get(state.microId);
+        const exp = idx.byId.get(state.explId) || (mi ? idx.expNodeOfMicro.get(mi.id) : null);
+        if (!mi || !exp) { if (mi) enterMicro(mi.id); else goOverview(); return; }
+        const ctx = contentCtx(mi, animate);
+        const { cx, cy, u } = ctx;
+        ctx.exp = exp;
+
+        /* 主节点 = 释义样式：靛蓝 + 「释」字形（与其在上一层的样子一致） */
+        const explTitle = (exp.name && exp.name !== '名词解释') ? exp.name : (mi.name + '的解释');
+        drawContentCore(ctx, explTitle, [
+            '名词解释 · ' + mi.name,
+            (ctx.details.length ? ctx.details.length + ' 条子内容' : '暂无子内容')
+        ].filter(Boolean).join(' · '), () => showExplanationDetail(exp, mi),
+        { color: dtColor('explanation'), glyph: '释', ring: true, halo: true });
+
+        /* 子内容环：深层内容 + 来路节点（从第 4 层直进时补「知识点」回程节点） */
+        const items = contentChildItems(ctx, { skipExpl: true });
+        if (state.originId === mi.id) {
+            items.push({
+                id: mi.id, kind: 'micro', cls: 'kg-node-back',
+                name: '知识点 · ' + mi.name, sub: '返回第 4 层',
+                color: ctx.color, baseR: 17, glyph: '◉',
+                tip: '返回知识节点 · ' + escapeHtml(mi.name),
+                onClick: () => enterMicro(mi.id)
+            });
+        }
+        if (!items.length) {
+            gSector.append('text').attr('class', 'kg-sat-empty')
+                .attr('x', cx).attr('y', cy - u * 0.30)
+                .attr('text-anchor', 'middle')
+                .text('该释义暂无子内容（案例 / 公式 / 人物…）· 双击空白返回知识节点');
+        }
+        drawContentRing(ctx, items, animate);
+
+        renderGates({
+            cx, cy, R_GATE: u * 0.92, u, animate,
+            relItems: microGateItems(mi.id, 10),
+            centerLabel: exp.name || mi.name,
+            isMeso: true
+        });
+        applyOriginFocus(state.originId);
+    }
+
+    /* ========================================================
+       视图六：深层内容（detail · 第 6 层）
+       中央子内容恒星 + 兄弟内容环（含「名词解释」回程）+ 关联知识点星门
+    ======================================================== */
+    function renderDetailView(animate) {
+        clearLayers();
+        const idx = state.idx;
+        const d = idx.byId.get(state.detailId);
+        if (!d || d.level !== 'detail') { goOverview(); return; }
+        const microId = state.microId || idx.microOfDetail.get(d.id);
+        const mi = idx.byId.get(microId);
+        if (!mi) { goOverview(); return; }
+        const ctx = contentCtx(mi, animate);
+        const { cx, cy, u } = ctx;
+        state.microId = microId;
+        const meta = DT_META[d.detail_type] || DT_META.case;
+
+        /* 主节点 = 该内容类型样式（如案例 = 红圈 + ▶），与其卫星形态一致 */
+        drawContentCore(ctx, d.name || meta.label,
+            meta.label + ' · ' + mi.name, () => showDetailNode(d, mi),
+            { color: dtColor(d.detail_type), glyph: meta.glyph, ring: true, halo: true });
+
+        /* 兄弟节点：名词解释回程 + 其余深层内容 */
+        const items = [];
+        if (ctx.exp) {
+            items.push({
+                id: ctx.exp.id, kind: 'explanation', cls: 'kg-node-expl',
+                name: '名词解释', sub: '返回第 5 层',
+                color: dtColor('explanation', ctx.color), baseR: 20, glyph: '释', ring: true, halo: true,
+                tip: '名词解释 · ' + escapeHtml(mi.name) + '<br>点击回到第 5 层',
+                onClick: () => enterExplanationByMicro(mi.id)
+            });
+        }
+        ctx.details.forEach(x => {
+            if (x.id === d.id) return;
+            const m2 = DT_META[x.detail_type] || DT_META.case;
+            items.push({
+                id: x.id, kind: x.detail_type, cls: 'kg-node-detail',
+                name: m2.label + ' · ' + (x.name || m2.label), sub: '',
+                color: dtColor(x.detail_type, ctx.color), baseR: 13, glyph: m2.glyph,
+                tip: m2.label + ' · ' + escapeHtml(x.name || '') + '<br>' +
+                     escapeHtml((x.content || '').slice(0, 56)),
+                onClick: () => enterDetail(x.id)
+            });
+        });
+        /* 其他知识点：返回本知识点 */
+        items.push({
+            id: mi.id, kind: 'micro', cls: 'kg-node-back',
+            name: '知识点 · ' + mi.name, sub: '返回第 4 层',
+            color: ctx.color, baseR: 17, glyph: '◉',
+            tip: '返回知识节点 · ' + escapeHtml(mi.name),
+            onClick: () => enterMicro(mi.id)
+        });
+        drawContentRing(ctx, items, animate);
+
+        renderGates({
+            cx, cy, R_GATE: u * 0.92, u, animate,
+            relItems: microGateItems(mi.id, 10),
+            centerLabel: mi.name,
+            isMeso: true
+        });
+        applyOriginFocus(state.originId);
+    }
+
     /* --------------------------------------------------------
        星门（跨域 / 跨主题的委婉出口）
     -------------------------------------------------------- */
@@ -1183,6 +1850,7 @@
         /* 门角度 = 目标在总览中的方位（保持空间连续性），
            再做环形最小间距散开，避免同方向文字叠压 */
         relItems.forEach(it => {
+            if (it._posAngle != null) { it._baseA = it._posAngle; return; }
             if (it.kind === 'macro') {
                 const p = state.idx.overviewPos.get(it.id);
                 it._baseA = p ? p.angle : deg(-90) + (relItems.indexOf(it) / relItems.length) * TAU;
@@ -1223,7 +1891,9 @@
                 .attr('d', `M${gx},${gy} Q${C[0]},${C[1]} ${cx},${cy}`)
                 .attr('transform', 'translate(0,0)');
 
-            const r = 13 + Math.min(it.count, 12) * 0.55;
+            /* 星门是「别的知识点的入口」，尺寸明显小于主/卫星节点，
+               避免不同层级的节点看起来平级 */
+            const r = 10 + Math.min(it.count, 12) * 0.45;
             g.append('circle').attr('class', 'kg-gate-body').attr('r', r);
             g.append('text').attr('class', 'kg-gate-label')
                 .attr('y', -r - 7).attr('text-anchor', 'middle').text(it.label);
@@ -1238,6 +1908,7 @@
              .on('click', () => {
                  hideTip();
                  if (it.kind === 'macro') enterMacro(it.id);
+                 else if (it.kind === 'micro') enterMicro(it.id);
                  else enterMeso(it.id);
              });
 
@@ -1246,39 +1917,128 @@
     }
 
     /* --------------------------------------------------------
-       导航
+       导航（六层）
     -------------------------------------------------------- */
     function goOverview() {
         state.view = 'overview';
         state.macroId = null; state.mesoId = null;
+        state.microId = null; state.explId = null; state.detailId = null;
+        state.originView = null; state.originId = null;
         hideDetail();
         render(true);
         resetCamera();
     }
     function enterMacro(id) {
         const idx = state.idx;
-        if (!idx.byId.get(id)) return;
+        if (!id || !idx.byId.get(id)) return false;
         state.view = 'macro';
         state.macroId = id;
-        state.mesoId = null;
+        state.mesoId = null; state.microId = null; state.explId = null; state.detailId = null;
+        state.originView = null; state.originId = null;
         hideDetail();
         render(true);
         resetCamera();
+        return true;
     }
     function enterMeso(id) {
         const idx = state.idx;
-        if (!idx.byId.get(id)) return;
+        if (!id || !idx.byId.get(id)) return false;
         state.view = 'meso';
         state.mesoId = id;
+        state.microId = null; state.explId = null; state.detailId = null;
+        state.originView = null; state.originId = null;
         const mac = idx.macroOfMeso.get(id);
         if (mac) state.macroId = mac;
         hideDetail();
         render(true);
         resetCamera();
+        return true;
     }
+    /* 进入第 4 层：知识节点（中央知识点 + 释义入口 + 深层内容） */
+    function enterMicro(id) {
+        const idx = state.idx;
+        const mi = idx.byId.get(id);
+        if (!mi || mi.level !== 'micro') return false;
+        state.view = 'micro';
+        state.microId = id;
+        state.explId = null; state.detailId = null;
+        state.originView = null; state.originId = null;
+        const mesoId = idx.mesoOfMicro.get(id);
+        state.mesoId = mesoId || null;
+        state.macroId = mesoId ? (idx.macroOfMeso.get(mesoId) || null) : null;
+        hideDetail();
+        render(true);
+        resetCamera();
+        showDetail(mi);
+        return true;
+    }
+    /* 进入第 5 层：名词解释（按知识点找其释义节点） */
+    function enterExplanationByMicro(microId) {
+        const idx = state.idx;
+        const mi = idx.byId.get(microId);
+        if (!mi || mi.level !== 'micro') return false;
+        const exp = idx.expNodeOfMicro.get(microId);
+        if (!exp) {
+            enterMicro(microId);
+            showKgToast('该知识点暂无名词解释节点');
+            return false;
+        }
+        state.originView = state.view;          /* 记录从哪层进来，双击空白回哪层 */
+        /* 来路节点：从 L4 来=那个知识点；从 L6 来=那个深层内容 */
+        state.originId = state.view === 'detail' ? state.detailId : microId;
+        state.view = 'explanation';
+        state.microId = microId;
+        state.explId = exp.id;
+        state.detailId = null;
+        const mesoId = idx.mesoOfMicro.get(microId);
+        state.mesoId = mesoId || null;
+        state.macroId = mesoId ? (idx.macroOfMeso.get(mesoId) || null) : null;
+        hideDetail();
+        render(true);
+        resetCamera();
+        showExplanationDetail(exp, mi);         /* ★ 进层即弹出释义全文（第 4 层右侧所见的 description） */
+        return true;
+    }
+    /* 进入第 6 层：深层内容（案例 / 公式 / 人物 / 历史 / 争议 全文） */
+    function enterDetail(detailId) {
+        const idx = state.idx;
+        const d = idx.byId.get(detailId);
+        if (!d || d.level !== 'detail') return false;
+        const microId = idx.microOfDetail.get(d.id) || d.parent_id;
+        const mi = idx.byId.get(microId);
+        if (!mi) return false;
+        state.originView = state.view;          /* 从 L4 直进 L6 时记 originView='micro' */
+        /* 来路节点：从 L4 来=那个知识点；从 L5 来=那条名词解释 */
+        state.originId = state.view === 'explanation' ? (state.explId || mi.id) : microId;
+        state.view = 'detail';
+        state.detailId = d.id;
+        state.microId = microId;
+        state.explId = (idx.expNodeOfMicro.get(microId) || {}).id || null;
+        const mesoId = idx.mesoOfMicro.get(microId);
+        state.mesoId = mesoId || null;
+        state.macroId = mesoId ? (idx.macroOfMeso.get(mesoId) || null) : null;
+        hideDetail();
+        render(true);
+        resetCamera();
+        showDetailNode(d, mi);                  /* ★ 进层即弹出该条内容全文 */
+        return true;
+    }
+    /* 双击空白 = 返回「刚刚点击进来的那层」（来源层优先，无来源层再走客观上层） */
     function goUp() {
-        if (state.view === 'meso') enterMacro(state.macroId);
-        else if (state.view === 'macro') goOverview();
+        if (state.view === 'detail') {
+            if (state.originView === 'micro' && enterMicro(state.microId)) return;
+            if (!enterExplanationByMicro(state.microId)) enterMicro(state.microId);
+        } else if (state.view === 'explanation') {
+            if (state.originView === 'detail' && state.detailId) {
+                state.originView = null;          /* 用掉来源记录，避免 L5↔L6 来回弹 */
+                if (enterDetail(state.detailId)) return;
+            }
+            if (!enterMicro(state.microId)) goOverview();
+        } else if (state.view === 'micro') {
+            if (!enterMeso(state.mesoId)) { if (!enterMacro(state.macroId)) goOverview(); }
+        } else if (state.view === 'meso') {
+            if (!enterMacro(state.macroId)) goOverview();
+        } else if (state.view === 'macro') goOverview();
     }
 
     /* 投资学视图下是否可见（延伸节点仅扩展视图显示） */
@@ -1287,137 +2047,300 @@
     }
 
     /* --------------------------------------------------------
-       详情面板
+       详情面板（右侧；六层共用，内容随当前层切换）
     -------------------------------------------------------- */
-    function selectMicro(id) {
+    /* 按 id 自动路由到对应层（面板里的胶囊 / 面包屑都用它） */
+    function openNodeById(id) {
         const idx = state.idx;
-        const mi = idx.byId.get(id);
+        const n = idx.byId.get(id);
+        if (!n) return false;
+        if (n.level === 'detail') return enterDetail(n.id);
+        if (n.level === 'explanation') return enterExplanationByMicro(n.parent_id);
+        if (n.level === 'micro') return enterMicro(n.id);
+        if (n.level === 'meso') return enterMeso(n.id);
+        if (n.level === 'macro') return enterMacro(n.id);
+        goOverview(); return true;
+    }
+
+    function selectMicro(id) {
+        const mi = state.idx.byId.get(id);
         if (!mi) return;
         state.selectedMicro = id;
-        nodeG_byId(id).selectAll || null;
         showDetail(mi);
-        /* 高亮相关节点 */
-        pulseMicro(id);
+        pulseNode(id);
     }
 
     function nodeG_byId(id) {
         return gNodes.selectAll('.kg-node').filter(function () { return this.dataset.id === id; });
     }
 
-    function pulseMicro(id) {
+    /* 脉冲高亮任意层的节点 */
+    function pulseNode(id) {
+        if (!id) return;
         gNodes.selectAll('.kg-node').classed('kg-pulse', function () { return this.dataset.id === id; });
         setTimeout(() => {
             gNodes.selectAll('.kg-node').classed('kg-pulse', false);
         }, 2800);
     }
+    const pulseMicro = pulseNode;
 
-    function showDetail(mi) {
+    /* 面板顶部路径 */
+    function renderDetailPath(crumbs) {
+        const pathEl = document.getElementById('kgDetailPath');
+        if (!pathEl) return;
+        pathEl.innerHTML = '';
+        crumbs.forEach((c, i) => {
+            if (i) pathEl.insertAdjacentHTML('beforeend', '<span class="kg-crumb-sep">›</span>');
+            if (c.go) {
+                const b = document.createElement('button');
+                b.textContent = c.t;
+                b.addEventListener('click', c.go);
+                pathEl.appendChild(b);
+            } else {
+                pathEl.insertAdjacentHTML('beforeend',
+                    `<span class="kg-crumb is-current">${escapeHtml(c.t)}</span>`);
+            }
+        });
+    }
+
+    /* 知识点的上级路径（域 › 学科 › 主题） */
+    function microCrumbs(mi) {
         const idx = state.idx;
         const meso = idx.byId.get(idx.mesoOfMicro.get(mi.id));
         const mac = idx.byId.get(idx.macroOfMicro.get(mi.id));
+        const out = [];
+        if (mac) out.push({ t: mac._domain, go: goOverview });
+        if (mac) out.push({ t: mac.name, go: () => enterMacro(mac.id) });
+        if (meso) out.push({ t: meso.name, go: () => enterMeso(meso.id) });
+        return out;
+    }
 
-        /* 头部 */
+    /* 面板：关键词区（学科 / 标签） */
+    function fillKeywords(mi) {
+        const kwEl = document.getElementById('kgDetailKw');
+        let kh = '';
+        asArr(mi.disciplines).forEach(d => { kh += `<span class="kg-badge">${escapeHtml(d)}</span>`; });
+        keywordsOf(mi).forEach(k => { kh += `<span class="kg-badge">${escapeHtml(k)}</span>`; });
+        kwEl.innerHTML = kh || '<span class="kg-rel-empty">暂无标签</span>';
+    }
+
+    /* 面板：第 4 层（知识节点） */
+    function showDetail(mi) {
+        const idx = state.idx;
+        const exp = idx.expNodeOfMicro.get(mi.id) || null;
+        const details = idx.detailByMicro.get(mi.id) || [];
+
         document.getElementById('kgDetailTitle').textContent = mi.name;
 
-        /* 路径 */
-        const pathEl = document.getElementById('kgDetailPath');
-        pathEl.innerHTML = '';
-        const crumbs = [];
-        if (mac) crumbs.push({ t: mac._domain, act: 'home' });
-        if (mac) crumbs.push({ t: mac.name, act: 'macro' });
-        if (meso) crumbs.push({ t: meso.name, act: 'meso' });
-        crumbs.forEach((c, i) => {
-            if (i) pathEl.insertAdjacentHTML('beforeend', '<span class="kg-crumb-sep">›</span>');
-            const b = document.createElement('button');
-            b.textContent = c.t;
-            b.addEventListener('click', () => {
-                if (c.act === 'home') goOverview();
-                else if (c.act === 'macro') enterMacro(mac.id);
-                else if (c.act === 'meso') enterMeso(meso.id);
-            });
-            pathEl.appendChild(b);
-        });
+        const crumbs = microCrumbs(mi);
+        crumbs.push({ t: mi.name });
+        renderDetailPath(crumbs);
 
         /* 徽章 */
         const badgeEl = document.getElementById('kgDetailBadges');
-        let bh = '';
-        if (mi.is_external) bh += `<span class="kg-badge is-external">跨学科延伸 · ${mi.source_discipline || '外延'}</span>`;
-        if (mi.core) bh += `<span class="kg-badge is-core">核心知识点</span>`;
-        if (mi.cluster_name) bh += `<span class="kg-badge">${mi.cluster_name}</span>`;
-        if (mi.difficulty) bh += `<span class="kg-badge kg-diff" title="难度">${'●'.repeat(mi.difficulty)}${'○'.repeat(5 - mi.difficulty)}</span>`;
+        let bh = '<span class="kg-badge is-level">第 4 层 · 知识节点</span>';
+        if (mi.is_external) bh += `<span class="kg-badge is-external">跨学科延伸 · ${escapeHtml(mi.source_discipline || '外延')}</span>`;
+        if (mi.core) bh += '<span class="kg-badge is-core">核心知识点</span>';
+        if (mi.cluster_name) bh += `<span class="kg-badge">簇 · ${escapeHtml(mi.cluster_name)}</span>`;
+        if (mi.difficulty) bh += `<span class="kg-badge kg-diff" title="难度">${'●'.repeat(mi.difficulty)}${'○'.repeat(Math.max(0, 5 - mi.difficulty))}</span>`;
         badgeEl.innerHTML = bh;
 
-        /* 学科 + 关键词 */
-        const kwEl = document.getElementById('kgDetailKw');
-        let kh = '';
-        (mi.disciplines || []).forEach(d => { kh += `<span class="kg-badge">${d}</span>`; });
-        ((mi.tags && mi.tags.keywords) || []).forEach(k => { kh += `<span class="kg-badge">${k}</span>`; });
-        kwEl.innerHTML = kh || '<span class="kg-rel-empty">暂无标签</span>';
+        fillKeywords(mi);
 
-        /* 解释（L5） */
+        /* 释义（第 5 层入口） */
         const descEl = document.getElementById('kgDetailDesc');
-        const content = idx.explByMicro.get(mi.id) || mi.description || '';
-        if (content) descEl.textContent = content;
-        else {
-            descEl.textContent = '详解内容将在「阶段六 · 纵向扩展」中补充。';
-            descEl.classList.add('is-empty');
-        }
+        const content = (exp && exp.content) || mi.description || '';
+        descEl.textContent = content || '该知识点暂无释义内容。';
         descEl.classList.toggle('is-empty', !content);
+        const descSec = descEl.closest('.kg-detail-section');
+        if (descSec) {
+            let jump = descSec.querySelector('.kg-desc-jump');
+            if (!jump) {
+                jump = document.createElement('button');
+                jump.className = 'kg-desc-jump';
+                descSec.appendChild(jump);
+            }
+            jump.hidden = !exp;
+            if (exp) {
+                jump.textContent = '进入名词解释 · 第 5 层 ›';
+                jump.onclick = () => enterExplanationByMicro(mi.id);
+            }
+        }
 
-        /* 重要度 */
+        /* 重要度（只显示/隐藏重要度条本身，「详解」区块必须始终可见） */
         const imp = Number(mi.importance) || 0;
-        document.getElementById('kgDetailImpBar').style.width = Math.round(imp * 100) + '%';
+        const impBarEl = document.getElementById('kgDetailImpBar');
+        impBarEl.style.width = Math.round(imp * 100) + '%';
+        const impWrap = impBarEl.closest('.kg-importance-bar');
+        if (impWrap) impWrap.style.display = '';
 
-        /* sub_nodes */
-        const sn = mi.sub_nodes || {};
+        /* 扩展内容：释义 + 深层内容，全部可点击下潜 */
         const snEl = document.getElementById('kgDetailSub');
-        const snItems = [
-            ['公式', sn.formulas], ['案例', sn.cases], ['人物', sn.people],
-            ['历史', sn.history], ['争议', sn.debates]
-        ];
         let sh = '';
-        snItems.forEach(([label, arr]) => {
-            if (arr && arr.length) arr.forEach(v => { sh += `<span class="kg-subnode">${label} · ${escapeHtml(String(v))}</span>`; });
-            else sh += `<span class="kg-subnode is-empty">${label} · 待补充</span>`;
+        if (exp) {
+            sh += `<button class="kg-subnode is-link is-depth" data-id="${exp.id}"` +
+                  ` title="${escapeHtml((exp.content || '').slice(0, 150))}">释义 · 名词解释` +
+                  `<span class="depth-tag">第5层</span></button>`;
+        }
+        details.forEach(d => {
+            const m2 = DT_META[d.detail_type] || DT_META.case;
+            sh += `<button class="kg-subnode is-link is-depth" data-id="${d.id}"` +
+                  ` title="${escapeHtml((d.content || '').slice(0, 150))}">${m2.label} · ${escapeHtml(d.name || '')}` +
+                  `<span class="depth-tag">第6层</span></button>`;
         });
+        /* sub_nodes 里剩余的名字（v12 的 detail 尚未覆盖全部）做只读补位 */
+        const sn = mi.sub_nodes || {};
+        const legacy = [];
+        [['公式', sn.formulas], ['案例', sn.cases], ['人物', sn.people], ['历史', sn.history], ['争议', sn.debates]]
+            .forEach(pair => {
+                (pair[1] || []).forEach(v => {
+                    const nm = (v && typeof v === 'object') ? (v.name || v.title || '') : String(v);
+                    if (!nm) return;
+                    if (details.some(d => (d.name || '') === nm)) return;
+                    legacy.push(pair[0] + ' · ' + nm);
+                });
+            });
+        if (legacy.length) {
+            sh += legacy.slice(0, 12).map(t =>
+                `<span class="kg-subnode is-empty" title="结构化子内容待后端补齐">${escapeHtml(t)}</span>`).join('');
+        }
+        if (!sh) sh = '<span class="kg-subnode is-empty">暂无扩展内容</span>';
         snEl.innerHTML = sh;
+        snEl.querySelectorAll('.kg-subnode.is-link').forEach(btn => {
+            btn.addEventListener('click', () => openNodeById(btn.dataset.id));
+        });
 
-        /* 关联知识（前驱/后继） */
+        renderRelList(mi);
+        detailEl.classList.add('show');
+        syncDetailToggle();
+    }
+
+    /* 面板：关联知识点列表（各层共用） */
+    function renderRelList(mi) {
+        const idx = state.idx;
         const relEl = document.getElementById('kgDetailRels');
         const adj = idx.adjByMicro.get(mi.id) || [];
         if (!adj.length) {
             relEl.innerHTML = '<div class="kg-rel-empty">暂无直接关联知识点</div>';
-        } else {
-            const rels = adj
-                .filter(a => state.relOn.has(a.edge.relation))
-                .sort((a, b) => (b.edge.confidence || 0) - (a.edge.confidence || 0))
-                .slice(0, 14);
-            if (!rels.length) rels.push(...adj.slice(0, 14));
-            relEl.innerHTML = '';
-            rels.forEach(a => {
-                const other = idx.byId.get(a.other);
-                if (!other) return;
-                const otherMeso = idx.byId.get(idx.mesoOfMicro.get(other.id));
-                const otherMac = idx.byId.get(idx.macroOfMicro.get(other.id));
-                const isCross = otherMac && mac && otherMac.id !== mac.id;
-                const rel = a.edge.relation;
-                const dirLabel = a.dir === 'out' ? '→ 指向' : '← 来自';
-                const color = relColor(rel);
-                const btn = document.createElement('button');
-                btn.className = 'kg-rel-item' + (isCross ? ' is-cross' : '');
-                btn.innerHTML = `<span class="kg-rel-tag" style="background:${color}">${rel} ${dirLabel}</span>
-                    <span class="kg-rel-name">${escapeHtml(other.name)}</span>
-                    <span class="kg-rel-where">${otherMac ? escapeHtml(otherMac.name) : ''}</span>`;
-                btn.addEventListener('click', () => jumpToMicro(other.id));
-                relEl.appendChild(btn);
-            });
+            return;
+        }
+        const mac = idx.byId.get(idx.macroOfMicro.get(mi.id));
+        const rels = adj
+            .filter(a => state.relOn.has(a.edge.relation))
+            .sort((a, b) => (b.edge.confidence || 0) - (a.edge.confidence || 0))
+            .slice(0, 14);
+        if (!rels.length) rels.push(...adj.slice(0, 14));
+        relEl.innerHTML = '';
+        rels.forEach(a => {
+            const other = idx.byId.get(a.other);
+            if (!other) return;
+            const otherMac = idx.byId.get(idx.macroOfMicro.get(other.id));
+            const isCross = otherMac && mac && otherMac.id !== mac.id;
+            const rel = a.edge.relation;
+            const dirLabel = a.dir === 'out' ? '→ 指向' : '← 来自';
+            const color = relColor(rel);
+            const btn = document.createElement('button');
+            btn.className = 'kg-rel-item' + (isCross ? ' is-cross' : '');
+            btn.innerHTML = `<span class="kg-rel-tag" style="background:${color}">${rel} ${dirLabel}</span>
+                <span class="kg-rel-name">${escapeHtml(other.name)}</span>
+                <span class="kg-rel-where">${otherMac ? escapeHtml(otherMac.name) : ''}</span>`;
+            btn.addEventListener('click', () => enterMicro(other.id));
+            relEl.appendChild(btn);
+        });
+    }
+
+    /* 面板：第 5 / 6 层（名词解释 / 深层内容 全文视图）
+       两种节点结构一致：{ name, content } + 同层兄弟，故共用一个渲染器 */
+    function showContentDetail(node, mi) {
+        const idx = state.idx;
+        const isExpl = node.level === 'explanation';
+        const meta = isExpl ? DT_META.explanation : (DT_META[node.detail_type] || DT_META.case);
+        const kindLabel = isExpl ? '名词解释' : meta.label;
+        const layerNo = isExpl ? 5 : 6;
+        const exp = idx.expNodeOfMicro.get(mi.id) || null;
+
+        document.getElementById('kgDetailTitle').textContent =
+            (isExpl
+                ? ((node.name && node.name !== '名词解释') ? node.name : mi.name + '的解释')
+                : (node.name || kindLabel));
+
+        /* 路径：域 › 学科 › 主题 › 知识点 › (名词解释) › 当前 */
+        const crumbs = microCrumbs(mi);
+        crumbs.push({ t: mi.name, go: () => enterMicro(mi.id) });
+        if (!isExpl) crumbs.push({ t: '名词解释', go: () => enterExplanationByMicro(mi.id) });
+        crumbs.push({ t: kindLabel });
+        renderDetailPath(crumbs);
+
+        /* 徽章：层级 + 类型 + 回程 */
+        const badgeEl = document.getElementById('kgDetailBadges');
+        const dColor = dtColor(isExpl ? 'explanation' : node.detail_type, domColor('交叉学科'));
+        badgeEl.innerHTML =
+            `<span class="kg-badge is-level">第 ${layerNo} 层</span>` +
+            `<span class="kg-badge is-dtype" style="background:${dColor}">${kindLabel}</span>` +
+            `<button class="kg-badge is-link" id="kgBadgeBackMicro">知识点 · ${escapeHtml(mi.name)}</button>`;
+        const back = document.getElementById('kgBadgeBackMicro');
+        if (back) back.addEventListener('click', () => enterMicro(mi.id));
+
+        fillKeywords(mi);
+
+        /* 全文 */
+        const descEl = document.getElementById('kgDetailDesc');
+        const content = node.content || '';
+        descEl.textContent = content || '该条内容暂待补充。';
+        descEl.classList.toggle('is-empty', !content);
+        const descSec = descEl.closest('.kg-detail-section');
+        if (descSec) {
+            const jump = descSec.querySelector('.kg-desc-jump');
+            if (jump) jump.hidden = true;
         }
 
+        /* ★ 内容层没有重要度字段 → 只隐藏重要度条本身。
+           （之前隐藏的是整个「详解」section，把 description 一起藏没了——
+             这就是第 5/6 层面板看不到解释内容的根因） */
+        const impBarEl2 = document.getElementById('kgDetailImpBar');
+        const impWrap2 = impBarEl2.closest('.kg-importance-bar');
+        if (impWrap2) impWrap2.style.display = 'none';
+
+        /* 同层兄弟 + 回程 */
+        const snEl = document.getElementById('kgDetailSub');
+        const details = idx.detailByMicro.get(mi.id) || [];
+        let sh = '';
+        if (!isExpl && exp) {
+            sh += `<button class="kg-subnode is-link is-depth" data-id="${exp.id}">释义 · 名词解释` +
+                  `<span class="depth-tag">第5层</span></button>`;
+        }
+        sh += `<button class="kg-subnode is-home">⌂ 知识节点面板</button>`;
+        details.forEach(x => {
+            const m2 = DT_META[x.detail_type] || DT_META.case;
+            const cur2 = x.id === node.id;
+            sh += `<button class="kg-subnode is-link${cur2 ? ' is-cur' : ''}" data-id="${x.id}"` +
+                  ` title="${escapeHtml((x.content || '').slice(0, 120))}">${m2.label} · ${escapeHtml(x.name || '')}</button>`;
+        });
+        if (!isExpl && !details.length) sh += '<span class="kg-subnode is-empty">暂无同层内容</span>';
+        snEl.innerHTML = sh;
+        snEl.querySelectorAll('.kg-subnode').forEach(btn => {
+            if (btn.classList.contains('is-home')) btn.addEventListener('click', () => enterMicro(mi.id));
+            else if (btn.classList.contains('is-link') && !btn.classList.contains('is-cur')) {
+                btn.addEventListener('click', () => openNodeById(btn.dataset.id));
+            }
+        });
+
+        renderRelList(mi);
+        pulseNode(node.id);
         detailEl.classList.add('show');
+        syncDetailToggle();
     }
+    function showDetailNode(d, mi) { showContentDetail(d, mi); }
+    function showExplanationDetail(exp, mi) { showContentDetail(exp, mi); }
 
     function hideDetail() {
         if (detailEl) detailEl.classList.remove('show');
+        syncDetailToggle();
+    }
+    /* 顶栏「详情」按钮的点亮态跟随面板开合 */
+    function syncDetailToggle() {
+        const tgl = document.getElementById('kgDetailToggle');
+        if (tgl) tgl.classList.toggle('is-on', !!(detailEl && detailEl.classList.contains('show')));
     }
 
     function relColor(rel) {
@@ -1432,19 +2355,61 @@
         }[c]));
     }
 
-    /* 跳转到某个知识点（供详情联动 / 搜索 / assistant） */
+    /* 跳转到任意节点（供详情联动 / 搜索 / 助手）—— 六层自动分流 */
     function jumpToMicro(id) {
+        return openNodeById(id);
+    }
+
+    /* 关键词 / 名称 / 节点对象 → 节点（助手与课程星系可能传 id，也可能传名字或对象）
+       顺序：对象取 id → id 精确 → 名称精确（全层） → 去掉「-解释 / 的解释」后缀再试
+             → 名称包含兜底。
+       ★ L5 名词解释节点的名字是「<知识点>的解释」，名称精确匹配放在去后缀之前，
+         这样助手引用 L5 时能命中释义节点本身（高亮 / 下潜都正确）。 */
+    function resolveNode(key) {
+        if (key == null || !state.idx) return null;
         const idx = state.idx;
-        const mi = idx.byId.get(id);
-        if (!mi) return false;
-        const mesoId = idx.mesoOfMicro.get(id);
-        if (!mesoId) return false;
-        enterMeso(mesoId);
-        setTimeout(() => {
-            selectMicro(id);
-            focusNodeVisual(id);
-        }, 80);
-        return true;
+
+        /* 传对象：优先 id，其次 name / label / title */
+        if (typeof key === 'object') {
+            if (key.id != null) {
+                const byIdHit = idx.byId.get(String(key.id));
+                if (byIdHit) return byIdHit;
+            }
+            key = key.name || key.label || key.title || '';
+        }
+
+        const k = String(key).trim();
+        if (!k) return null;
+
+        let n = idx.byId.get(k);
+        if (n) return n;
+
+        /* 名称精确：宏 → 中 → 微 → 释义 → 深层内容 */
+        const pools = [idx.macros, idx.mesos, idx.micros, idx.explanations, idx.details];
+        for (const arr of pools) {
+            const f = arr.find(m => m.name === k);
+            if (f) return f;
+        }
+
+        /* L5 名称后缀不稳：v12 是「货币职能的解释」，老包是「货币职能-解释」，
+           统一剥掉「(的)解释」再试一次 */
+        const bare = k.replace(/[-—·\s]*的?解释?$/, '').trim();
+        if (bare && bare !== k) {
+            n = idx.byId.get(bare);
+            if (n) return n;
+            for (const arr of pools) {
+                const f = arr.find(m => m.name === bare);
+                if (f) return f;
+            }
+        }
+
+        /* 名称包含兜底（知识点 → 释义 → 深层内容） */
+        const soft = [idx.micros, idx.explanations, idx.details, idx.mesos, idx.macros];
+        for (const arr of soft) {
+            const f = arr.find(m => m.name && m.name.indexOf(k) >= 0);
+            if (f) return f;
+        }
+        return null;
     }
 
     function focusNodeVisual(id) {
@@ -1503,7 +2468,7 @@
             const meso = idx.byId.get(idx.mesoOfMicro.get(m.id));
             return {
                 id: m.id, name: m.name,
-                kw: ((m.tags && m.tags.keywords) || []).join(' '),
+                kw: keywordsOf(m).join(' '),
                 path: (mac ? mac.name : '') + ' · ' + (meso ? meso.name : ''),
                 mac: mac ? mac.name : '',
                 raw: m
@@ -1537,78 +2502,88 @@
     }
 
     /* ============================================================
-       对外兼容 API（与旧 GalaxyEngine 一致，知识助手照常联动）
+       对外兼容 API（与旧 GalaxyEngine 一致，知识助手 / 课程星系照常联动）
+       约定（详见《对接文档》）：clickNode / selectNode / pulseNodes /
+       focusOnNodes / switchGraph / goMacro / state.nodes / state.graphId
+       —— 这层壳不要拆：换引擎内部实现可以，壳要保持。
+       六层都支持：domain / macro / meso / micro / explanation / detail
     ============================================================ */
+    /* 高亮一组节点：当前层画得出来就直接脉冲，画不出来先跳到它所在的层 */
+    function pulseResolved(nodes) {
+        const set = new Set(nodes.map(n => n.id));
+        /* 命中知识点时，把它在「知识节点层」的释义节点一并点亮
+           （助手答案常引用 kp_l4_* 释义节点，这里保证"点了有反应"） */
+        nodes.forEach(n => {
+            if (n.level === 'micro') {
+                const exp = state.idx.expNodeOfMicro.get(n.id);
+                if (exp) set.add(exp.id);
+            }
+        });
+        const drawn = gNodes.selectAll('.kg-node').filter(function () {
+            return set.has(this.dataset.id);
+        });
+        if (drawn.empty()) openNodeById(nodes[0].id);
+        gNodes.selectAll('.kg-node').classed('kg-pulse', function () {
+            return set.has(this.dataset.id);
+        });
+        clearTimeout(state._pulseTimer);
+        state._pulseTimer = setTimeout(() => {
+            gNodes.selectAll('.kg-node').classed('kg-pulse', false);
+        }, 3000);
+    }
+
     window.GalaxyEngine = {
         init,
         load,
-        /* 旧引擎的 clickNode：course-galaxy.js 跳转会按 id 调它。
-           按节点层级分流（domain→总览 / macro→星域 / meso→星团 / micro→知识点）。 */
+        /* 课程星系 / 助手：按 id 或名称定位，按层级自动分流 */
         clickNode(idOrName) {
-            const idx = state.idx;
-            const n = idx && idx.byId.get(idOrName);
-            if (n) {
-                if (n.level === 'macro') enterMacro(n.id);
-                else if (n.level === 'meso') enterMeso(n.id);
-                else if (n.level === 'micro') jumpToMicro(n.id);
-                else if (n.level === 'explanation') jumpToMicro(n.parent_id || n.id);
-                else goOverview();
-                return;
-            }
+            if (!state.loaded) return;
+            const n = resolveNode(idOrName);
+            if (n) { openNodeById(n.id); return; }
             this.selectNode(idOrName);
         },
-        /* 助手概念点击：按 id 或名称定位 */
         selectNode(idOrName) {
             if (!state.loaded) return;
-            const idx = state.idx;
-            let mi = idx.byId.get(idOrName);
-            if (!mi || mi.level !== 'micro') {
-                const q = String(idOrName).trim();
-                mi = idx.micros.find(m => m.name === q) ||
-                     idx.micros.find(m => m.name.includes(q)) || null;
+            const n = resolveNode(idOrName);
+            if (!n) return;
+            const drawn = nodeG_byId(n.id);
+            if (drawn.empty()) {
+                openNodeById(n.id);
+                pulseNode(n.id);
+            } else if (n.level === 'micro') {
+                showDetail(n); pulseNode(n.id);
+            } else if (n.level === 'explanation') {
+                showExplanationDetail(n, state.idx.byId.get(n.parent_id)); pulseNode(n.id);
+            } else if (n.level === 'detail') {
+                showDetailNode(n, state.idx.byId.get(state.idx.microOfDetail.get(n.id))); pulseNode(n.id);
+            } else {
+                pulseNode(n.id);
             }
-            if (mi) jumpToMicro(mi.id);
         },
         pulseNodes(ids) {
             if (!state.loaded || !ids || !ids.length) return;
-            const set = new Set();
-            ids.forEach(x => {
-                const idx = state.idx;
-                let mi = idx.byId.get(x);
-                if (!mi || mi.level !== 'micro') {
-                    const q = String(x).trim();
-                    const f = idx.micros.find(m => m.name === q || m.name.includes(q));
-                    if (f) mi = f;
-                }
-                if (mi) set.add(mi.id);
-            });
-            gNodes.selectAll('.kg-node').classed('kg-pulse', function () {
-                return set.has(this.dataset.id);
-            });
-            setTimeout(() => {
-                gNodes.selectAll('.kg-node').classed('kg-pulse', false);
-            }, 3000);
+            const nodes = ids.map(resolveNode).filter(Boolean);
+            if (nodes.length) pulseResolved(nodes);
         },
         focusOnNodes(ids, edges) {
             if (!state.loaded || !ids || !ids.length) return;
             const idx = state.idx;
-            const microIds = [];
-            ids.forEach(x => {
-                let mi = idx.byId.get(x);
-                if (!mi || mi.level !== 'micro') {
-                    const q = String(x).trim();
-                    const f = idx.micros.find(m => m.name === q || m.name.includes(q));
-                    if (f) mi = f;
-                }
-                if (mi) microIds.push(mi.id);
-            });
-            if (!microIds.length) return;
+            const nodes = ids.map(resolveNode).filter(Boolean);
+            if (!nodes.length) return;
+            /* 释义 / 深层内容节点归到它所属的知识点 */
+            const microOf = n => n.level === 'micro' ? n.id
+                : n.level === 'explanation' ? n.parent_id
+                    : n.level === 'detail' ? (idx.microOfDetail.get(n.id) || n.parent_id || null)
+                        : null;
+            const microIds = nodes.map(microOf).filter(Boolean);
+            if (!microIds.length) { openNodeById(nodes[0].id); return; }
             /* 聚到包含命中最多的主题 */
             const cnt = new Map();
             microIds.forEach(id => {
                 const ms = idx.mesoOfMicro.get(id);
                 if (ms) cnt.set(ms, (cnt.get(ms) || 0) + 1);
             });
+            if (!cnt.size) { openNodeById(microIds[0]); return; }
             const best = [...cnt.entries()].sort((a, b) => b[1] - a[1])[0][0];
             enterMeso(best);
             setTimeout(() => {
@@ -1624,20 +2599,29 @@
             }, 120);
         },
         switchGraph(gid) {
-            /* v6 为统一知识星系：课程图谱由「课程星系」自有引擎负责，
-               此处保持接口契约（currentGraphId 状态位），数据不变时静默降级 */
+            /* 画布永远显示统一知识星系（graphId = v12）；各课程图谱由「课程星系」
+               自有引擎负责。这里只维护旧契约的状态位（currentGraphId），
+               ★ 不动 state.graphId —— 它必须恒等于画布此刻显示的那张图。 */
             const id = gid || 'econ';
             if (id === state.currentGraphId) return Promise.resolve(state.loaded);
             state.currentGraphId = id;
-            if (state.loaded && id !== 'econ' && id !== 'invest') {
+            if (state.loaded && id !== 'econ' && id !== 'invest' && id !== GRAPH_ID) {
                 const name = { corp_fin: '公司金融', intl_inv: '国际投资学', ma: '并购与重组' }[id] || id;
                 showKgToast('「' + name + '」课程图谱数据接入中，当前展示统一知识星系');
             }
             return Promise.resolve(state.loaded);
         },
+        get graphId() { return state.graphId; },
         goMacro: goOverview,
+        goUp,                       /* 返回上一层（六层通用） */
         get state() { return state; }
     };
+
+    /* 兼容旧引擎的 state.nodes：course-galaxy.js 用它按 id 找节点、读 label */
+    Object.defineProperty(state, 'nodes', {
+        get() { return (state.data && state.data.nodes) || []; },
+        enumerable: true, configurable: true
+    });
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);

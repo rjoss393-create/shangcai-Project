@@ -13,9 +13,13 @@
 <link rel="stylesheet" href="css/profile-ui.css">
 <link rel="stylesheet" href="css/course-galaxy.css">
 <link rel="stylesheet" href="css/knowledge-galaxy.css">
+<link rel="stylesheet" href="css/page-slider.css">
 
-<!-- 图表库 -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- 知识星系数据源：走后端 /api/graph/load（对接约定第 1 条）；后端不可用时引擎自动回退本地 data/galaxy_v12.json -->
+<script>window.__KG_DATA_SOURCE__ = 'api';</script>
+
+<!-- 图表库（本地化：原先走 jsdelivr CDN，国内网络常被重置导致 Chart 未定义、行情图表与指数表不渲染） -->
+<script src="js/chart.min.js"></script>
 
 </head>
 
@@ -58,6 +62,7 @@
         <button class="nav-item" data-target="assistant">知识助手</button>
         <button class="nav-item" data-target="study">学习资料</button>
         <button class="nav-item" data-target="paper">科学研究</button>
+        <button class="nav-item" data-target="database">数据库</button>
         <button class="nav-item" data-target="career">职业发展</button>
         <button class="nav-item theme-toggle" id="themeToggle" title="切换主题">🌓</button>
     </nav>
@@ -263,12 +268,13 @@
     <div class="section-title"><h1>知识星系</h1></div>
 
     <p class="galaxy-intro">
-        投资学的「全景学科词典」—— 三大领域、28 门学科、280 个主题、1675 个知识点逐层展开。
-        点击学科进入星域，点击主题进入星团，点击知识点阅读详解；
-        视野边缘的虚线「星门」通向其它学科的关联知识，点击即可穿越。
+        投资学的「全景学科词典」—— 5 大领域、88 门学科、1119 个主题、10326 个知识点，
+        每个知识点再向下展开「名词解释」与公式 / 案例 / 人物 / 历史 / 争议等深层内容，
+        共六层钻取：星系总览 → 学科星域 → 主题星团 → 知识节点 → 名词解释 → 深层内容。
+        点击即下一层，双击空白处或点面包屑逐层回退；视野边缘的虚线「星门」通向其它学科的关联知识。
     </p>
 
-    <!-- ★ 知识星系 · 分层轨道星图（v6 数据）
+    <!-- ★ 知识星系 · 分层轨道星图（v12 数据 · 六层钻取）
          结构约定：.galaxy-page[data-galaxy-page-content="main"] 可被课程星系移植；
          #galaxyStage / #galaxySvg / #galaxyLoading 为兼容钩子 -->
 
@@ -284,6 +290,9 @@
                     <div class="kg-search-drop" id="kgSearchDrop"></div>
                 </div>
                 <div class="kg-top-actions">
+                    <button class="kg-icon-btn" id="kgDetailToggle" title="开 / 关详情面板">
+                        <span>▤</span><span>详情</span>
+                    </button>
                     <button class="kg-icon-btn" id="kgThemeBtn">
                         <span>◐</span><span>深空模式</span>
                     </button>
@@ -307,8 +316,11 @@
                     <span class="lb-step" data-step="0"></span>
                     <span class="lb-step" data-step="1"></span>
                     <span class="lb-step" data-step="2"></span>
+                    <span class="lb-step" data-step="3"></span>
+                    <span class="lb-step" data-step="4"></span>
+                    <span class="lb-step" data-step="5"></span>
                     <span class="lb-name" id="kgLevelName">星系总览</span>
-                    <span id="kgLevelSteps" hidden></span>
+                    <span class="lb-count" id="kgLevelSteps"></span>
                 </div>
 
                 <div class="kg-tooltip" id="kgTooltip"></div>
@@ -340,12 +352,19 @@
 
                 <!-- 左下图例 -->
                 <div class="kg-legend" id="kgLegend">
-                    <div class="kg-legend-title">星图图例</div>
+                    <div class="kg-legend-title">星图图例 · 六层钻取</div>
                     <div class="kg-legend-row"><span class="lg-dot" style="background:var(--kg-dom-1)"></span>宏观金融</div>
                     <div class="kg-legend-row"><span class="lg-dot" style="background:var(--kg-dom-2)"></span>微观金融</div>
                     <div class="kg-legend-row"><span class="lg-dot" style="background:var(--kg-dom-3)"></span>交叉学科</div>
-                    <div class="kg-legend-row"><span class="lg-dot" style="background:transparent;border:1.5px dashed var(--kg-gate)"></span>星门 = 外部关联入口</div>
-                    <div class="kg-legend-row"><span class="lg-swatch" style="border-top:2px solid var(--kg-dom-2)"></span>节点越大 · 知识点越多</div>
+                    <div class="kg-legend-row"><span class="lg-dot" style="background:var(--kg-dom-4)"></span>财经扩展（扩展视图）</div>
+                    <div class="kg-legend-row"><span class="lg-dot" style="background:var(--kg-dom-5)"></span>跨学科知识（扩展视图）</div>
+                    <div class="kg-legend-row"><span class="lg-dot" style="background:var(--kg-dt-expl)"></span>名词解释 · 第 5 层</div>
+                    <div class="kg-legend-row"><span class="lg-glyph" style="color:var(--kg-dt-formula)">ƒ</span>公式 · 第 6 层</div>
+                    <div class="kg-legend-row"><span class="lg-glyph" style="color:var(--kg-dt-case)">▶</span>案例 · 第 6 层</div>
+                    <div class="kg-legend-row"><span class="lg-glyph" style="color:var(--kg-dt-person)">人</span>人物 · 第 6 层</div>
+                    <div class="kg-legend-row"><span class="lg-glyph" style="color:var(--kg-dt-history)">史</span>历史 · 第 6 层</div>
+                    <div class="kg-legend-row"><span class="lg-glyph" style="color:var(--kg-dt-debate)">辩</span>争议 · 第 6 层</div>
+                    <div class="kg-legend-row"><span class="lg-dot" style="background:transparent;border:1.5px dashed var(--kg-gate)"></span>虚线圈 = 跨学科延伸</div>
                 </div>
             </div>
 
@@ -744,6 +763,17 @@
 </section>
 
 
+<section class="page-section" id="database">
+    <div class="section-title">
+        <h1>数据库</h1>
+    </div>
+
+    <p class="paper-intro">
+        数据库板块建设中，敬请期待。
+    </p>
+</section>
+
+
 <section class="page-section" id="career">
     <div class="section-title">
         <h1>职业发展</h1>
@@ -825,6 +855,7 @@
 <script src="js/profile-ui.js"></script>
 <script src="js/course-galaxy.js"></script>
 <script src="js/main.js"></script>
+<script src="js/page-slider.js"></script>
 
 </body>
 

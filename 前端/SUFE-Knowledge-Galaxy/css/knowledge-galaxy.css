@@ -28,11 +28,21 @@
     --kg-dom-1: #2E7DD1;   /* 宏观金融 · 蓝 */
     --kg-dom-2: #D98A2B;   /* 微观金融 · 金橙 */
     --kg-dom-3: #8E5BC2;   /* 交叉学科 · 紫 */
+    --kg-dom-4: #109B84;   /* 财经扩展 · 青绿 */
+    --kg-dom-5: #C2547E;   /* 跨学科知识 · 玫红 */
     --kg-rel-前置: #C2472E;
     --kg-rel-应用: #2E7DD1;
     --kg-rel-影响: #9254C8;
     --kg-rel-度量: #159E85;
     --kg-rel-映射: #C98A1B;
+    /* ★ 内容类型专属色（六层统一）：与 5 个领域色完全错开的色相，
+       全站任何位置同类型节点同色；进入对应层后中央主节点也用同色 */
+    --kg-dt-expl: #3F51B5;      /* 名词解释 · 靛蓝 */
+    --kg-dt-formula: #C9A227;   /* 公式 · 金 */
+    --kg-dt-case: #C2472E;      /* 案例 · 正红 */
+    --kg-dt-person: #6D4C41;    /* 人物 · 深棕 */
+    --kg-dt-history: #2F8F46;   /* 历史 · 正绿 */
+    --kg-dt-debate: #546E7A;    /* 争议 · 蓝灰 */
 }
 
 .kg-root[data-theme="dark"] {
@@ -59,11 +69,19 @@
     --kg-dom-1: #6FB7FF;
     --kg-dom-2: #FFC069;
     --kg-dom-3: #C79BF0;
+    --kg-dom-4: #4ED6BB;
+    --kg-dom-5: #F08CC0;
     --kg-rel-前置: #FF7A63;
     --kg-rel-应用: #6FB7FF;
     --kg-rel-影响: #C79BF0;
     --kg-rel-度量: #3FD2B0;
     --kg-rel-映射: #FFC069;
+    --kg-dt-expl: #8C9EFF;      /* 名词解释 · 靛蓝 */
+    --kg-dt-formula: #E8C558;   /* 公式 · 金 */
+    --kg-dt-case: #FF7A63;      /* 案例 · 正红 */
+    --kg-dt-person: #C7A088;    /* 人物 · 深棕 */
+    --kg-dt-history: #58C877;   /* 历史 · 正绿 */
+    --kg-dt-debate: #9FB8C4;    /* 争议 · 蓝灰 */
 }
 
 /* ---------- 布局骨架 ---------- */
@@ -353,18 +371,30 @@
 }
 .kg-node .kg-halo { transform-box: fill-box; transform-origin: center; }
 
+/* ★ 来源聚焦遮罩：进 L5/L6 后非来路节点罩半透明（悬停恢复），
+   让用户一眼看清「自己是从哪个节点点进来的」 */
+.kg-node.is-dim { opacity: 0.30 !important; }
+.kg-node.is-dim:hover { opacity: 1 !important; }
+.kg-node.is-dim .kg-node-label { fill-opacity: 0.30; }
+.kg-gate.is-dim { opacity: 0.22 !important; }
+.kg-gate.is-dim:hover { opacity: 1 !important; }
+
 .kg-node.is-external .kg-node-body { fill-opacity: 0.25; stroke-dasharray: none; }
 
+/* 名字常显（节点下方）：降低不透明度 + 半透明描边，既常在又不喧宾夺主 */
 .kg-node-label {
     fill: var(--kg-ink);
+    fill-opacity: 0.72;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
     paint-order: stroke;
     stroke: var(--kg-bg);
+    stroke-opacity: 0.85;
     stroke-width: 3px;
     stroke-linejoin: round;
     transition: opacity 0.3s;
 }
+.kg-node:hover .kg-node-label { fill-opacity: 1; }
 .kg-node-sublabel {
     fill: var(--kg-ink-faint);
     font-size: 10.5px;
@@ -472,8 +502,14 @@
 }
 .kg-level-badge .lb-step.is-on {
     background: var(--kg-accent);
-    opacity: 1;
+    opacity: 0.75;
     box-shadow: 0 0 0 3px var(--kg-chip-bg);
+}
+.kg-level-badge .lb-step.is-cur {
+    background: var(--kg-accent);
+    opacity: 1;
+    transform: scale(1.5);
+    box-shadow: 0 0 0 3px var(--kg-chip-bg), 0 0 8px var(--kg-accent);
 }
 .kg-level-badge .lb-name { font-weight: 700; }
 
@@ -551,6 +587,70 @@
 .kg-tooltip .tt-name { font-weight: 700; font-size: 13.5px; margin-bottom: 3px; }
 .kg-tooltip .tt-meta { color: var(--kg-ink-faint); font-size: 11.5px; line-height: 1.7; }
 .kg-tooltip .tt-note { margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--kg-panel-border); color: var(--kg-ink-dim); font-size: 11.5px; }
+
+/* ---------- L3 知识星核（卫星层） ---------- */
+.kg-sat .kg-sat-glyph {
+    font-size: 11.5px;
+    font-weight: 700;
+    fill: #FFFFFF;
+    pointer-events: none;
+}
+.kg-root[data-theme="dark"] .kg-sat .kg-sat-glyph { fill: #10152B; }
+.kg-sat-empty {
+    font-size: 12.5px;
+    letter-spacing: 1.5px;
+    fill: var(--kg-ink-faint);
+    paint-order: stroke;
+    stroke: var(--kg-bg);
+    stroke-width: 4px;
+    pointer-events: none;
+}
+/* 卫星 hover 反馈（与节点一致的可点暗示） */
+.kg-sat { cursor: pointer; }
+
+/* ---------- 详情面板：可点击胶囊 / 类型徽章 ---------- */
+button.kg-subnode {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1px solid transparent;
+    font-family: inherit;
+    font-weight: inherit;
+    line-height: 1.4;
+    text-align: left;
+}
+.kg-subnode.is-link {
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+.kg-subnode.is-link:hover {
+    background: rgba(129, 28, 33, 0.13);
+    border-color: rgba(129, 28, 33, 0.28);
+    transform: translateY(-1px);
+}
+.kg-root[data-theme="dark"] .kg-subnode.is-link:hover {
+    background: rgba(140, 170, 255, 0.18);
+    border-color: rgba(140, 170, 255, 0.38);
+}
+.kg-subnode.is-cur {
+    background: var(--kg-accent);
+    color: #FFFFFF;
+}
+.kg-subnode.is-home {
+    border: 1px dashed var(--kg-panel-border);
+    color: var(--kg-ink-dim);
+    cursor: pointer;
+}
+.kg-subnode.is-home:hover { color: var(--kg-accent); border-color: var(--kg-accent); }
+.kg-badge.is-dtype { color: #FFFFFF; font-weight: 700; }
+.kg-root[data-theme="dark"] .kg-badge.is-dtype { color: #10152B; }
+button.kg-badge.is-link {
+    appearance: none;
+    font: inherit;
+    cursor: pointer;
+    border: 1px solid var(--kg-panel-border);
+    transition: border-color 0.15s, color 0.15s;
+}
+button.kg-badge.is-link:hover { border-color: var(--kg-accent); color: var(--kg-accent); }
 
 /* ---------- 底部工具条 ---------- */
 .kg-toolbar {
@@ -706,19 +806,21 @@
     background: var(--kg-panel-border);
 }
 .kg-detail-desc {
-    font-size: 13px;
-    line-height: 1.95;
+    font-size: 15px;
+    line-height: 2.0;
     color: var(--kg-ink);
     text-align: justify;
+    font-weight: 500;
 }
 .kg-detail-desc.is-empty { color: var(--kg-ink-faint); font-size: 12px; }
-.kg-subnode-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.kg-subnode-list { display: flex; flex-wrap: wrap; gap: 5px; }
 .kg-subnode {
-    font-size: 11.5px;
-    padding: 4px 10px;
-    border-radius: 9px;
+    font-size: 10.5px;
+    padding: 2px 8px;
+    border-radius: 8px;
     background: var(--kg-chip-bg);
     color: var(--kg-chip-ink);
+    font-weight: 400;
 }
 .kg-subnode.is-empty { opacity: 0.45; }
 
@@ -762,6 +864,89 @@
     height: 100%;
     border-radius: 3px;
     background: linear-gradient(90deg, var(--kg-dom-2), var(--kg-accent));
+}
+
+/* ============================================================
+   六层钻取 · v12 新增件
+   ============================================================ */
+
+/* 节点内字形（深层内容：释 / ƒ / ▶ / 人 / 史 / 辩） */
+.kg-glyph {
+    fill: #FFFFFF;
+    font-weight: 700;
+    pointer-events: none;
+    paint-order: stroke;
+    stroke: rgba(0, 0, 0, 0.10);
+    stroke-width: 1px;
+}
+.kg-root[data-theme="dark"] .kg-glyph { fill: #10152B; stroke: rgba(255, 255, 255, 0.18); }
+
+/* 「名词解释」入口节点：外圈加一圈虚线环，视觉上高于普通深层内容 */
+.kg-node-expl .kg-halo { opacity: 0.75; }
+.kg-node-expl .kg-ring {
+    fill: none;
+    stroke-dasharray: 4 4;
+    opacity: 0.9;
+}
+.kg-node-back .kg-glyph { font-size: 12px; }
+
+/* 中央恒星的副标题（层 / 计数） */
+.kg-core-sub {
+    font-size: 10.5px;
+    fill: var(--kg-ink-faint);
+    paint-order: stroke;
+    stroke: var(--kg-bg);
+    stroke-width: 3px;
+}
+
+/* 层级徽标：6 步 */
+.kg-level-badge { gap: 6px; }
+.kg-level-badge .lb-step { width: 6px; height: 6px; }
+.kg-level-badge .lb-count {
+    font-size: 10.5px;
+    color: var(--kg-ink-faint);
+    font-variant-numeric: tabular-nums;
+}
+
+/* 面板：层级徽章 / 下潜入口 / 深度标签 */
+.kg-badge.is-level {
+    background: var(--kg-chip-bg);
+    color: var(--kg-chip-ink);
+    border: 1px solid var(--kg-panel-border);
+    font-weight: 700;
+}
+.kg-desc-jump {
+    margin-top: 10px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--kg-chip-ink);
+    background: var(--kg-chip-bg);
+    border: 1px solid var(--kg-panel-border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.kg-desc-jump:hover { color: var(--kg-ink); border-color: var(--kg-accent); }
+.kg-subnode .depth-tag {
+    margin-left: 6px;
+    padding: 0 5px;
+    font-size: 9.5px;
+    border-radius: 999px;
+    background: var(--kg-chip-bg);
+    color: var(--kg-chip-ink);
+}
+.kg-subnode.is-link.is-depth:hover .depth-tag { color: var(--kg-ink); }
+
+/* 图例：字形行 */
+.kg-legend .lg-glyph {
+    width: 22px;
+    flex-shrink: 0;
+    display: inline-block;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--kg-ink-dim);
+    letter-spacing: 0;
 }
 
 /* ---------- 响应式 ---------- */

@@ -37,3 +37,10 @@ data/profiles.json
 # 视频文件与封面（约 4.8GB，后端 data/media/ 托管，由 scripts/import_videos.py 生成；
 # 清单 data/media/videos.json 进库，论文 PDF 与图书封面体积小也进库）
 data/media/videos/
+
+# 前端知识星系 v12 本地兜底 JSON（34.5MB，与 data/layered/v12_layered.json 同源，不进版本库）
+前端/SUFE-Knowledge-Galaxy/data/galaxy_v12.json
+
+# 上一次交给服务器部署负责人的旧快照（本地比对基准，自带 .git，严禁入库）
+上财项目/
+# 部署更新包：压缩件由上面的 *.zip 规则忽略，只有 更新清单.txt（含 SHA256 指纹）进库
