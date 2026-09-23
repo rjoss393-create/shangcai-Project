@@ -1,0 +1,82 @@
+部署更新包_2026-09-22  ·  更新清单
+==============================================================================
+基线：项目根目录 上财项目/（版本库提交 82a6046，2026-09-19）
+生成时间：2026-09-22 11:56:42
+
+用法：全部解压覆盖到服务器项目根目录（保持目录结构）。
+
+【替换】 7 个
+------------------------------------------------------------------------------
+  backend/controller/graph_ids.py
+      体积 1,615 字节  SHA256 29719aeaf474f17666c79e2145602f44ba1e3f73bf48867d73eb5df258b78f44
+  backend/controller/media.py
+      体积 11,945 字节  SHA256 db6b8c623be3e5809e6d9fbcc843ffdac93dd4118003b127bfbcbe76d6f8fc3e
+  backend/service/data_service.py
+      体积 7,006 字节  SHA256 800effc0c65bed3c0f741b1324dbb2a33387081c60610d96a5db40b20cde0c0c
+  backend/tests/test_media_api.py
+      体积 5,601 字节  SHA256 369311912ae02a7ac14dbd3c7d0b940bd3d421e5c283a69cdee11896d1a055d9
+  main.py
+      体积 7,339 字节  SHA256 6bbe05cdc3ce2f155c63d794ede4c60fa9651ad596e4dd0d51e25bfcf0cd67d5
+  前端/SUFE-Knowledge-Galaxy/css/style.css
+      体积 123,497 字节  SHA256 ee19be9f16f873efae73b6fe3384f3f9a7cb071f97f2b0af3ce8527ab73db2e0
+  前端/SUFE-Knowledge-Galaxy/index.html
+      体积 37,449 字节  SHA256 6e2f756108700823c6382402dc3a6a92d159330b382a4da96e1055ddc34acb89
+
+【替换（可选）】 3 个
+------------------------------------------------------------------------------
+  .gitignore
+      体积 1,351 字节  SHA256 379970e1f7051d67be3628b1ea9001109a7508a1a3998bb3ba489364745148bd
+  前端/SUFE-Knowledge-Galaxy/js/galaxy.js
+      体积 72,613 字节  SHA256 db4ea326dc829a8b800f53f0ff6ca8ece0ca5378ebe78bc8e7985483b48dc36f
+  文档/记录/前端改动记录.md
+      体积 75,955 字节  SHA256 817c0844f6d404e2d94afc494af17cd10dc4d231cf35546f4bccc00ca8aa4b9f
+
+【新增】 13 个
+------------------------------------------------------------------------------
+  data/layered/v12_layered.json
+      体积 25,283,212 字节  SHA256 cad947b45629af479bfe8ba5bee0dd2dce329065d652f6c45921bd67ff4b81bf
+  data/layered/v6_layered.json
+      体积 3,139,081 字节  SHA256 b1e8b4ffce936c88b7a378aa495d08feb6613d24b2ade8a9796b1ec3128244df
+  data/media/courses.json
+      体积 20,840 字节  SHA256 f29e5fc376982858f7c271ec93b61d138c9d2f8e8edb34d6756604029c71ab5b
+  scripts/import_v12_galaxy.py
+      体积 7,519 字节  SHA256 df1aa0d586a7c8ed84abdaffc2985fa72ba21e08c05037f5f1074316dfd953e1
+  scripts/import_v6_galaxy.py
+      体积 7,638 字节  SHA256 c07a6f86d13b218a67ecaa6e57015c92ed938f3f12c0539fe12c96b1af4bd14a
+  前端/SUFE-Knowledge-Galaxy/css/course-galaxy.css
+      体积 13,942 字节  SHA256 7a8c081e158603659b54bae9fdea821b408e9b2bb1894a82965b3ba66dac0fd4
+  前端/SUFE-Knowledge-Galaxy/css/knowledge-galaxy.css
+      体积 27,605 字节  SHA256 ab96afbb24ce51b05985e4d593ffe8eb1c0f7818ae35258d1503e6693375f13c
+  前端/SUFE-Knowledge-Galaxy/css/page-slider.css
+      体积 6,713 字节  SHA256 7a3d2d3edf872fe53bf0a877d91a7f3f06782207e36c5685e15fc165349775e5
+  前端/SUFE-Knowledge-Galaxy/js/chart.min.js
+      体积 205,086 字节  SHA256 784b48e31d774fc89cfd0cd970458eaa3b54831392a8c7daef34f8701cb92798
+  前端/SUFE-Knowledge-Galaxy/js/course-galaxy.js
+      体积 29,627 字节  SHA256 33a9b3f8c1d5163a2e63b5638aaed16e775a91927a40babdaee8476e87319a6d
+  前端/SUFE-Knowledge-Galaxy/js/knowledge-galaxy.js
+      体积 122,661 字节  SHA256 2fa203ebc9909d74c5cb76b6b2124ed0e9dd58ec6351e5157fd3e1d99b0a54c0
+  前端/SUFE-Knowledge-Galaxy/js/page-slider.js
+      体积 13,394 字节  SHA256 e8e5b8e5eb2436afc50768823dbfd211188b80dfa2321bee277ec4dd0b6588b4
+  文档/记录/v6图谱接入后端记录.md
+      体积 5,988 字节  SHA256 b546de9bb7b1306ee6a99fa9c9515cde23f7edd513aa13474eed839df36ebfd7
+
+【新增（可选）】 1 个
+------------------------------------------------------------------------------
+  前端/SUFE-Knowledge-Galaxy/data/galaxy_v12.json
+      体积 34,506,396 字节  SHA256 a21507cbbdf6826a77172fdf31532c1e24b09f62890dcc2d903bedfcd5972fb5
+
+【说明】 1 个
+------------------------------------------------------------------------------
+  更新说明.md
+      体积 15,972 字节  SHA256 d362f7a6c8cb4fb07647aa8e849199a5bd0959c2cd999fb749d2319e8de240ec
+
+==============================================================================
+包内不含（无需更新）：.git/  .workbuddy/  数据/(4.8GB)  
+  data/media/{videos,papers,books}/  data/media/videos.json  
+  backend/cache/  前端/proxy-server/node_modules/  文档/交接/
+
+更新后自检（详见包内 更新说明.md 第 4 节）：
+  curl -s http://127.0.0.1:8000/health
+  curl -s -X POST http://127.0.0.1:8000/api/graph/load \
+       -H 'Content-Type: application/json' -d '{"graph_id":"v12"}'
+  curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8000/js/chart.min.js
