@@ -200,7 +200,8 @@ body{
 #finance-scroll-track {
     display: inline-block;
     white-space: nowrap;
-    animation: scrollMove linear infinite;
+    /* ★ 时长必须显式给出：缺省为 0s，动画零长度 = 永远不动（此前滚动栏失效的根源） */
+    animation: scrollMove 30s linear infinite;
     will-change: transform;
 }
 
@@ -1103,13 +1104,11 @@ footer{
     stroke-dasharray: 4 5;
 }
 
-/* --- 节点标签（后端注入 label/type 后渲染） --- */
-/* ★ 2026-09-15：书详情小图改回白底（用户反馈深色底看不到关系线），文字改深色；
-   2026-09-20 接入新前端包时该修复被回退，此处按原值找回 */
+/* --- 节点标签（暂空，等后端注入） --- */
 .bg-label {
     font-family: "Source Han Serif SC", "思源宋体", serif;
     font-size: 11px;
-    fill: #222;
+    fill: #4a4a4a;
     text-anchor: middle;
     pointer-events: none;
     user-select: none;
@@ -1117,7 +1116,7 @@ footer{
 .bg-label.center {
     font-size: 13px;
     font-weight: bold;
-    fill: #111;
+    fill: #fff;
 }
 
 /* --- 底部提示 --- */
@@ -2056,30 +2055,13 @@ body.immersive .galaxy-hint { display: none; }
     stroke-width:2.5;
 }
 .g-node.zoom-macro.course .g-label{
-    /* ★ 2026-09-15：宏观层缩放 ≤0.4，标签字号按层级补偿（30 × 0.4 ≈ 12px 屏上可读）；
-       2026-09-20 接入新前端包时被改成 11px（0.4 下仅 4.4px 不可读），此处按原值找回 */
-    font-size:30px;
-    fill:rgba(129,28,33,.9);
-    opacity:.95;
-    font-weight:bold;
+    font-size:11px;
+    fill:rgba(129,28,33,.85);
+    opacity:.9;
 }
 /* 中观：次级节点展示，外环隐藏文字 */
 .g-node.zoom-meso.other .g-label{
     opacity:0;
-}
-/* ★ 2026-09-15：中观标签字号补偿（20 × 0.4~0.8 ≈ 8~16px 屏上可读）；
-   2026-09-20 接入新前端包时被丢掉，此处找回 */
-.g-node.zoom-meso .g-label{
-    font-size:20px;
-}
-/* ★ 2026-09-15：清洗标记 quality=low 的短概念（表格小标题类）标签默认不显示，hover 才出；
-   2026-09-20 接入新前端包时被丢掉（新 galaxy.js 未加 low-q 类），JS 与 CSS 两侧一并找回 */
-.g-label.low-q{
-    opacity:0;
-    transition:opacity .2s;
-}
-.g-node:hover .g-label.low-q{
-    opacity:1;
 }
 /* 微观：中心节点放大 + 卡片脉冲 */
 .g-node.zoom-micro.focused circle{
@@ -2090,13 +2072,10 @@ body.immersive .galaxy-hint { display: none; }
     0%,100%{ stroke-width:4; }
     50%    { stroke-width:6; }
 }
-/* ★ 2026-09-15：加 :not(.faded)——否则"只看邻域"时被 fade_out 的无关节点会被这条规则
-   重新显示成 32%（该规则选择器优先级更高，覆盖了 .g-node.faded{opacity:0}）；
-   2026-09-20 接入新前端包时被去掉，此处找回 */
-.galaxy-stage.has-focus .g-node.zoom-micro:not(.focused):not(.highlighted):not(.path-node):not(.faded){
+.galaxy-stage.has-focus .g-node.zoom-micro:not(.focused):not(.highlighted):not(.path-node){
     opacity:.32;
 }
-.galaxy-stage:not(.has-focus) .g-node.zoom-micro:not(.faded){
+.galaxy-stage:not(.has-focus) .g-node.zoom-micro{
     opacity:1;
 }
 /* ---------- 路径高亮 + 粒子流动 ---------- */
@@ -4192,6 +4171,14 @@ body.immersive .galaxy-immersive-exit{
 .g-node.focused .g-label,
 .g-node.highlighted .g-label { opacity: 1 !important; }
 
+/* ★ 2026-09-20 回归红线④：低质量抽取（quality=low）的概念标签默认不显示。
+   只藏标签，节点圆点仍在、仍可 hover / 点击，避免经济综合图多出约 672 个噪点文字。 */
+.g-label.low-q { opacity: 0; }
+.g-node:hover .g-label.low-q { opacity: .75; }
+.g-node.focused .g-label.low-q,
+.g-node.highlighted .g-label.low-q,
+.g-node.path-node .g-label.low-q { opacity: 1; }
+
 /* 直线连线 */
 .g-link {
     stroke: var(--g-edge);
@@ -4679,35 +4666,10 @@ border-radius:16px;
         linear-gradient(180deg, #FFFFFF 0%, #F7F5EF 55%, #F1EDE1 100%);
     color: #4a4640;
 }
-#galaxy:not(.theme-night) .galaxy-page { background: none; }
+/* 白天 page 底取消深空径向渐变（.galaxy-page 自带主题类，
+   知识图谱舞台被移植到课程星系时同样生效） */
+.galaxy-page:not(.theme-night) { background: none; }
 #galaxy:not(.theme-night) .galaxy-intro { color: #8a8378; }
-
-/* 白天：图谱切换 tab 回到米白纸底 + 财大红
-   （.galaxy-tabs 在 .galaxy-page 容器之外，旧选择器够不到，
-     现在主题类挂在 #galaxy 上，可统一覆盖） */
-#galaxy:not(.theme-night) .galaxy-tab {
-    background: var(--paper);
-    border: 1px solid rgba(129, 28, 33, .18);
-    color: var(--main-red);
-    text-shadow: none;
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-}
-#galaxy:not(.theme-night) .galaxy-tab:hover {
-    background: var(--light-red);
-    border-color: var(--main-red);
-    color: var(--main-red);
-    box-shadow: none;
-    text-shadow: none;
-}
-#galaxy:not(.theme-night) .galaxy-tab.active {
-    background: var(--main-red);
-    color: #fff;
-    border-color: var(--main-red);
-    box-shadow: 0 4px 14px rgba(129, 28, 33, .25);
-    text-shadow: none;
-}
 
 /* ---------- 9.2 图内节点白天配色（米白底 + 财大红 + 暖金） ---------- */
 .galaxy-stage:not(.theme-night) {
@@ -4742,8 +4704,9 @@ border-radius:16px;
     filter: none;
 }
 
-/* ---------- 9.3 白天 HUD 元素 ---------- */
-#galaxy:not(.theme-night) .galaxy-zoom-indicator {
+/* ---------- 9.3 白天 HUD 元素（作用于 .galaxy-page，
+   舞台移植到课程星系时同样生效） ---------- */
+.galaxy-page:not(.theme-night) .galaxy-zoom-indicator {
     background: rgba(255, 255, 255, .88);
     border: 1px solid rgba(129, 28, 33, .22);
     color: var(--main-red);
@@ -4756,23 +4719,23 @@ border-radius:16px;
     border-color: var(--main-red);
     box-shadow: 0 4px 16px rgba(129, 28, 33, .30);
 }
-#galaxy:not(.theme-night) .galaxy-hint {
+.galaxy-page:not(.theme-night) .galaxy-hint {
     color: rgba(110, 99, 83, .78);
     text-shadow: none;
 }
-#galaxy:not(.theme-night) .galaxy-toast {
+.galaxy-page:not(.theme-night) .galaxy-toast {
     background: rgba(255, 255, 255, .95);
     border: 1px solid rgba(129, 28, 33, .30);
     box-shadow: 0 12px 36px rgba(129, 28, 33, .18);
     color: var(--main-red);
     text-shadow: none;
 }
-#galaxy:not(.theme-night) .galaxy-loading {
+.galaxy-page:not(.theme-night) .galaxy-loading {
     background: rgba(247, 245, 239, .92);
     color: var(--main-red);
     text-shadow: none;
 }
-#galaxy:not(.theme-night) .galaxy-tooltip {
+.galaxy-page:not(.theme-night) .galaxy-tooltip {
     background: rgba(255, 255, 255, .97);
     border: 1px solid rgba(129, 28, 33, .18);
     box-shadow: 0 12px 32px rgba(90, 70, 55, .16);
@@ -4780,10 +4743,243 @@ border-radius:16px;
     backdrop-filter: none;
 }
 /* 白天主题按钮激活态：财大红实底 */
-#galaxy:not(.theme-night) #galaxyTheme.active {
+.galaxy-page:not(.theme-night) #galaxyTheme.active {
     background: var(--main-red);
     color: #fff;
     border-color: var(--main-red);
     box-shadow: 0 4px 14px rgba(129, 28, 33, .30);
     text-shadow: none;
+}
+
+/* ============================================================
+   深空星点风 · 参考「石心知识树」视频风格改造
+   简约 / 大气 / 神秘：近纯黑深空 + 单色冷白星点 + 极细星芒连线
+   （仅夜晚主题；白天主题保持米白财红不变）
+   ============================================================ */
+
+/* —— 1. 舞台：压暗到近纯黑，冷光收敛 —— */
+.galaxy-stage.theme-night {
+    --g-domain:  #FFFFFF;  --g-domain-glow: rgba(225, 236, 255, .95);
+    --g-macro:   #E2EBFF;  --g-macro-glow:  rgba(190, 214, 255, .85);
+    --g-meso:    #B4C6EC;  --g-meso-glow:   rgba(165, 195, 245, .55);
+    --g-micro:   #8498C8;  --g-micro-glow:  rgba(140, 170, 230, .28);
+    --g-edge:    rgba(190, 208, 255, .09);
+    --g-edge-hi: rgba(238, 245, 255, .92);
+    --g-label:   #93A4C8;
+    --g-bg:      #030409;
+
+    background:
+        radial-gradient(ellipse 55% 50% at 50% 46%, rgba(90, 120, 200, .07), transparent 65%),
+        linear-gradient(165deg, #030409 0%, #05070F 48%, #020308 100%);
+    border-color: rgba(140, 170, 240, .10);
+    box-shadow:
+        inset 0 0 220px rgba(0, 0, 0, .94),
+        inset 0 0 60px  rgba(70, 110, 200, .04),
+        0 0 60px rgba(50, 80, 160, .06);
+}
+.galaxy-stage.theme-night .galaxy-nebula {
+    background:
+        radial-gradient(circle at 38% 42%, rgba(90, 130, 230, .09), transparent 42%),
+        radial-gradient(circle at 64% 60%, rgba(120, 105, 225, .055), transparent 44%);
+    opacity: .5;
+}
+.galaxy-stage.theme-night .galaxy-vignette {
+    background: radial-gradient(circle at 50% 50%, transparent 38%, rgba(0, 0, 0, .74) 100%);
+}
+
+/* —— 2. 节点星点化：hub 冷白光晕，叶子星尘 —— */
+.galaxy-stage.theme-night .g-node.lvl-domain circle {
+    fill: #FFFFFF; stroke: rgba(255, 255, 255, .95); stroke-width: 2.5;
+    filter: drop-shadow(0 0 10px rgba(230, 240, 255, .9))
+            drop-shadow(0 0 30px rgba(160, 190, 255, .55));
+}
+.galaxy-stage.theme-night .g-node.lvl-macro circle {
+    fill: #E4EDFF; stroke: rgba(240, 247, 255, .9); stroke-width: 1.4;
+    filter: drop-shadow(0 0 8px rgba(190, 214, 255, .8))
+            drop-shadow(0 0 22px rgba(150, 185, 255, .4));
+}
+.galaxy-stage.theme-night .g-node.lvl-meso circle {
+    fill: #B6C8EC; stroke: none; stroke-width: 0;
+    filter: drop-shadow(0 0 5px rgba(170, 200, 250, .42));
+}
+.galaxy-stage.theme-night .g-node.lvl-micro circle {
+    fill: #8CA0CE; stroke: none;
+    filter: none;                 /* 星尘不发光：1911 节点省掉大量 blur 合成 */
+    opacity: .88;
+}
+/* 层次深度：层级越低越"远" */
+.galaxy-stage.theme-night .g-node.lvl-micro { opacity: .82; }
+
+/* —— 3. 连线星芒化：更细、更透、纯冷白 —— */
+.galaxy-stage.theme-night .g-link { stroke-width: .7; }
+.galaxy-stage.theme-night .g-link.sub { opacity: .13; }
+
+/* —— 4. 标签退后：神秘感来自"若隐若现" —— */
+.galaxy-stage.theme-night .g-label { paint-order: stroke; }
+.galaxy-stage.theme-night .g-node.lvl-domain .g-label { fill: #F2F6FF; opacity: .96; }
+.galaxy-stage.theme-night .g-node.lvl-macro  .g-label { fill: #C7D5F2; opacity: .78; }
+
+
+/* ============================================================
+   财经资讯板块改版：图表+紧凑指数栏 一行 · 新闻并排 · 三日/单日竖排切换
+   ============================================================ */
+
+/* ---------- 市场区一行布局 ---------- */
+.market-row {
+    display: flex;
+    align-items: stretch;
+    gap: 26px;
+    margin-top: 22px;
+}
+.market-row .chart-box {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: auto;
+}
+
+/* 图表主体：左侧竖排切换栏 + 画布 */
+.chart-body {
+    display: flex;
+    gap: 16px;
+    height: 330px;
+}
+.chart-canvas-wrap {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+}
+
+/* 竖排「三日 / 单日」切换 */
+.range-rail {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px 7px;
+    background: rgba(129, 28, 33, .06);
+    border-radius: 16px;
+    align-self: flex-start;
+}
+.range-btn {
+    border: none;
+    background: transparent;
+    color: #9a8f7d;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 13.5px;
+    letter-spacing: 6px;
+    writing-mode: vertical-rl;   /* 文字竖排 */
+    padding: 12px 5px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background .25s, color .25s, box-shadow .25s;
+}
+.range-btn:hover {
+    color: var(--main-red);
+    background: rgba(129, 28, 33, .08);
+}
+.range-btn.active {
+    background: var(--main-red);
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(129, 28, 33, .30);
+}
+
+/* 当前查看信息条 */
+.chart-current-info {
+    margin-top: 14px;
+    text-align: left;
+    font-size: 13px;
+    color: #6a6a6a;
+    font-family: "Source Han Serif SC", serif;
+}
+
+/* ---------- 紧凑指数数据栏 ---------- */
+.market-side {
+    flex: 0 0 300px;
+    background: var(--paper);
+    border-radius: 30px;
+    padding: 16px 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+}
+.side-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    cursor: pointer;
+    transition: background .22s;
+    font-family: "Times New Roman", "Microsoft YaHei", sans-serif;
+}
+.side-item + .side-item { margin-top: 2px; }
+.side-item:hover { background: rgba(129, 28, 33, .06); }
+.side-item.active {
+    background: #fff;
+    box-shadow: 0 3px 12px rgba(90, 70, 55, .12);
+}
+.side-item .si-name {
+    font-size: 14px;
+    color: #4a4640;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    white-space: nowrap;
+}
+.side-item.active .si-name { color: var(--main-red); font-weight: bold; }
+.side-item .si-right {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    white-space: nowrap;
+}
+.side-item .si-price { font-size: 15px; font-weight: bold; }
+.side-item .si-change { font-size: 12.5px; }
+.side-item .text-dim { color: #b1aca6; font-weight: normal; }
+
+/* ---------- 新闻区并排 ---------- */
+.news-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 40px;
+}
+.news-column {
+    flex: 1;
+    min-width: 0;
+}
+.news-column .outside-title { margin-top: 56px; }
+/* 面板改纵向：tab 横排在顶部，不再留竖排 tab 列与图片位 */
+.news-row .news-panel {
+    flex-direction: column;
+    min-height: 260px;
+}
+.news-row .news-tabs {
+    width: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 24px 30px 0;
+}
+.news-row .news-tabs .tab { padding: 9px 20px; font-size: 14.5px; }
+.news-row .news-content {
+    width: auto;
+    padding: 18px 34px 26px;
+}
+.news-row .news-content li { font-size: 16px; margin-bottom: 18px; }
+
+/* 窄屏适配 */
+@media (max-width: 1100px) {
+    .market-row { flex-direction: column; }
+    .market-side {
+        flex: auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2px 14px;
+        padding: 16px;
+    }
+    .side-item + .side-item { margin-top: 0; }
+    .news-row { flex-direction: column; gap: 0; }
 }

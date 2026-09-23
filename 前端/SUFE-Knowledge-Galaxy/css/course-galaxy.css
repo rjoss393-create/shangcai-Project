@@ -5,16 +5,119 @@
    配色 / 字体沿用站点红金 + 思源宋体风格。
 ============================================================ */
 
-/* ---------- 顶部说明 ---------- */
+/* ---------- 页头：左「大标题 + 灰色提示」，右「课程选项卡」----------
+   提示文字向知识星系看齐：#8a8378 灰 + 更低透明度，与大标题左对齐、上下排列；
+   选项卡靠右并略放大，与提示文字落在同一行 —— 省下一整行高度给星图。 */
+.cg-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin: 50px 10% 8px;
+}
+.cg-head .section-title { margin: 0; }
 .cg-intro {
-    max-width: 960px;
-    margin: 6px auto 18px;
-    text-align: center;
+    margin: 6px 0 0;
     font-size: 14px;
-    line-height: 1.9;
-    color: #6a6a6a;
+    line-height: 1.7;
+    color: #8a8378;
+    opacity: .78;
     font-family: "Source Han Serif SC", "思源宋体", serif;
 }
+.cg-head .cg-tabs {
+    flex: 0 0 auto;
+    justify-content: flex-end;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}
+/* 窄屏：页头改为上下两行，选项卡左对齐贴住提示 */
+@media (max-width: 900px) {
+    .cg-head {
+        flex-wrap: wrap;
+        align-items: flex-start;
+        margin: 40px 6% 8px;
+    }
+    .cg-head .cg-tabs { justify-content: flex-start; }
+}
+
+/* ---------- 图谱切换 tab（各课程知识图谱） ---------- */
+.cg-tabs {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-width: 960px;
+    margin: 0 auto 16px;
+    padding: 0 12px;
+}
+.cg-tab {
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 15px;
+    letter-spacing: 2px;
+    padding: 9px 26px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .85);
+    border: 1px solid #dccfb5;
+    color: #6a5a44;
+    cursor: pointer;
+    transition: all .25s;
+}
+.cg-tab:hover {
+    border-color: var(--main-red, #811C21);
+    color: var(--main-red, #811C21);
+    background: #fff;
+}
+.cg-tab.active {
+    background: var(--main-red, #811C21);
+    border-color: var(--main-red, #811C21);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(129, 28, 33, .28);
+}
+/* 知识图谱模式：移植进来的知识星系舞台顶部留白微调 */
+#course-galaxy .galaxy-page {
+    animation: cgFadeIn .45s ease;
+}
+@keyframes cgFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: none; }
+}
+
+/* 嵌入的缩放指示窗 → 与课程图谱工具栏同款（左上角、大号红字百分比 + 小字层级名） */
+#course-galaxy .galaxy-page .galaxy-zoom-indicator {
+    right: auto;
+    left: 26px;
+    top: 16px;
+    padding: 0;
+    gap: 8px;
+    align-items: baseline;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    pointer-events: none;
+}
+#course-galaxy .galaxy-page .galaxy-zoom-indicator .zoom-pct {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--main-red, #811C21);
+    min-width: 52px;
+    text-shadow: none;
+    letter-spacing: 0;
+}
+#course-galaxy .galaxy-page .galaxy-zoom-indicator .zoom-name {
+    font-size: 12px;
+    color: #9a8f7d;
+    text-shadow: none;
+    letter-spacing: 1px;
+}
+/* 夜晚主题下百分比与层级名用浅色系 */
+#course-galaxy .galaxy-page.theme-night .galaxy-zoom-indicator .zoom-pct { color: #A8C8FF; }
+#course-galaxy .galaxy-page.theme-night .galaxy-zoom-indicator .zoom-name { color: rgba(168, 200, 255, .75); }
+
+/* 禁用浏览器滚动锚定：板块内大块内容显隐由 JS 精确补偿滚动，避免双重锚定打架造成视口乱跳 */
+#course-galaxy { overflow-anchor: none; }
 
 /* ---------- 工具栏 ---------- */
 .cg-toolbar {
@@ -571,4 +674,59 @@
     .cg-zoom-indicator { border-right: none; padding-right: 0; }
     .cg-card { width: 100vw; }
     .cg-hint { font-size: 10px; }
+}
+
+/* ============================================================
+   课程知识图谱容器 / 待接入空态
+   ------------------------------------------------------------
+   容器平时 hidden；进入某门课程图谱时，知识星系的星图舞台被移植到这里。
+   空态用于「该课程暂无图谱数据」的情况，风格与星图面板保持一致。
+   ============================================================ */
+.cg-knowledge-host {
+    width: 100%;
+}
+.cg-kg-empty {
+    max-width: 1440px;
+    margin: 14px auto 0;
+    padding: 54px 40px 58px;
+    border: 1px solid rgba(129, 28, 33, .14);
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 50% 0%, rgba(129, 28, 33, .05), transparent 62%),
+        #FBF9F4;
+    box-shadow: 0 10px 34px rgba(70, 60, 40, .08);
+    text-align: center;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+.cg-kg-empty-mark {
+    font-size: 30px;
+    line-height: 1;
+    color: rgba(129, 28, 33, .35);
+    margin-bottom: 16px;
+}
+.cg-kg-empty-title {
+    font-size: 26px;
+    letter-spacing: 3px;
+    color: #811C21;
+}
+.cg-kg-empty-sub {
+    margin-top: 8px;
+    font-size: 14px;
+    letter-spacing: 4px;
+    color: #8a7f6d;
+}
+.cg-kg-empty-desc {
+    max-width: 620px;
+    margin: 20px auto 0;
+    font-size: 13px;
+    line-height: 2;
+    color: #7d7566;
+}
+.cg-kg-empty-desc code {
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: rgba(129, 28, 33, .07);
+    color: #811C21;
+    font-family: "Consolas", "Menlo", monospace;
+    font-size: 12px;
 }

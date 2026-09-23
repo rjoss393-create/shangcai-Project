@@ -83,8 +83,58 @@ class TestManifests:
         assert r.status_code == 200
         assert r.json()["domains"][0]["id"] == "econ_base"
 
+    def test_textbooks_manifest(self, client, tmp_path):
+        """教材清单（课程板块「阅读原文」的索引）"""
+        (tmp_path / "textbooks.json").write_text(
+            '{"count":1,"books":[{"id":"kuhn-scientific-revolutions"}]}', encoding="utf-8")
+        r = client.get("/data/textbooks.json")
+        assert r.status_code == 200
+        assert r.json()["books"][0]["id"] == "kuhn-scientific-revolutions"
+
+    def test_textbook_file_served(self, client, tmp_path):
+        """教材原文按前端原相对路径提供：/assets/textbooks/<file>"""
+        d = tmp_path / "textbooks"
+        d.mkdir()
+        (d / "demo.pdf").write_bytes(b"%PDF-1.4 demo")
+        r = client.get("/assets/textbooks/demo.pdf")
+        assert r.status_code == 200
+        assert r.content.startswith(b"%PDF")
+
+    def test_databases_manifest(self, client, tmp_path):
+        """数据库板块清单：前端 js/database-board.js 按 data/databases.json 请求"""
+        (tmp_path / "databases.json").write_text(
+            '{"meta":{"title":"数据库"},"groups":[{"id":"intl","rows":[[]]}]}', encoding="utf-8")
+        r = client.get("/data/databases.json")
+        assert r.status_code == 200
+        assert r.json()["groups"][0]["id"] == "intl"
+
+    def test_databases_api_wraps_unified_envelope(self, client, tmp_path):
+        """同一份数据也提供带统一响应外壳的 /api/databases（前端 USE_API=true 时走这条）"""
+        (tmp_path / "databases.json").write_text('{"groups":[{"id":"intl"}]}', encoding="utf-8")
+        r = client.get("/api/databases")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["code"] == 0
+        assert body["data"]["groups"][0]["id"] == "intl"
+
+    def test_course_graph_fallback_served_at_site_root(self, client, tmp_path):
+        """课程图谱本地兜底 JSON 按前端原文件名挂在站点根目录"""
+        d = tmp_path / "graphs"
+        d.mkdir()
+        (d / "course_graph_investment.json").write_text(
+            '{"nodes":[{"id":"inv_macro_001","level":"macro"}]}', encoding="utf-8")
+        r = client.get("/course_graph_investment.json")
+        assert r.status_code == 200
+        assert r.json()["nodes"][0]["id"] == "inv_macro_001"
+
     def test_missing_manifest_returns_404(self, client):
         assert client.get("/data/courses.json").status_code == 404
+        assert client.get("/data/textbooks.json").status_code == 404
+        assert client.get("/data/databases.json").status_code == 404
+        assert client.get("/api/databases").status_code == 404
+        assert client.get("/course_graph_investment.json").status_code == 404
+        assert client.get("/course_graph_mergers.json").status_code == 404
+        assert client.get("/course_graph_corporate_finance.json").status_code == 404
 
 
 class TestNews:

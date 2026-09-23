@@ -5,6 +5,8 @@
    不加载该脚本时，本文件不产生任何影响，页面保持原有纵向滚动。
    切换机制：非激活页 absolute 浮在 main 顶部，激活页参与文档流，
    main 的高度由脚本同步为「当前页高度」，因此页面仍可纵向滚动。
+   ★ 切换顺序：幕布先扫过来盖住当前页 → 幕后换页 → 幕布推走揭示新页。
+     内容永远在幕布之后才换，不会"下一页先冒出来动画才到"。
    ============================================================ */
 
 body.pgs {
@@ -31,10 +33,13 @@ body.pgs .page-section {
     visibility: hidden;
     pointer-events: none;
     transform: translate3d(9%, 0, 0) scale(0.982);
+    /* 归位时长只需覆盖「幕布盖满屏之后的那半程」：
+       换页发生在幕布盖住的瞬间（js 里 COVER_AT，38% 处），
+       所以从那一刻起还剩约 0.66s 幕布才推完 —— 过渡与之对齐。 */
     transition:
-        transform 0.78s cubic-bezier(0.22, 0.9, 0.24, 1),
-        opacity 0.52s ease,
-        visibility 0s linear 0.78s;
+        transform 0.66s cubic-bezier(0.22, 0.9, 0.24, 1),
+        opacity 0.5s ease,
+        visibility 0s linear 0.66s;
 }
 
 /* 反向（向左切）时，新页从左侧进来 */
@@ -52,17 +57,15 @@ body.pgs .page-section.pg-active {
     transition-delay: 0s;
 }
 
-/* 只有动画进行中才开 3D 透视 / will-change，
-   平时保持干净，避免给页内 fixed 元素（沉浸星图）制造包含块 */
+/* 只有归位进行中才开 3D 透视 / will-change，平时保持干净，
+   避免给页内 fixed 元素（沉浸星图）制造包含块。
+   ★ will-change 只给「正在归位的激活页」：旧页在幕布扫过的这半程里
+     保持零变换、零 will-change，因此它内部的 fixed 元素不会被重新定位。 */
 body.pgs.pg-anim main {
     perspective: 1900px;
 }
-body.pgs.pg-anim .page-section {
+body.pgs.pg-anim .page-section.pg-active {
     will-change: transform, opacity;
-}
-body.pgs.pg-anim .page-section.pg-leaving {
-    opacity: 0;
-    transition-delay: 0s;
 }
 
 /* ============================================================
@@ -121,6 +124,14 @@ body.pgs.pg-anim .page-section.pg-leaving {
     animation-direction: reverse;
 }
 
+/* ------------------------------------------------------------
+   切换节奏：幕布先行，内容在后
+   ------------------------------------------------------------
+   0%  → 38%   幕布扫入，把当前页完全盖住（旧页全程静止不动）
+   38%          ★ 此刻 js（COVER_AT）在幕后完成换页
+   38% → 62%   幕布停住，展示财红底 + 米白页码铭牌
+   62% → 100%  幕布继续推走，露出已经落定的新页
+   ------------------------------------------------------------ */
 /* 推进 → 停住（此刻内容在幕布后完成交换）→ 继续推走 */
 @keyframes pgVeilSweep {
     0%   { transform: translate3d(103%, 0, 0); opacity: 1; }

@@ -38,6 +38,13 @@ data/profiles.json
 # 清单 data/media/videos.json 进库，论文 PDF 与图书封面体积小也进库）
 data/media/videos/
 
+# 教材原文（约 378MB，后端 data/media/ 托管，由 scripts/import_textbooks.py 从根目录 书/ 生成；
+# 清单 data/media/textbooks.json 进库）
+data/media/textbooks/
+
+# 教材原始取材目录（用户放在根目录的 20 本书，约 378MB，仅作为 import_textbooks.py 的输入，不进版本库）
+书/
+
 # 前端知识星系 v12 本地兜底 JSON（34.5MB，与 data/layered/v12_layered.json 同源，不进版本库）
 前端/SUFE-Knowledge-Galaxy/data/galaxy_v12.json
 

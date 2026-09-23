@@ -20,8 +20,17 @@
                   → explanation(10326) → detail(9565)
       知识边 6 种关系：前置/应用/影响/度量/映射/包含(不渲染)
    ④ 兼容：window.GalaxyEngine 对外接口与旧引擎一致
-      (clickNode/selectNode/pulseNodes/focusOnNodes/switchGraph/goMacro/state)
+      (clickNode/selectNode/pulseNodes/focusOnNodes/switchGraph/loadGraph/goMacro/state)
       知识助手 / 课程星系联动不受影响
+   ⑤ ★ 多图谱：知识星系与「课程知识图谱」共用这一套引擎、样式与六层钻取。
+      GRAPH_REGISTRY 登记 graph_id（v12 / invest / ma / corp_fin / intl_inv），
+      loadGraph(gid) 按 id 取图（本地 JSON 或后端 /api/graph/load），
+      course 形态的数据没有 domain 层，载入时自动补一个虚拟领域（normalizeGraph），
+      并统一用「一种蓝」着色（只有课程根节点保留财大红，见课程图谱配色小节）
+      —— 早前按主题轮转 8 色，观感太杂，已收掉。
+   ⑥ ★ 换图时序：loadGraph 一发出请求就立刻遮盖旧图并记下 desiredGraphId，
+      activateGraph 只画「最后被要的那张」——晚到的旧图只入缓存不上画布，
+      避免「切到课程星系却还显示上一张知识星系」。
    ============================================================ */
 (function () {
     'use strict';
@@ -64,6 +73,34 @@
     let API_BASE      = '';                         /* 与页面同源；跨源时写 'http://localhost:8000' */
     try { if (window.__KG_API_BASE__) API_BASE = window.__KG_API_BASE__; } catch (e) { /* ignore */ }
     const LOCAL_URL   = 'data/galaxy_v12.json';     /* 与后端同源的那份 JSON（api 拉不到时兜底） */
+
+    /* --------------------------------------------------------
+       ★ 图谱注册表 —— 知识星系与各「课程知识图谱」共用同一套引擎、同一套样式
+         （css/knowledge-galaxy.css）与同一套六层钻取逻辑，
+         所以课程图谱在观感与交互上与知识星系完全一致，只是换了一份数据。
+         · local   —— 本地 JSON 路径；为 null 表示只等后端（暂无数据）
+         · profile —— 'kg'     多领域星系（数据自带 domain 层）
+                      'course' 单课程图谱（数据没有 domain 层，
+                               载入时自动补一个虚拟领域，见 normalizeGraph）
+       后端接入：POST {API_BASE}/api/graph/load {graph_id} 直接按下面的 key 取图，
+       与知识星系走同一个接口、同一份契约（详见《对接文档》）。
+       ★ 与知识星系的区别只在「数据形态」，不在代码路径。
+       -------------------------------------------------------- */
+    const GRAPH_REGISTRY = {
+        v12:      { label: '统一知识星系', profile: 'kg',     local: LOCAL_URL },
+        invest:   { label: '投资学',       profile: 'course', local: 'course_graph_investment.json' },
+        ma:       { label: '并购与重组',   profile: 'course', local: 'course_graph_mergers.json' },
+        corp_fin: { label: '公司金融',     profile: 'course', local: 'course_graph_corporate_finance.json' },
+        /* ★ 未上线（2026-09-23 下架）：该课程不做，界面已无对应选项卡。
+           保留这一行只是「空位」——以后拿到 JSON 时把 local 指向文件名即可，
+           前端其它地方零改动。完全没有界面入口，不会渲染任何东西。 */
+        intl_inv: { label: '国际投资学',   profile: 'course', local: null }
+    };
+    /* 旧 id 别名：'econ' 是旧引擎里「统一知识星系」的 id */
+    function canonicalGraphId(gid) {
+        if (!gid || gid === 'econ') return GRAPH_ID;
+        return gid;
+    }
 
     /* 领域：前 3 个是投资学本体（默认视图），后 2 个是扩展域（扩展视图） */
     const DOMAINS_CORE = ['宏观金融', '微观金融', '交叉学科'];
@@ -151,6 +188,10 @@
         /* ★ 画布此刻真正显示的那张图。只由「画布显示内容」决定，
            不能写成 currentGraphId 的别名（对接约定第六条）。 */
         graphId: GRAPH_ID,
+        /* 当前图的形态：'kg' 多领域星系 | 'course' 单课程图谱（无领域层） */
+        graphProfile: 'kg',
+        /* 课程图谱的根节点（唯一的 macro），course 形态下「总览」就落在这里 */
+        rootMacroId: null,
 
         /* 相机 */
         tx: 0, ty: 0, scale: 1
@@ -189,16 +230,56 @@
             dom2:     cs.getPropertyValue('--kg-dom-2').trim(),
             dom3:     cs.getPropertyValue('--kg-dom-3').trim(),
             dom4:     cs.getPropertyValue('--kg-dom-4').trim(),
-            dom5:     cs.getPropertyValue('--kg-dom-5').trim()
+            dom5:     cs.getPropertyValue('--kg-dom-5').trim(),
+        accent:   cs.getPropertyValue('--kg-accent').trim(),
+        /* 课程图谱专属色（见 css --kg-course-blue） */
+        courseBlue: cs.getPropertyValue('--kg-course-blue').trim()
         };
         PALETTE['宏观金融'] = PALETTE.dom1;
         PALETTE['微观金融'] = PALETTE.dom2;
         PALETTE['交叉学科'] = PALETTE.dom3;
         PALETTE['财经扩展'] = PALETTE.dom4;
         PALETTE['跨学科知识'] = PALETTE.dom5;
+        /* 课程图谱只有一个虚拟领域：整张图统一蓝（根节点单独取财大红，见 courseRed） */
+        PALETTE['课程'] = PALETTE.courseBlue || PALETTE.dom1;
     }
 
-    function domColor(domain) { return PALETTE[domain] || PALETTE.dom1; }
+    function domColor(domain) {
+        if (PALETTE[domain]) return PALETTE[domain];
+        /* 未登记的领域：知识星系回落到领域一色；课程图谱回落到主题色 */
+        return (state.graphProfile === 'course' && PALETTE['课程']) || PALETTE.dom1;
+    }
+
+    /* --------------------------------------------------------
+       课程图谱配色
+       --------------------------------------------------------
+       整张课程图只用「一种蓝」，只有第 1 层正中央那个最大的课程根节点
+       保留财大红（它是课程的「星核」，需要一眼认出来）。
+       曾经按主题轮转 8 色、也试过径向渐变，前者太杂、后者与整体调性不合，
+       都已撤掉：层次改由「节点大小 + 字形 + 标签 + 位置」区分。
+       第 5/6 层的内容类型节点（释义 / 公式 / 案例 / 人物 / 历史 / 争议）
+       照旧沿用知识星系那套类型色（--kg-dt-*）—— 全站同类型同色，
+       不额外增加记忆点。
+    -------------------------------------------------------- */
+    /* 统一蓝：主题 / 知识点 / 各层中央节点 */
+    function courseBlue() { return PALETTE.courseBlue || PALETTE.dom1; }
+    /* 财大红：仅课程根节点（第 1 层中央），与知识星系主红同源 */
+    function courseRed() { return PALETTE.accent; }
+
+    /* 主题统一蓝（非课程图谱返回 null，调用方回落到领域色） */
+    function toneOfMeso(mesoId) {
+        const idx = state.idx;
+        if (!idx || state.graphProfile !== 'course' || !mesoId) return null;
+        const n = idx.byId.get(mesoId);
+        if (!n || n.level !== 'meso') return null;
+        return courseBlue();
+    }
+    /* 知识点色 = 与所属主题同一蓝 */
+    function toneOfMicro(microId) {
+        const idx = state.idx;
+        if (!idx || state.graphProfile !== 'course' || !microId) return null;
+        return toneOfMeso(idx.mesoOfMicro.get(microId));
+    }
 
     /* --------------------------------------------------------
        数据加载与索引
@@ -352,7 +433,8 @@
             macroAgg, mesoAgg, macroRel, mesoRel,
             overviewPos,
             stats: {
-                nodes: (data.nodes || []).length,
+                /* 虚拟领域节点不算进统计 */
+                nodes: (data.nodes || []).filter(n => !n.virtual).length,
                 edges: (data.edges || []).length,
                 knowEdges: knowEdges.length,
                 clusters: new Set(micros.map(m => m.cluster_name).filter(Boolean)).size,
@@ -362,13 +444,19 @@
         };
     }
 
-    /* 当前视图下可见的领域（扩展视图才含「财经扩展 / 跨学科知识」） */
+    /* 当前视图下可见的领域
+       （知识星系：扩展视图才含「财经扩展 / 跨学科知识」；
+         课程图谱：只有一个虚拟领域，永远可见） */
+    function domainsForView(domOrder) {
+        if (state.graphProfile === 'course') return domOrder.slice();
+        return state.viewMode === 'extend'
+            ? domOrder.slice()
+            : domOrder.filter(d => DOMAINS_CORE.includes(d));
+    }
     function visibleDomains() {
         const idx = state.idx;
         if (!idx) return [];
-        return state.viewMode === 'extend'
-            ? idx.domOrder
-            : idx.domOrder.filter(d => DOMAINS_CORE.includes(d));
+        return domainsForView(idx.domOrder);
     }
     function recomputeOverviewPos() {
         const idx = state.idx;
@@ -451,7 +539,7 @@
 
     /* 总览布局：领域扇区 × 多环交错（供各层引用方位） */
     function layoutOverviewPositions(macros, domOrder, viewMode) {
-        const names = viewMode === 'extend' ? domOrder.slice() : domOrder.filter(d => DOMAINS_CORE.includes(d));
+        const names = domainsForView(domOrder);
         const list = macros.filter(m => names.includes(m._domain));
         const total = list.length || 1;
         const rings = ringsFor(total);
@@ -592,12 +680,42 @@
         };
     }
 
-    function fetchGraph() {
+    /* --------------------------------------------------------
+       图谱装配：按 graph_id 取数 → 归一化 → 建索引 → 上画布
+       知识星系与课程图谱走的是同一条路径，只是 graph_id 不同。
+    -------------------------------------------------------- */
+
+    /* 课程图谱只有「课程 → 主题 → 知识点 → 释义 → 深层内容」这一棵树，
+       没有知识星系的「领域」层。这里给根节点补一个虚拟领域，把层级链补完整，
+       六层渲染逻辑便无需任何特判（虚拟领域不出现在面包屑 / 侧栏里）。 */
+    function normalizeGraph(data, gid, rec) {
+        const nodes = data.nodes || [];
+        if (rec && rec.profile === 'course') {
+            const root = nodes.find(n => n.level === 'macro' && !n.parent_id)
+                      || nodes.find(n => n.level === 'macro');
+            if (root && !nodes.some(n => n.level === 'domain')) {
+                nodes.unshift({
+                    id: '_virtual_domain_' + gid,
+                    name: root.name,
+                    level: 'domain',
+                    parent_id: null,
+                    virtual: true,
+                    source_origin: 'course_graph'
+                });
+                root.parent_id = '_virtual_domain_' + gid;
+            }
+        }
+        /* label 字段兼容（course-galaxy / 知识助手读 n.label） */
+        nodes.forEach(n => { if (n.label == null) n.label = n.name; });
+        return data;
+    }
+
+    function fetchGraphById(gid, rec) {
         if (DATA_SOURCE === 'api') {
             return fetch(API_BASE + '/api/graph/load', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ graph_id: GRAPH_ID })
+                body: JSON.stringify({ graph_id: gid })
             })
                 .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
                 .then(resp => {
@@ -608,37 +726,134 @@
                 })
                 .catch(err => {
                     /* 后端还没登记这张图谱时，本地 JSON 兜底，页面不至于空白 */
-                    console.warn('[知识星系] 后端图谱不可用，回退本地 JSON：', err.message);
-                    return fetchLocalGraph();
+                    console.warn('[知识星系] 后端图谱不可用（' + gid + '），回退本地 JSON：', err.message);
+                    return fetchLocalGraph(rec);
                 });
         }
-        return fetchLocalGraph();
+        return fetchLocalGraph(rec);
     }
 
-    function fetchLocalGraph() {
-        return fetch(LOCAL_URL)
-            .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+    function fetchLocalGraph(rec) {
+        const r = rec || GRAPH_REGISTRY[GRAPH_ID];
+        if (!r || !r.local) return Promise.reject(new Error('该图谱暂无本地数据'));
+        return fetch(r.local)
+            .then(res => { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); });
+    }
+
+    /* gid → { data, idx }：切回看过的图不必重新拉取 / 重建索引 */
+    const graphCache = new Map();
+
+    /* ★ 用户最后一次「想要」的那张图。
+       activateGraph 只画它：换图期间若有更早发出的请求晚到（例如首屏那张
+       34MB 的 v12，或者用户切走后才返回的旧图），只入缓存、不上画布。
+       否则就会出现「切到课程星系，画面却还是上一张五颜六色的知识星系」。
+       ★ 同步赋值（在 loadGraph 里），不能等排队任务真正执行时才写。 */
+    let desiredGraphId = GRAPH_ID;
+
+    /* 加载遮罩：请求一发出就盖住旧图，直到「要的那张图」画好才揭开。
+       （此前只在排队任务真正开始时才显示，于是换图的那几秒里
+        画布上还留着上一张图，看起来像没切换。） */
+    function setLoading(on, txt) {
+        const el = document.getElementById('galaxyLoading');
+        if (!el) return;
+        if (txt) el.textContent = txt;
+        /* 收起时顺手把文案复位：遮罩再次出现时不会残留上次的报错（如「暂无本地数据」） */
+        else el.textContent = '星图加载中…';
+        el.classList.toggle('hide', !on);
+    }
+
+    /* 把一张已经准备好的图推上画布；返回是否真的画了 */
+    function activateGraph(gid, rec, data, idx) {
+        if (gid !== desiredGraphId) return false;   /* 晚到的旧图：只入缓存 */
+        state.graphId = gid;
+        state.currentGraphId = (gid === GRAPH_ID) ? 'econ' : gid;
+        state.graphProfile = rec.profile || 'kg';
+        state.data = data;
+        state.idx = idx;
+        state.rootMacroId = (state.graphProfile === 'course' && idx.macros.length)
+            ? idx.macros[0].id : null;
+        state.loaded = true;
+
+        /* 归零到入口层 */
+        state.view = 'overview';
+        state.macroId = state.mesoId = state.microId = null;
+        state.explId = state.detailId = null;
+        state.originView = state.originId = null;
+        state.deepLink = false;
+
+        root.dataset.graphProfile = state.graphProfile;
+        hideDetail();
+
+        measure();              /* 布局稳定后再测一次，避免早期尺寸偏差 */
+        seedStars();
+        if (navigator.webdriver) drawStarsFrame(1.2);
+        buildSearchIndex();
+        renderSidebar();
+
+        /* 课程图谱没有领域总览层：goOverview() 会落到课程根节点（学科星域） */
+        goOverview();
+        setLoading(false);
+        return true;
+    }
+
+    /* 各门图谱各拉各的、互不阻塞
+       （此前所有取图串行排队，课程图谱会排在首屏那张 34MB 的 v12 后面干等，
+        换图期间画布上一直留着旧图）；谁最后被请求谁上画布，
+       由 activateGraph 里的 desiredGraphId 守卫保证顺序正确。 */
+    function loadGraph(gid, opt) {
+        opt = opt || {};
+        const id = canonicalGraphId(gid);
+        const rec = GRAPH_REGISTRY[id];
+        if (!rec) return Promise.reject(new Error('未登记的图谱：' + gid));
+        if (state.loaded && state.graphId === id && !opt.force) {
+            /* 这张图本来就还在画布上（例如点了「待接入」的空课程之后再点回来）：
+               直接放行即可，但必须把上一次失败留下的遮罩清掉 ——
+               否则那句「星图数据加载失败」会一直盖在完好的星图上，
+               看起来就像「这门课也没有数据」。 */
+            desiredGraphId = id;
+            setLoading(false);
+            return Promise.resolve(true);
+        }
+        desiredGraphId = id;
+        setLoading(true);               /* ★ 立刻遮住旧图，别让上一张图露脸 */
+        return doLoadGraph(id, rec, opt);
+    }
+
+    function doLoadGraph(id, rec, opt) {
+        opt = opt || {};
+        const cached = graphCache.get(id);
+        if (cached) {
+            activateGraph(id, rec, cached.data, cached.idx);
+            return Promise.resolve(true);
+        }
+
+        return fetchGraphById(id, rec)
+            .then(raw => {
+                const data = normalizeGraph(raw, id, rec);
+                const idx = buildIndex(data);
+                graphCache.set(id, { data, idx });
+                const painted = activateGraph(id, rec, data, idx);
+                /* 没画上说明已被更新的请求取代，遮罩交给那一张去揭 */
+                if (!painted && desiredGraphId === id) setLoading(false);
+                return true;
+            })
+            .catch(err => {
+                /* 失败时保留画布上的旧图，由调用方决定怎么提示 */
+                if (desiredGraphId === id) setLoading(true, '星图数据加载失败：' + err.message);
+                console.warn('[知识星系] 图谱加载失败（' + id + '）：', err.message);
+                throw err;
+            });
     }
 
     function load() {
         if (loadPromise) return loadPromise;
-        const loadingEl = document.getElementById('galaxyLoading');
-        loadPromise = fetchGraph()
-            .then(data => {
-                state.data = data;
-                state.idx = buildIndex(data);
-                state.loaded = true;
-                measure();          /* 布局稳定后再测一次，避免早期尺寸偏差 */
-                seedStars();
-                if (navigator.webdriver) drawStarsFrame(1.2);
-                if (loadingEl) loadingEl.classList.add('hide');
-                buildSearchIndex();
-                renderSidebar();
-                render(false);
-                applyDeepLink();
-            })
+        loadPromise = loadGraph(GRAPH_ID)
+            .then(() => { applyDeepLink(); })
             .catch(err => {
-                if (loadingEl) loadingEl.textContent = '星图数据加载失败：' + err.message;
+                /* 用户已经切去看别的图了，就别把遮罩改成报错文案吓人 */
+                if (desiredGraphId === GRAPH_ID) {
+                    setLoading(true, '星图数据加载失败：' + err.message);
+                }
                 console.error('[知识星系] 数据加载失败', err);
             });
         return loadPromise;
@@ -834,36 +1049,66 @@
         if (!box) return;
         const idx = state.idx;
         const names = visibleDomains();
-        let html = '<div class="kg-side-head">学科目录 · DICTIONARY</div>';
-        names.forEach(dom => {
-            const list = idx.macrosOfDomain.get(dom) || [];
-            const domMicro = list.reduce((s, m) => s + microCountOfMacro(m.id), 0);
-            html += `<div class="kg-side-group">
-                <div class="kg-side-group-title">
-                    <span class="dot" style="background:${domColor(dom)}"></span>
-                    ${dom}<span class="cnt">${list.length} 学科 · ${domMicro} 知识点</span>
-                </div>`;
-            list.forEach(m => {
-                html += `<button class="kg-side-item" data-macro="${m.id}" title="${escapeHtml(m.name)}">
-                    ${escapeHtml(m.name)}<span class="micro-cnt">${microCountOfMacro(m.id)} 点</span></button>`;
+        const isCourse = state.graphProfile === 'course';
+        let html = '';
+        if (isCourse) {
+            /* 课程图谱：侧栏直接列「主题」，点进去就是主题星团 */
+            const root = idx.byId.get(state.rootMacroId);
+            const rootColor = courseRed();      /* 与星图中央的课程根节点同色（财大红） */
+            html += `<div class="kg-side-head">主题目录 · TOPICS</div>
+                <div class="kg-side-group">
+                    <div class="kg-side-group-title">
+                        <span class="dot" style="background:${rootColor}"></span>
+                        ${escapeHtml(root ? root.name : '课程图谱')}<span class="cnt">${idx.mesos.length} 主题 · ${idx.micros.length} 知识点</span>
+                    </div>`;
+            idx.mesos.forEach(ms => {
+                const n = (idx.childrenOf.get(ms.id) || []).length;
+                html += `<button class="kg-side-item" data-meso="${ms.id}" title="${escapeHtml(ms.name)}">
+                    <span class="dot" style="background:${toneOfMeso(ms.id) || rootColor}"></span>${escapeHtml(ms.name)}<span class="micro-cnt">${n} 点</span></button>`;
             });
             html += `</div>`;
-        });
+        } else {
+            html += '<div class="kg-side-head">学科目录 · DICTIONARY</div>';
+            names.forEach(dom => {
+                const list = idx.macrosOfDomain.get(dom) || [];
+                const domMicro = list.reduce((s, m) => s + microCountOfMacro(m.id), 0);
+                html += `<div class="kg-side-group">
+                    <div class="kg-side-group-title">
+                        <span class="dot" style="background:${domColor(dom)}"></span>
+                        ${dom}<span class="cnt">${list.length} 学科 · ${domMicro} 知识点</span>
+                    </div>`;
+                list.forEach(m => {
+                    html += `<button class="kg-side-item" data-macro="${m.id}" title="${escapeHtml(m.name)}">
+                        ${escapeHtml(m.name)}<span class="micro-cnt">${microCountOfMacro(m.id)} 点</span></button>`;
+                });
+                html += `</div>`;
+            });
+        }
         const st = idx.stats;
         html += `<div class="kg-side-stat">
             <b>${st.nodes.toLocaleString()}</b> 节点 · <b>${st.knowEdges.toLocaleString()}</b> 知识关联<br>
             <b>${idx.macros.length}</b> 学科 · <b>${idx.mesos.length.toLocaleString()}</b> 主题 · <b>${idx.micros.length.toLocaleString()}</b> 知识点<br>
             <b>${idx.explanations.length.toLocaleString()}</b> 名词解释 · <b>${idx.details.length.toLocaleString()}</b> 深层内容<br>
-            <b>${st.externalMicros}</b> 跨学科延伸${state.viewMode === 'invest' ? '（扩展视图可见）' : ''}
+            <b>${st.externalMicros}</b> 跨学科延伸${!isCourse && state.viewMode === 'invest' ? '（扩展视图可见）' : ''}
         </div>`;
         box.innerHTML = html;
         box.querySelectorAll('.kg-side-item').forEach(btn => {
-            btn.addEventListener('click', () => enterMacro(btn.dataset.macro));
+            if (btn.dataset.meso) btn.addEventListener('click', () => enterMeso(btn.dataset.meso));
+            else btn.addEventListener('click', () => enterMacro(btn.dataset.macro));
         });
     }
 
     function syncSidebar() {
         const idx = state.idx;
+        if (state.graphProfile === 'course') {
+            /* 主题目录：高亮当前所在的主题（含其下知识点 / 释义 / 深层内容） */
+            const curMeso = state.mesoId;
+            document.querySelectorAll('.kg-side-item[data-meso]').forEach(btn => {
+                btn.classList.toggle('is-active',
+                    state.view !== 'macro' && state.view !== 'overview' && curMeso === btn.dataset.meso);
+            });
+            return;
+        }
         let curMac = state.macroId;
         if (state.microId) curMac = idx.macroOfMicro.get(state.microId) || curMac;
         else if (state.mesoId) curMac = idx.macroOfMeso.get(state.mesoId) || curMac;
@@ -880,7 +1125,6 @@
         const idx = state.idx;
         const v = state.view;
         const parts = [];
-        parts.push(`<button class="kg-crumb is-home" data-act="home">◉ 星系总览</button>`);
         const sep = () => parts.push('<span class="kg-crumb-sep">›</span>');
         const link = (txt, act, color) => parts.push(
             `<button class="kg-crumb" data-act="${act}"${color ? ` style="color:${color}"` : ''}>${txt}</button>`);
@@ -891,9 +1135,19 @@
         const mi = state.microId ? idx.byId.get(state.microId) : null;
         const isContent = (v === 'micro' || v === 'explanation' || v === 'detail');
 
-        if (v !== 'overview' && mac) {
-            sep(); link(mac._domain, 'home', domColor(mac._domain));
-            sep(); if (v === 'macro') cur(mac.name); else link(mac.name, 'macro');
+        if (state.graphProfile === 'course') {
+            /* 课程图谱：第一粒就是课程本身（没有领域层，也没有「星系总览」） */
+            const rootNode = idx.byId.get(state.rootMacroId);
+            const home = '◉ ' + escapeHtml(rootNode ? rootNode.name : '课程图谱');
+            if (v === 'overview' || v === 'macro') cur(home);
+            else parts.push(`<button class="kg-crumb is-home" data-act="home">${home}</button>`);
+        } else {
+            parts.push(`<button class="kg-crumb is-home" data-act="home">◉ 星系总览</button>`);
+            if (v !== 'overview' && mac) {
+                sep(); link(mac._domain, 'home', domColor(mac._domain));
+                sep();
+                if (v === 'macro') cur(mac.name); else link(mac.name, 'macro');
+            }
         }
         if ((v === 'meso' || isContent) && ms) {
             sep(); if (v === 'meso') cur(ms.name); else link(ms.name, 'meso');
@@ -1296,7 +1550,11 @@
         const cx = W / 2, cy = H / 2;
         const u = Math.min(W, H) / 2;
         const R_GATE = u * 0.92;
-        const color = domColor(mac._domain);
+        /* 课程图谱：第 1 层正中央那个最大的「课程标题」节点保留财大红
+           —— 全图唯一的红色，一眼就能认出课程的星核；其余节点统一蓝。
+           知识星系仍按领域取色（不受影响）。 */
+        const isCourse = state.graphProfile === 'course';
+        const color = isCourse ? courseRed() : domColor(mac._domain);
         const mesos = idx.childrenOf.get(mac.id) || [];
 
         /* 中央学科 */
@@ -1330,7 +1588,9 @@
             return {
                 item: {
                     id: ms.id, name: ms.name, sub: micros.length + ' 知识点',
-                    color, baseR: 12 + Math.sqrt(micros.length) * 2.0, data: ms
+                    /* 课程图谱：主题一律统一蓝（只有中央根节点是财大红） */
+                    color: toneOfMeso(ms.id) || (isCourse ? courseBlue() : color),
+                    baseR: 12 + Math.sqrt(micros.length) * 2.0, data: ms
                 },
                 angle: s.angle, R: s.R, ring: s.ring, inRing: s.inRing, x, y
             };
@@ -1392,7 +1652,8 @@
         const cx = W / 2, cy = H / 2;
         const u = Math.min(W, H) / 2;
         const R_GATE = u * 0.92;
-        const color = domColor(mac._domain);
+        /* 主题星团的整体色调 = 该主题自己的色（课程图谱下），知识星系仍是领域色 */
+        const color = toneOfMeso(ms.id) || domColor(mac._domain);
 
         /* 知识点（延伸知识点在投资学视图下默认隐藏；若本单位全是延伸节点则照常展示） */
         let micros = (idx.childrenOf.get(ms.id) || []).filter(visibleMicro);
@@ -1545,7 +1806,8 @@
         return {
             idx, mi, meso, mac, animate,
             cx: W / 2, cy: H / 2, u: Math.min(W, H) / 2,
-            color: domColor(mac ? mac._domain : '交叉学科'),
+            /* 课程图谱下随所属主题取色，知识星系仍用领域色 */
+            color: toneOfMicro(mi.id) || domColor(mac ? mac._domain : '交叉学科'),
             exp: idx.expNodeOfMicro.get(mi.id) || null,
             details: idx.detailByMicro.get(mi.id) || []
         };
@@ -1920,6 +2182,12 @@
        导航（六层）
     -------------------------------------------------------- */
     function goOverview() {
+        /* 课程图谱没有「领域总览」这一层：最上层就是课程根节点（学科星域视图）。
+           这样面包屑首页、双击返回、goMacro() 都自然收敛到课程根，不会露出
+           只有一个孤立节点的空总览。 */
+        if (state.graphProfile === 'course' && state.rootMacroId) {
+            if (enterMacro(state.rootMacroId)) return;
+        }
         state.view = 'overview';
         state.macroId = null; state.mesoId = null;
         state.microId = null; state.explId = null; state.detailId = null;
@@ -2224,7 +2492,9 @@
             relEl.innerHTML = '<div class="kg-rel-empty">暂无直接关联知识点</div>';
             return;
         }
+        const isCourse = state.graphProfile === 'course';
         const mac = idx.byId.get(idx.macroOfMicro.get(mi.id));
+        const myMesoId = idx.mesoOfMicro.get(mi.id);
         const rels = adj
             .filter(a => state.relOn.has(a.edge.relation))
             .sort((a, b) => (b.edge.confidence || 0) - (a.edge.confidence || 0))
@@ -2235,7 +2505,18 @@
             const other = idx.byId.get(a.other);
             if (!other) return;
             const otherMac = idx.byId.get(idx.macroOfMicro.get(other.id));
-            const isCross = otherMac && mac && otherMac.id !== mac.id;
+            /* 末尾那列是「对方在哪」：知识星系里标学科（跨学科才有区分度）；
+               课程图谱只有一门课，标课程名等于每行都写「投资学」，没有信息量，
+               所以改标对方所属的**主题**，跨主题的用虚线框提示。 */
+            let where = otherMac ? otherMac.name : '';
+            let isCross;
+            if (isCourse) {
+                const otherMeso = idx.byId.get(idx.mesoOfMicro.get(other.id));
+                if (otherMeso) where = otherMeso.name;
+                isCross = !!(otherMeso && myMesoId && otherMeso.id !== myMesoId);
+            } else {
+                isCross = otherMac && mac && otherMac.id !== mac.id;
+            }
             const rel = a.edge.relation;
             const dirLabel = a.dir === 'out' ? '→ 指向' : '← 来自';
             const color = relColor(rel);
@@ -2243,7 +2524,7 @@
             btn.className = 'kg-rel-item' + (isCross ? ' is-cross' : '');
             btn.innerHTML = `<span class="kg-rel-tag" style="background:${color}">${rel} ${dirLabel}</span>
                 <span class="kg-rel-name">${escapeHtml(other.name)}</span>
-                <span class="kg-rel-where">${otherMac ? escapeHtml(otherMac.name) : ''}</span>`;
+                <span class="kg-rel-where">${escapeHtml(where)}</span>`;
             btn.addEventListener('click', () => enterMicro(other.id));
             relEl.appendChild(btn);
         });
@@ -2599,18 +2880,35 @@
             }, 120);
         },
         switchGraph(gid) {
-            /* 画布永远显示统一知识星系（graphId = v12）；各课程图谱由「课程星系」
-               自有引擎负责。这里只维护旧契约的状态位（currentGraphId），
-               ★ 不动 state.graphId —— 它必须恒等于画布此刻显示的那张图。 */
-            const id = gid || 'econ';
-            if (id === state.currentGraphId) return Promise.resolve(state.loaded);
-            state.currentGraphId = id;
-            if (state.loaded && id !== 'econ' && id !== 'invest' && id !== GRAPH_ID) {
-                const name = { corp_fin: '公司金融', intl_inv: '国际投资学', ma: '并购与重组' }[id] || id;
-                showKgToast('「' + name + '」课程图谱数据接入中，当前展示统一知识星系');
+            /* ★ 现在是「真切换」：按 graph_id 换掉画布上的整张图（知识星系 / 各课程图谱）。
+               state.graphId 始终等于画布此刻显示的那张图；currentGraphId 为旧契约状态位。
+               未登记的 id 只维护状态位、不动画布（保持旧引擎行为）。 */
+            const id = canonicalGraphId(gid);
+            if (!GRAPH_REGISTRY[id]) {
+                state.currentGraphId = gid || state.currentGraphId;
+                return Promise.resolve(state.loaded);
             }
-            return Promise.resolve(state.loaded);
+            return loadGraph(id).catch(() => state.loaded);
         },
+        /* 图谱加载（课程星系用）：loadGraph('invest') / loadGraph('ma') / loadGraph('v12') */
+        loadGraph,
+        /* 加载遮罩开关（课程星系用）：它自己会显示「待接入」空态，
+           需要顺手把引擎的遮罩关掉，免得旧报错盖在自己的空态上 */
+        setLoading,
+        /* 已登记的图谱清单：{ id: { label, profile, hasLocal } } */
+        get graphRegistry() {
+            const out = {};
+            Object.keys(GRAPH_REGISTRY).forEach(k => {
+                out[k] = {
+                    label: GRAPH_REGISTRY[k].label,
+                    profile: GRAPH_REGISTRY[k].profile,
+                    hasLocal: !!GRAPH_REGISTRY[k].local
+                };
+            });
+            return out;
+        },
+        get graphProfile() { return state.graphProfile; },
+        get rootMacroId() { return state.rootMacroId; },
         get graphId() { return state.graphId; },
         goMacro: goOverview,
         goUp,                       /* 返回上一层（六层通用） */

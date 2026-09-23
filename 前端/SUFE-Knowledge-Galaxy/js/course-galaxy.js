@@ -12,7 +12,11 @@
         关联论文期刊 / 章节知识点 / 关联知识节点跳转）
      ⑤ 学习路径高亮 + 已学进度保存（登录用户按账号保存）
      ⑥ 「跳转知识星系」联动 GalaxyEngine，游客引导登录
-============================================================ */
+     ⑦ 顶部选项卡按 graph_id 切换「课程知识图谱」——不自己渲染，
+        直接调用知识星系的引擎（GalaxyEngine.loadGraph），
+        因此画面、样式、六层钻取与知识星系完全一致；
+        某门课程暂无数据时显示同风格的「待接入」空态。
+   ============================================================ */
 (function () {
     'use strict';
 
@@ -23,6 +27,14 @@
         'https://unpkg.com/d3@7/dist/d3.min.js',
         'https://cdn.bootcdn.net/ajax/libs/d3/7.9.0/d3.min.js'
     ];
+
+    /* ★ 旧「课程图谱」（课程节点网络）总开关 —— 已下架，恒为 false。
+       它对应的选项卡早已删除，但 `#cgSvg` 里那张彩色课程网络**例图**还会在
+       「离开再回到本板块」时被放出来（见 restoreKnowledgeHome 的历史行为），
+       用户看到的就成了「最老版本例图」。现在：既不取数也不渲染，
+       `#cgSvg` 永远是空的，旧舞台 / 卡片 / 工具栏也永远隐藏。
+       将来若要接回这套图，把开关打开即可（渲染代码全在，注释见下）。 */
+    const LEGACY_NETWORK = false;
 
     /* 三级缩放阈值（对应 d3.zoom 的 k 值） */
     const ZOOM_BOUNDS   = { macroMax: 0.75, mesoMax: 1.4 };
@@ -530,10 +542,13 @@
             return;
         }
 
-        // ② 切到知识星系页面
+        // ② 若知识图谱舞台正嵌入本板块，先归还并恢复总图
+        restoreKnowledgeHome();
+
+        // ③ 切到知识星系页面
         gotoGalaxyNav();
 
-        // ③ 联动 GalaxyEngine：确保 econ 图谱加载后聚焦概念节点
+        // ④ 联动 GalaxyEngine：确保统一知识星系（v12）已就绪后再聚焦概念节点
         const eng = window.GalaxyEngine;
         if (!eng) { showToast('知识星系引擎未就绪，请稍后重试'); return; }
 
@@ -546,14 +561,10 @@
             setTimeout(() => tryFocus(retries - 1), 400);
         };
 
-        const st = eng.state || {};
-        if (st.currentGraphId && st.currentGraphId !== 'econ') {
-            Promise.resolve(eng.switchGraph('econ')).then(() => tryFocus(10));
-        } else if (!st.currentGraphId || !(st.nodes || []).length) {
-            Promise.resolve(eng.load()).then(() => tryFocus(10));
-        } else {
-            tryFocus(3);
-        }
+        const ready = (typeof eng.loadGraph === 'function')
+            ? eng.loadGraph('v12')
+            : Promise.resolve(eng.switchGraph('econ'));
+        Promise.resolve(ready).then(() => tryFocus(10));
     }
 
     /* ------------------------------------------------------------
@@ -628,6 +639,196 @@
     }
 
     /* ------------------------------------------------------------
+       课程知识图谱切换（承接原知识星系的多图切换功能）
+       知识星系现仅保留总图；公司金融等课程图谱在此切换查看。
+       实现：把知识星系的 .galaxy-page 渲染引擎整体移植到本板块，
+       切回课程图谱或跳转知识星系时自动归还并恢复总图。
+    ------------------------------------------------------------ */
+    /* 进入「课程知识图谱」时要藏起来的东西：课程网络图相关 UI。
+       （.cg-intro 与 .cg-tabs 保留，它们对知识图谱同样适用）
+       原「课程图谱」（课程节点网络）选项卡已从界面上移除，但下面的
+       网络图逻辑与 DOM 一并保留，随时可以接回来。 */
+    const K_ELEM_SELECTORS = '#course-galaxy .cg-toolbar, #course-galaxy .cg-stage, #course-galaxy .cg-card-mask, #course-galaxy .cg-card';
+    let kMode = false;          // 是否处于知识图谱嵌入模式
+    let kGraphId = null;
+    let galaxyPageEl = null;    // 知识星系渲染容器（含舞台/按钮/时间轴）
+    let galaxyHomeEl = null;    // 其原始父节点
+    let kHostEl = null;         // 课程星系内的固定嵌入容器
+
+    function setCourseElemsVisible(visible) {
+        document.querySelectorAll(K_ELEM_SELECTORS).forEach(el => {
+            el.style.display = visible ? '' : 'none';
+        });
+    }
+
+    /* 旧课程网络 UI 永远隐藏（选项卡下架后它只能是「例图」）：
+       进入 / 离开知识图谱模式都一样，杜绝任何露出机会。 */
+    function keepLegacyHidden() {
+        document.querySelectorAll(K_ELEM_SELECTORS).forEach(el => {
+            el.style.display = 'none';
+        });
+    }
+
+    /**
+     * 以 #cgTabs 为锚点执行 DOM 变更，并在变更后补偿滚动位移，
+     * 避免大块内容显隐/搬移导致视口"随机跳转"。
+     */
+    function withScrollAnchor(mutate) {
+        const anchor = document.getElementById('cgTabs') ||
+                       document.getElementById('course-galaxy');
+        if (!anchor) { mutate(); return; }
+        const before = anchor.getBoundingClientRect().top;
+        const prevBehavior = document.documentElement.style.scrollBehavior;
+        document.documentElement.style.scrollBehavior = 'auto';
+        mutate();
+        const diff = anchor.getBoundingClientRect().top - before;
+        if (Math.abs(diff) > 1) window.scrollBy(0, diff);
+        document.documentElement.style.scrollBehavior = prevBehavior;
+    }
+
+    function initKnowledgeTabs() {
+        const box = $('cgTabs');
+        if (!box) return;
+        galaxyPageEl = document.querySelector('.galaxy-page[data-galaxy-page-content="main"]');
+        if (galaxyPageEl) galaxyHomeEl = galaxyPageEl.parentElement;
+        kHostEl = document.getElementById('cgKnowledgeHost');
+
+        box.querySelectorAll('.cg-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                /* 课程图谱（课程节点网络）：选项卡已从界面移除，这里保留原能力 */
+                if (tab.dataset.mode === 'courses') {
+                    box.querySelectorAll('.cg-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    restoreKnowledgeHome();
+                    return;
+                }
+                const gid = tab.dataset.graphId;
+                if (!gid) return;
+                box.querySelectorAll('.cg-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                enterKnowledge(gid);
+            });
+        });
+
+        // 用户点导航前往知识星系 → 先把舞台送回家并恢复统一图谱
+        const navBtn = document.querySelector('.nav-item[data-target="galaxy"]');
+        if (navBtn) navBtn.addEventListener('click', restoreKnowledgeHome);
+
+        activateDefaultCourseTab();
+    }
+
+    /* 当前选中的课程选项卡（默认取标了 active 的那个，否则取第一个） */
+    function currentCourseTab() {
+        return document.querySelector('#cgTabs .cg-tab.active[data-graph-id]')
+            || document.querySelector('#cgTabs .cg-tab[data-graph-id]');
+    }
+
+    /* 板块每次成为前台，都要确保处在「课程知识图谱」模式：
+       等「课程星系」真的被切到前台再加载，避免首页一进来就多拉 2MB 图谱。
+       ★ observer 必须**常驻**：以前它跑一次就 disconnect，于是
+         「先去知识星系（restoreKnowledgeHome 把 kMode 置 false）再回来」
+         没人重新进图谱模式，板块就落回旧课程网络那张例图。 */
+    function activateDefaultCourseTab() {
+        const sec = document.getElementById('course-galaxy');
+        if (!sec) return;
+        const isFront = () => !document.body.classList.contains('pgs')
+            || sec.classList.contains('pg-active');
+        const activate = () => {
+            if (!isFront() || kMode) return;
+            keepLegacyHidden();
+            const def = currentCourseTab();
+            if (def) enterKnowledge(def.dataset.graphId);
+        };
+        if (window.MutationObserver) {
+            new MutationObserver(activate).observe(sec, { attributes: true, attributeFilter: ['class'] });
+        }
+        if (isFront()) activate();
+    }
+
+    /* 「待接入」空态：某门课程还没有图谱数据时，占住图谱位置而不是显示别的图 */
+    function showKgEmpty(show, gid) {
+        const el = document.getElementById('cgKgEmpty');
+        if (!el) return;
+        if (show) {
+            const reg = (window.GalaxyEngine && window.GalaxyEngine.graphRegistry) || {};
+            const info = reg[gid] || {};
+            const title = document.getElementById('cgKgEmptyTitle');
+            if (title) title.textContent = info.label || gid;
+            el.hidden = false;
+        } else {
+            el.hidden = true;
+        }
+    }
+
+    function enterKnowledge(gid) {
+        const eng = window.GalaxyEngine;
+        if (!eng) { showToast('知识图谱引擎未就绪，请稍后重试'); return; }
+        if (!galaxyPageEl) { showToast('未找到知识图谱容器'); return; }
+
+        if (!kMode) {
+            closeCard();
+            withScrollAnchor(() => {
+                setCourseElemsVisible(false);
+                if (kHostEl) { kHostEl.appendChild(galaxyPageEl); kHostEl.hidden = false; }
+                else document.getElementById('course-galaxy').appendChild(galaxyPageEl);
+            });
+            kMode = true;
+        }
+        kGraphId = gid;
+
+        /* 与知识星系同一套逻辑：按 graph_id 让引擎换图（course-galaxy 不自己渲染） */
+        const p = (typeof eng.loadGraph === 'function')
+            ? eng.loadGraph(gid)
+            : Promise.resolve(eng.switchGraph(gid));
+
+        Promise.resolve(p).then(() => {
+            if (kGraphId !== gid) return;
+            /* 引擎只画「最后被要的那张图」：若这次请求已被更新的请求取代，
+               保持现状即可（别把别人的图谱挡掉，也别误报「待接入」）。 */
+            if (eng.state && eng.state.graphId !== gid) return;
+            galaxyPageEl.style.display = '';
+            showKgEmpty(false);
+            /* 这张图可能本来就在画布上（点了空课程再点回来）：引擎走的是
+               「已在画布」快路径，这里再兜一次底，确保遮罩不会留下 */
+            if (eng.setLoading) eng.setLoading(false);
+        }).catch(err => {
+            if (kGraphId !== gid) return;
+            /* 该课程暂无数据：藏起星图舞台，显示同风格的「待接入」空态 */
+            galaxyPageEl.style.display = 'none';
+            showKgEmpty(true, gid);
+            /* ★ 关掉引擎的加载遮罩：否则那句「星图数据加载失败」会被留在画布里，
+               下次切回有数据的课程时看起来就像「这门课也没有数据」 */
+            if (eng.setLoading) eng.setLoading(false);
+            console.warn('[course-galaxy] 课程图谱不可用：', gid, err && err.message);
+        });
+    }
+
+    function restoreKnowledgeHome() {
+        if (!kMode) return;
+        kMode = false;
+        kGraphId = null;
+        withScrollAnchor(() => {
+            if (galaxyHomeEl && galaxyPageEl && galaxyPageEl.parentElement !== galaxyHomeEl) {
+                galaxyHomeEl.appendChild(galaxyPageEl);
+            }
+            if (galaxyPageEl) galaxyPageEl.style.display = '';
+            showKgEmpty(false);
+            if (kHostEl) kHostEl.hidden = true;
+            /* ★ 这里过去是 setCourseElemsVisible(true) —— 正是它把旧课程网络
+               那张例图重新放了出来；选项卡已下架，旧 UI 永久隐藏。 */
+            keepLegacyHidden();
+        });
+        /* 把画布换回统一知识星系（v12） */
+        const eng = window.GalaxyEngine;
+        if (eng && eng.state && eng.state.graphId !== 'v12') {
+            const p = (typeof eng.loadGraph === 'function')
+                ? eng.loadGraph('v12')
+                : Promise.resolve(eng.switchGraph('econ'));
+            Promise.resolve(p).catch(() => {});
+        }
+    }
+
+    /* ------------------------------------------------------------
        入口
     ------------------------------------------------------------ */
     async function init() {
@@ -639,11 +840,23 @@
         const ok = await ensureD3();
         if (!ok) { showToast('图谱引擎加载失败（d3 无法访问）'); return; }
 
+        if (!LEGACY_NETWORK) {
+            /* 旧课程网络（那张彩色例图）已下架：不取 courses.json、不渲染，
+               `#cgSvg` 永远空白，旧舞台 / 卡片 / 工具栏全部隐藏。
+               板块里只保留「课程知识图谱」（选项卡 → GalaxyEngine），
+               因此这一步不需要等 d3（知识星系的 d3 由 index.html 自带）。 */
+            keepLegacyHidden();
+            initKnowledgeTabs();
+            return;
+        }
+
         try {
             prepare(await loadData());
         } catch (e) {
             console.warn('[course-galaxy] 课程数据加载失败：', e);
             showToast('课程数据加载失败，请检查 data/courses.json');
+            /* 课程知识图谱不依赖 courses.json，照样接上选项卡 */
+            initKnowledgeTabs();
             return;
         }
 
@@ -675,6 +888,8 @@
         try {
             window.Auth?.onChange?.(() => { renderStates(); updatePathProgress(); });
         } catch (e) { /* ignore */ }
+
+        initKnowledgeTabs();
     }
 
     if (document.readyState === 'loading') {

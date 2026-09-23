@@ -1,0 +1,174 @@
+/* ============================================================
+   教材原文阅读 · 样式
+   ------------------------------------------------------------
+   · 入口在「书籍详情」弹窗里（.detail-read），点开进入全屏阅读遮罩（.tb-mask）。
+   · 清单由后端 /data/textbooks.json 提供，正文由 /assets/textbooks/ 提供。
+   · 整块外挂：删掉 index.html 里这两行
+       <link href="css/textbook-reader.css"> 与 <script src="js/textbook-reader.js">
+     （以及 main.js 详情弹窗里的挂载段）即完全还原。
+   · 配色沿用站点变量（--main-red / --paper / --deep-red），夜间模式走 body.theme-night 覆盖。
+   ============================================================ */
+
+/* ---------------- 详情弹窗里的「阅读原文」入口 ---------------- */
+
+.detail-read {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 12px 0 2px;
+}
+
+.detail-read[hidden] { display: none; }
+
+.detail-read-btn {
+    font-family: inherit;
+    font-size: 13.5px;
+    line-height: 1;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--main-red);
+    background: var(--main-red);
+    color: #fff;
+    cursor: pointer;
+    letter-spacing: .5px;
+    transition: opacity .15s, transform .15s;
+}
+
+.detail-read-btn:hover { opacity: .88; transform: translateY(-1px); }
+
+.detail-read-hint {
+    font-size: 12px;
+    color: #8a8a86;
+}
+
+/* 没有电子版的书：一句浅色说明，避免让人以为按钮漏了 */
+.detail-read-none {
+    font-size: 12.5px;
+    line-height: 1;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px dashed rgba(129, 28, 33, 0.28);
+    color: #9a9a95;
+}
+
+body.theme-night .detail-read-hint { color: #a5a5a0; }
+
+body.theme-night .detail-read-none {
+    border-color: rgba(255, 255, 255, 0.22);
+    color: #a5a5a0;
+}
+
+body.theme-night .detail-read-btn {
+    background: #8d2b2f;
+    border-color: #8d2b2f;
+}
+
+/* ---------------- 全屏阅读遮罩 ---------------- */
+
+.tb-mask {
+    position: fixed;
+    inset: 0;
+    z-index: 4000;
+    background: rgba(24, 20, 20, 0.92);
+    display: none;
+    flex-direction: column;
+}
+
+.tb-mask.is-open { display: flex; }
+
+.tb-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: var(--deep-red);
+    color: #f4efe6;
+    flex: 0 0 auto;
+}
+
+.tb-bar-title {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tb-bar-sub {
+    font-size: 12px;
+    color: rgba(244, 239, 230, 0.62);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tb-bar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.tb-bar-btn {
+    font-family: inherit;
+    font-size: 12.5px;
+    line-height: 1;
+    padding: 7px 11px;
+    border-radius: 5px;
+    border: 1px solid rgba(244, 239, 230, 0.35);
+    background: transparent;
+    color: #f4efe6;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.tb-bar-btn:hover { background: rgba(244, 239, 230, 0.14); }
+
+.tb-bar-btn[disabled] { opacity: .35; cursor: default; }
+
+.tb-bar-pos {
+    font-size: 12px;
+    color: rgba(244, 239, 230, 0.75);
+    min-width: 56px;
+    text-align: center;
+}
+
+.tb-stage {
+    flex: 1 1 auto;
+    position: relative;
+    overflow: hidden;
+    background: #fbfaf7;
+}
+
+.tb-frame {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    background: #fbfaf7;
+}
+
+.tb-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #8a8a86;
+    pointer-events: none;
+}
+
+/* epub.js 会在 .tb-stage 里建 iframe，这里只补一点观感 */
+.tb-stage .epub-container { background: #fbfaf7; }
+
+body.theme-night .tb-stage,
+body.theme-night .tb-frame,
+body.theme-night .tb-stage .epub-container { background: #fbfaf7; }
+
+@media (max-width: 640px) {
+    .tb-bar { flex-wrap: wrap; }
+    .tb-bar-right { width: 100%; justify-content: flex-end; }
+}

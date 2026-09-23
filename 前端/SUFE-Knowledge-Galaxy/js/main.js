@@ -45,9 +45,8 @@ const INDEX_CONFIG = [
     { name: '北证50',         secid: 'bj899050' },   // ★ 新增
     { name: '恒生指数', secid: 'rt_hkHSI' },
     { name: '纳斯达克指数', secid: 'gb_ixic' },
-    { name: '道琼斯工业指数', secid: 'gb_dji' },      // ★ 新增
-    { name: '数据库',         secid: '' }
-];
+    { name: '道琼斯工业指数', secid: 'gb_dji' }      // ★ 新增
+];  // 注：「数据库」已撤销，独立为导航栏板块（见 index.html #database）
 
 const DEFAULT_VALUES = {
     '上证指数': 3940.55,
@@ -57,8 +56,7 @@ const DEFAULT_VALUES = {
     '北证50':         1085.36,     // ★ 新增
     '恒生指数': 25317.18,
     '纳斯达克指数': 18562.34,
-    '道琼斯工业指数': 42632.18,    // ★ 新增
-    '数据库':         0
+    '道琼斯工业指数': 42632.18     // ★ 新增
 };
 
 // ===============================
@@ -70,7 +68,10 @@ const CACHE_KEY_HISTORY = 'sufe_cache_history';
 function getCachedData() {
     try {
         const raw = localStorage.getItem(CACHE_KEY_DATA);
-        return raw ? JSON.parse(raw) : null;
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        // ★ 兼容旧缓存：过滤已撤销的「数据库」占位项
+        return Array.isArray(parsed) ? parsed.filter(item => item.name !== '数据库') : parsed;
     } catch { return null; }
 }
 function setCachedData(data) {
@@ -155,6 +156,7 @@ async function fetchDataAndUpdateCache() {
                 };
             }
 
+            // 端口已统一为 8000，全部同源请求即可（东财/新浪兜底由服务端路由）
             const url = `/api/kline?secid=${cfg.secid}`;
             try {
                 const response = await fetch(url);
@@ -168,7 +170,8 @@ async function fetchDataAndUpdateCache() {
                         const timeStr = parts[0].replace(/-/g, '/');
                         const time = new Date(timeStr).getTime();
                         const price = parseFloat(parts[2]); // 收盘价
-                        return { time, price };
+                        const volume = parseFloat(parts[5]) || 0; // 成交量（折线图下方柱状图用）
+                        return { time, price, volume };
                     }).filter(p => !isNaN(p.time) && !isNaN(p.price));
 
                     // 计算涨跌幅：找到今天最后一条和之前最后一条
@@ -250,6 +253,14 @@ async function fetchDataAndUpdateCache() {
 // ===============================
 let chartInstance = null;
 
+/** 成交量格式化：股/手 → 亿/万（模仿专业网站） */
+function formatVolume(v) {
+    if (!v || v <= 0) return '—';
+    if (v >= 1e8) return (v / 1e8).toFixed(2) + '亿';
+    if (v >= 1e4) return (v / 1e4).toFixed(2) + '万';
+    return String(Math.round(v));
+}
+
 function initChart() {
     const ctx = document.getElementById('stockChart').getContext('2d');
     chartInstance = new Chart(ctx, {
@@ -276,6 +287,26 @@ function initChart() {
                         return p1 >= p0 ? 'rgba(137,29,37,0.15)' : 'rgba(46,125,50,0.15)';
                     }
                 }
+            }, {
+                // ★ 成交量柱状图（压在底部，模仿专业网站下半区）
+                type: 'bar',
+                label: '成交量',
+                data: [],
+                yAxisID: 'yVol',
+                order: 2,
+                barPercentage: 0.62,
+                categoryPercentage: 1.0,
+                borderWidth: 0,
+                // 涨红跌绿：与前一根收盘价比较
+                backgroundColor: ctx => {
+                    const i = ctx.dataIndex;
+                    const prices = ctx.chart.data.datasets[0].data;
+                    if (i <= 0 || !prices || prices[i] == null || prices[i - 1] == null) {
+                        return 'rgba(160,160,160,0.45)';
+                    }
+                    return prices[i] >= prices[i - 1]
+                        ? 'rgba(137,29,37,0.7)' : 'rgba(46,125,50,0.7)';
+                }
             }]
         },
         options: {
@@ -288,7 +319,10 @@ function initChart() {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return context.parsed.y.toFixed(2);
+                            if (context.dataset.type === 'bar') {
+                                return '成交量 ' + formatVolume(context.parsed.y);
+                            }
+                            return '收盘 ' + context.parsed.y.toFixed(2);
                         }
                     }
                 }
@@ -302,11 +336,19 @@ function initChart() {
                         callback: value => value.toFixed(0)
                     }
                 },
+                // ★ 成交量轴：隐藏刻度与网格，仅靠 max 压缩柱子高度
+                yVol: {
+                    display: false,
+                    beginAtZero: true,
+                    grid: { display: false }
+                },
                 x: {
                     grid: { display: false },
                     ticks: {
-                        maxTicksLimit: 20,
-                        font: { size: 9, family: 'Times New Roman' }
+                        autoSkip: true,
+                        maxTicksLimit: 9,
+                        maxRotation: 0,
+                        font: { size: 10, family: 'Times New Roman' }
                     }
                 }
             }
@@ -315,8 +357,23 @@ function initChart() {
 }
 
 // ===============================
-// 10. 更新图表（使用真实K线历史）
+// 10. 更新图表（真实K线历史 · 支持三日/单日切换）
 // ===============================
+let chartRange = 'day3';   // 'day3' = 近三个交易日（默认） | 'day1' = 最近一个交易日
+
+/** 按 chartRange 截取历史数据（基于交易日分组） */
+function sliceHistoryByRange(history) {
+    if (!history || !history.length) return [];
+    const days = [];
+    const seen = new Set();
+    history.forEach(p => {
+        const key = new Date(p.time).toDateString();
+        if (!seen.has(key)) { seen.add(key); days.push(key); }
+    });
+    const keep = new Set(chartRange === 'day1' ? days.slice(-1) : days.slice(-3));
+    return history.filter(p => keep.has(new Date(p.time).toDateString()));
+}
+
 function updateChart(stockName) {
     const stockData = cachedData ? cachedData.find(d => d.name === stockName) : null;
     if (stockData) {
@@ -332,20 +389,32 @@ function updateChart(stockName) {
     const history = cachedHistory ? cachedHistory[stockName] : null;
 
     if (history && history.length > 0) {
-        const labels = history.map(p => {
+        const picked = sliceHistoryByRange(history);
+        const labels = picked.map(p => {
             const d = new Date(p.time);
-            return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mm = String(d.getMinutes()).padStart(2, '0');
+            // 单日：只标时间；三日：标「月/日 时:分」，横轴日期时间一目了然
+            return chartRange === 'day1'
+                ? `${hh}:${mm}`
+                : `${d.getMonth() + 1}/${d.getDate()} ${hh}:${mm}`;
         });
-        const data = history.map(p => p.price);
         chartInstance.data.labels = labels;
         chartInstance.data.datasets[0].label = stockName;
-        chartInstance.data.datasets[0].data = data;
+        chartInstance.data.datasets[0].data = picked.map(p => p.price);
+        // ★ 成交量：动态量轴上限 = 峰值×4，让柱子只占图表下方约 1/4（专业网站样式）
+        const vols = picked.map(p => p.volume || 0);
+        chartInstance.data.datasets[1].data = vols;
+        const volMax = Math.max(...vols, 1);
+        chartInstance.options.scales.yVol.max = volMax * 4;
+        chartInstance.options.scales.x.ticks.maxTicksLimit = chartRange === 'day1' ? 10 : 9;
         chartInstance.update();
     } else {
         // ★ 关键：没有数据就清空，避免显示上一个指数的残留
         chartInstance.data.labels = [];
         chartInstance.data.datasets[0].label = stockName;
         chartInstance.data.datasets[0].data = [];
+        chartInstance.data.datasets[1].data = [];
         chartInstance.update();
     }
 }
@@ -369,46 +438,70 @@ function updateDashboard(dataArray) {
 
     const track = document.getElementById('finance-scroll-track');
     track.style.animation = 'none';
-    void track.offsetHeight;
+    void track.offsetHeight;   // 强制回流，保证动画从头开始
     const contentWidth = textSpan.scrollWidth;
-    const duration = Math.min(Math.max(contentWidth / 60, 10), 60);
-    track.style.animationDuration = duration + 's';
-    track.style.animation = 'scrollMove linear infinite';
+    // ★ 修复：时长必须写进 animation 简写里。
+    //   先设 animationDuration 再设 animation 简写会被重置为 0s（简写省略的值回退到初始值），
+    //   0s + infinite = 每次迭代零长度 → 滚动栏看起来"永远不动"。
+    const duration = Math.min(Math.max(contentWidth / 60, 18), 60);
+    track.style.animation = `scrollMove ${duration}s linear infinite`;
 
-    // B. 表格
-    let tableHTML = '';
-    dataArray.forEach(item => {
-        const changeClass = item.direction === '上涨' ? 'text-up' : 'text-down';
-        tableHTML += `
-        <tr>
-            <td>${item.name}</td>
-            <td>${item.value}</td>
-            <td>${item.direction}</td>
-            <td class="${changeClass}">${item.change}</td>
-        </tr>
-        `;
-    });
-    document.getElementById('stock-data').innerHTML = tableHTML;
+    // B. 右侧紧凑指数栏（点击切换图表）
+    const sideList = document.getElementById('stockSideList');
+    if (sideList) {
+        sideList.innerHTML = dataArray.map(item => {
+            const cls = item.direction === '上涨' ? 'text-up'
+                      : (item.direction === '下跌' ? 'text-down' : 'text-dim');
+            const active = item.name === currentSelectedStock ? ' active' : '';
+            return `
+            <button class="side-item${active}" data-stock="${item.name}">
+                <span class="si-name">${item.name}</span>
+                <span class="si-right">
+                    <span class="si-price ${cls}">${item.value}</span>
+                    <span class="si-change ${cls}">${item.change}</span>
+                </span>
+            </button>`;
+        }).join('');
+    }
 
     // C. 图表
     updateChart(currentSelectedStock);
 }
 
 // ===============================
-// 12. 股票选项卡切换
+// 12. 市场交互（指数侧栏切换 + 三日/单日竖排切换）
 // ===============================
-function setupStockTabs() {
-    const tabs = document.querySelectorAll('.stock-tab');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            tabs.forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            currentSelectedStock = this.dataset.stock;
-            if (cachedData) {
-                updateChart(currentSelectedStock);
-            }
+function selectStock(name) {
+    currentSelectedStock = name;
+    // 侧栏高亮即时跟随（无需等下一次数据刷新）
+    document.querySelectorAll('.side-item').forEach(btn =>
+        btn.classList.toggle('active', btn.dataset.stock === name));
+    if (cachedData) updateChart(name);
+}
+
+function setupMarketControls() {
+    // 右侧紧凑指数栏：点击切换图表
+    const side = document.getElementById('stockSideList');
+    if (side) {
+        side.addEventListener('click', e => {
+            const btn = e.target.closest('.side-item');
+            if (!btn || !btn.dataset.stock) return;
+            selectStock(btn.dataset.stock);
         });
-    });
+    }
+
+    // 图表左侧竖排「三日 / 单日」切换
+    const rail = document.getElementById('chartRangeRail');
+    if (rail) {
+        rail.addEventListener('click', e => {
+            const btn = e.target.closest('.range-btn');
+            if (!btn || btn.classList.contains('active')) return;
+            rail.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            chartRange = btn.dataset.range === 'day1' ? 'day1' : 'day3';
+            updateChart(currentSelectedStock);
+        });
+    }
 }
 
 // ===============================
@@ -557,6 +650,9 @@ function renderNews(type, category) {
 let currentDomesticTab = 'economy';
 let currentInternationalTab = 'international-economy';
 
+// ★ 经济/金融领域关键词（与后端 /api/news 白名单同源），保证国内新闻只推经济相关
+const ECON_KW = /股市|股票|A股|基金|债券|期货|期权|央行|货币|利率|降准|降息|LPR|CPI|GDP|PPI|PMI|汇率|人民币|美元|美联储|银行|证券|券商|投资|融资|IPO|上市|财报|业绩|营收|净利|并购|重组|资本|经济|金融|财政|税务|税收|关税|贸易|进出口|出口|消费|零售|房地产|楼市|地产|创业板|科创板|北交所|港股|美股|中概|大宗商品|黄金|原油|石油|量化|公募|私募|保险|信托|外汇|证监会|交易所|上市公司|市值|分红/;
+
 async function loadNewsFromApi() {
     try {
         const res = await fetch('/api/news', { cache: 'no-store' });
@@ -565,7 +661,9 @@ async function loadNewsFromApi() {
 
         // 只在返回非空数组时才覆盖，否则保留静态
         if (json.domestic && json.domestic.length > 0) {
-            newsDatabase.domestic.economy = json.domestic;
+            // ★ 经济领域过滤 + 固定 3 条（后端 /api/news 已过滤，此处兼容未重启的旧后端）
+            const econ = json.domestic.filter(n => ECON_KW.test((n && n.title) || ''));
+            newsDatabase.domestic.economy = econ.slice(0, 3);
         }
         if (json.international && json.international.length > 0) {
             newsDatabase.international['international-economy'] = json.international;
@@ -647,70 +745,75 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 // ===============================
 document.addEventListener('DOMContentLoaded', function() {
     initChart();
-    setupStockTabs();
+    setupMarketControls();
     startRealtimeLoop();
-    loadNewsFromApi(); 
+    loadNewsFromApi();
     if (document.getElementById('job-list')) {
         renderJobs('all');
     }
 });
 // ===============================
-// 书籍数据（共 35 本 · 待填写）
+// 书籍数据（共 32 本 · 数组顺序 = 书架顺序）
 // ===============================
-// 封面路径自动生成：assets/books/01.png ~ 35.png
 // 字段说明：
-//   titleCn  中文书名
-//   titleEn  英文书名
-//   author   作者（中文名 / 英文名）
-//   tags     标签数组，如 ['宏观经济学', '教材']
-//   intro    中文简介
-//   introEn  英文简介
+//   titleCn    中文书名
+//   titleEn    英文书名
+//   author     作者（中文名 / 英文名）
+//   tags       标签数组，如 ['宏观经济学', '教材']
+//   intro      中文简介
+//   introEn    英文简介
+//   cover      封面路径。写 '' 表示这本就是没有封面图，改用「编号 + 书名」占位。
+//              ⚠️ 2026-09-23 重排书架后改成**逐本显式指定**——否则封面路径跟着 id 走，
+//              一重排封面就整体错位。
+//   textbookId 对应 data/media/textbooks.json 里的 id；配了它，详情弹窗里才会
+//              出现「📖 阅读原文」按钮。
+// 省略 cover 时仍会按 assets/books/<两位 id>.png 自动补全（兜底，以后加新书可用）。
 // ===============================
 
 const BOOK_COVER_DIR = 'assets/books/';
 const BOOK_COVER_EXT = '.png';     // ← 扩展名改成 .png（若改成 .jpg 只需改这里）
 
 const BOOKS = [
-/* 01 */ { id: 1,  titleCn: '投资学（第十版）', titleEn: 'Investments, 10th Edition', author: '滋维·博迪、亚历克斯·凯恩、艾伦·J.马库斯', tags: ['投资学', '经典教材'], intro: '投资学领域公认的经典教材。系统讲解资产类别与金融工具、风险与收益、资产组合理论、证券分析、衍生品及投资业绩评估，是 CFA 等专业考试的核心参考书。', introEn: '' },
-/* 02 */ { id: 2,  titleCn: '公司金融（进阶篇·原书第12版）', titleEn: 'Principles of Corporate Finance, 12th Edition', author: '理查德·A.布雷利 等', tags: ['公司金融', '经典教材'], intro: '公司金融领域经典教材的进阶部分，聚焦资本结构、股利政策、公司治理与并购重组等高级主题，适合已具备金融基础的高年级学生。', introEn: '' },
-/* 03 */ { id: 3,  titleCn: '国际投资学（第二版）', titleEn: '', author: '卢勇进、杜奇华、杨立强', tags: ['国际投资', '教材'], intro: '系统介绍国际直接投资与国际间接投资的基本理论、运作方式与政策法规，结合中国企业"走出去"的实践案例。', introEn: '' },
-/* 04 */ { id: 4,  titleCn: '并购与重组：中国案例', titleEn: '', author: '蔡荣鑫（编著）', tags: ['并购重组', '案例'], intro: '以中国资本市场真实并购重组事件为案例，剖析交易结构设计、估值定价与并购整合的要点。', introEn: '' },
-/* 05 */ { id: 5,  titleCn: '金融理论（视频课程）', titleEn: 'Finance Theory', author: '罗闻全（Andrew Lo）', tags: ['视频课程', '金融理论'], intro: 'MIT 金融理论课程视频（共 23 讲）：现值关系、固定收益证券、股票、远期与期货、期权、风险与收益、投资组合理论、CAPM 与 APT、资本预算与有效市场。', introEn: '' },
-/* 06 */ { id: 6,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 07 */ { id: 7,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 08 */ { id: 8,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 09 */ { id: 9,  titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 10 */ { id: 10, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 11 */ { id: 11, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 12 */ { id: 12, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 13 */ { id: 13, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 14 */ { id: 14, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 15 */ { id: 15, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 16 */ { id: 16, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 17 */ { id: 17, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 18 */ { id: 18, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 19 */ { id: 19, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 20 */ { id: 20, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 21 */ { id: 21, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 22 */ { id: 22, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 23 */ { id: 23, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 24 */ { id: 24, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 25 */ { id: 25, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 26 */ { id: 26, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 27 */ { id: 27, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 28 */ { id: 28, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 29 */ { id: 29, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 30 */ { id: 30, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 31 */ { id: 31, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 32 */ { id: 32, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 33 */ { id: 33, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 34 */ { id: 34, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' },
-/* 35 */ { id: 35, titleCn: '', titleEn: '', author: '', tags: [], intro: '', introEn: '' }
+/* 01 */ { id: 1,  titleCn: '经济变迁的演化理论', titleEn: 'An Evolutionary Theory of Economic Change', author: 'Richard R. Nelson, Sidney G. Winter', tags: ['技术创新与经济增长', '英文原版 · PDF'], intro: '演化经济学的奠基之作，用惯例、搜寻、选择解释技术与产业如何变迁。', introEn: '', textbookId: 'nelson-winter-1982', cover: BOOK_COVER_DIR + 'tb-nelson-winter-1982.jpg' },
+/* 02 */ { id: 2,  titleCn: '黑箱之内：技术与经济学', titleEn: 'Inside the Black Box: Technology and Economics', author: 'Nathan Rosenberg', tags: ['技术创新与经济增长', '英文原版 · PDF'], intro: '把技术当作内生变量，讲清创新如何发生、为何不以最优方式发生。', introEn: '', textbookId: 'rosenberg-1982', cover: BOOK_COVER_DIR + 'tb-rosenberg-1982.jpg' },
+/* 03 */ { id: 3,  titleCn: '财富的杠杆：技术创造力与经济进步', titleEn: 'The Lever of Riches: Technological Creativity and Economic Progress', author: 'Joel Mokyr', tags: ['技术创新与经济增长', '英文原版 · EPUB'], intro: '跨越千年的技术史，回答为什么有的文明持续创新、有的停滞。', introEn: '', textbookId: 'mokyr-1990', cover: BOOK_COVER_DIR + 'tb-mokyr-1990.jpg' },
+/* 04 */ { id: 4,  titleCn: '雅典娜的礼物：知识经济的起源', titleEn: 'The Gifts of Athena: Historical Origins of the Knowledge Economy', author: 'Joel Mokyr', tags: ['技术创新与经济增长', '英文原版 · PDF'], intro: '提出「有用知识」与「工业启蒙」，解释知识存量如何转化为增长。', introEn: '', textbookId: 'mokyr-2002', cover: '' },
+/* 05 */ { id: 5, titleCn: '流动的文化', titleEn: 'Cultures in Motion', author: 'Daniel T. Rodgers, Bhavani Raman, Helmut Reimitz (eds.)', tags: ['技术创新与经济增长', '英文原版 · PDF'], intro: '从文化流动的视角看观念与制度如何在空间之间传播、杂交与变形。', introEn: '', textbookId: 'rodgers-2014', cover: BOOK_COVER_DIR + 'tb-rodgers-2014.jpg' },
+/* 06 */ { id: 6, titleCn: '技术革命与金融资本', titleEn: 'Technological Revolutions and Financial Capital: The Dynamics of Bubbles and Golden Ages', author: 'Carlota Perez', tags: ['技术创新与经济增长', '英文原版 · EPUB'], intro: '技术革命—金融泡沫—黄金时代的周期框架，理解产业与资本市场的共振。', introEn: '', textbookId: 'perez-2002', cover: BOOK_COVER_DIR + 'tb-perez-2002.jpg' },
+/* 07 */ { id: 7, titleCn: '增长经济学', titleEn: 'The Economics of Growth', author: 'Philippe Aghion, Peter Howitt', tags: ['技术创新与经济增长', '英文原版 · PDF'], intro: '把熊彼特式创新写进增长模型，系统讲清创新、竞争与增长的关系。', introEn: '', textbookId: 'aghion-howitt-2009', cover: BOOK_COVER_DIR + 'tb-aghion-howitt-2009.jpg' },
+/* 08 */ { id: 8, titleCn: '美国增长的起落', titleEn: 'The Rise and Fall of American Growth: The U.S. Standard of Living since the Civil War', author: 'Robert J. Gordon', tags: ['技术创新与经济增长', '英文原版 · EPUB'], intro: '用 1870 年以来的生活细节论证：20 世纪那段特殊高增长难以重现。', introEn: '', textbookId: 'gordon-2016', cover: BOOK_COVER_DIR + 'tb-gordon-2016.jpg' },
+/* 09 */ { id: 9, titleCn: '技术陷阱', titleEn: 'The Technology Trap: Capital, Labor, and Power in the Age of Automation', author: 'Carl Benedikt Frey', tags: ['技术创新与经济增长', '英文原版 · PDF'], intro: '从工业革命看自动化与就业，讲清技术进步为何会先带来阵痛。', introEn: '', textbookId: 'frey-2019', cover: BOOK_COVER_DIR + 'tb-frey-2019.jpg' },
+/* 10 */ { id: 10, titleCn: '第二次机器革命（法文版）', titleEn: 'Le Deuxième Âge de la machine (The Second Machine Age)', author: 'Erik Brynjolfsson, Andrew McAfee', tags: ['技术创新与经济增长', '法文版 · EPUB'], intro: '数字化技术如何重塑生产率、就业与收入分配（法文译本，正文为法文）。', introEn: '', textbookId: 'brynjolfsson-2014-fr', cover: BOOK_COVER_DIR + 'tb-brynjolfsson-2014-fr.jpg' },
+/* 11 */ { id: 11, titleCn: '人工智能经济学', titleEn: 'The Economics of Artificial Intelligence: An Agenda', author: 'Ajay Agrawal, Joshua Gans, Avi Goldfarb (eds.)', tags: ['技术创新与经济增长', '英文原版 · PDF'], intro: 'AI 作为「预测成本下降」的技术，对劳动、竞争与政策意味着什么。', introEn: '', textbookId: 'agrawal-2019', cover: BOOK_COVER_DIR + 'tb-agrawal-2019.jpg' },
+/* 12 */ { id: 12, titleCn: '权力与进步', titleEn: 'Power and Progress: Our Thousand-Year Struggle Over Technology and Prosperity', author: 'Daron Acemoglu, Simon Johnson', tags: ['技术创新与经济增长', '英文原版 · EPUB'], intro: '技术本身不保证共享繁荣，取决于权力结构与社会选择。', introEn: '', textbookId: 'acemoglu-2023', cover: BOOK_COVER_DIR + 'tb-acemoglu-2023.jpg' },
+/* 13 */ { id: 13, titleCn: '创造性破坏的力量', titleEn: 'The Power of Creative Destruction: Economic Upheaval and the Wealth of Nations', author: 'Philippe Aghion, Céline Antonin, Simon Bunel', tags: ['技术创新与经济增长', '英文原版 · EPUB'], intro: '用「创造性破坏」串起增长、不平等、竞争政策与社会流动。', introEn: '', textbookId: 'aghion-2021', cover: BOOK_COVER_DIR + 'tb-aghion-2021.jpg' },
+/* 14 */ { id: 14, titleCn: '把饼做大', titleEn: 'Grow the Pie: How Great Companies Deliver Both Purpose and Profit', author: 'Alex Edmans', tags: ['公司治理与战略', '英文原版 · PDF'], intro: '用实证回应「企业目的 vs 股东利润」之争：长期价值来自做大价值总量。', introEn: '', textbookId: 'edmans-2020', cover: BOOK_COVER_DIR + 'tb-edmans-2020.jpg' },
+/* 15 */ { id: 15, titleCn: '战略管理：利益相关者方法', titleEn: 'Strategic Management: A Stakeholder Approach', author: 'R. Edward Freeman', tags: ['公司治理与战略', '英文原版 · PDF'], intro: '利益相关者理论的源头，重构了「企业为谁而经营」的框架。', introEn: '', textbookId: 'freeman-1984', cover: '' },
+/* 16 */ { id: 16, titleCn: '应用兼并与收购', titleEn: 'Applied Mergers and Acquisitions', author: 'Robert F. Bruner', tags: ['并购重组', '英文原版 · PDF'], intro: '并购实务的系统教程：估值、交易结构、谈判、整合与失败教训。', introEn: '', textbookId: 'bruner-2004', cover: BOOK_COVER_DIR + 'tb-bruner-2004.jpg' },
+/* 17 */ { id: 17, titleCn: '兼并与收购及公司重组', titleEn: 'Mergers, Acquisitions, and Corporate Restructurings', author: 'Patrick A. Gaughan', tags: ['并购重组', '英文原版 · PDF'], intro: '并购与重组的全景教材：法律、监管、会计、估值与实证证据。', introEn: '', textbookId: 'gaughan-ma', cover: BOOK_COVER_DIR + 'tb-gaughan-ma.jpg' },
+/* 18 */ { id: 18, titleCn: '接管、重组与公司治理', titleEn: 'Takeovers, Restructuring, and Corporate Governance', author: 'J. Fred Weston, Mark L. Mitchell, J. Harold Mulherin', tags: ['并购重组', '英文原版 · PDF'], intro: '从公司治理视角讲接管与重组，是美国并购研究的经典参考。', introEn: '', textbookId: 'weston-takeovers', cover: BOOK_COVER_DIR + 'tb-weston-takeovers.jpg' },
+/* 19 */ { id: 19, titleCn: '兼并与收购及其他重组活动', titleEn: 'Mergers, Acquisitions, and Other Restructuring Activities', author: 'Donald M. DePamphilis', tags: ['并购重组', '英文原版 · PDF'], intro: '以流程为主线讲并购全生命周期，案例与实务工具最全的一本。', introEn: '', textbookId: 'depamphilis-ma', cover: '' },
+/* 20 */ { id: 20, titleCn: '融资、并购与公司控制（第2版）', titleEn: '', author: '周春生', tags: ['并购重组', '中文版 · EPUB'], intro: '中文教材视角：融资决策、并购交易与公司控制权安排的中国实践。', introEn: '', textbookId: 'zhousheng-rongzi-binggou', cover: BOOK_COVER_DIR + 'tb-zhousheng-rongzi-binggou.jpg' },
+/* 21 */ { id: 21, titleCn: '有限理性模型：经济分析与公共政策', titleEn: 'Models of Bounded Rationality: Economic Analysis and Public Policy', author: 'Herbert A. Simon', tags: ['思想与决策基础', '英文原版 · PDF'], intro: '有限理性与满意化决策的论文集，行为经济学与组织理论的源头之一。', introEn: '', textbookId: 'simon-bounded-rationality', cover: BOOK_COVER_DIR + 'tb-simon-bounded-rationality.jpg' },
+/* 22 */ { id: 22, titleCn: '凯利资本增长投资准则：理论与实践', titleEn: 'The Kelly Capital Growth Investment Criterion: Theory and Practice', author: 'Leonard C. MacLean, Edward O. Thorp, William T. Ziemba (eds.)', tags: ['投资与资产管理', '英文原版 · EPUB'], intro: '把凯利公式从赌局推广到长期资产配置，讲清对数最优与下注比例的取舍。', introEn: '', textbookId: 'kelly-capital-growth', cover: BOOK_COVER_DIR + 'tb-kelly-capital-growth.jpg' },
+/* 23 */ { id: 23, titleCn: '资产定价中的机器学习', titleEn: 'Machine Learning in Asset Pricing', author: 'Stefan Nagel', tags: ['投资与资产管理', '英文原版 · PDF'], intro: '用机器学习方法做资产定价的实证入门：如何避免过拟合与「伪因子」。', introEn: '', textbookId: 'nagel-ml-asset-pricing', cover: '' },
+/* 24 */ { id: 24, titleCn: '面向资产管理者的机器学习', titleEn: 'Machine Learning for Asset Managers', author: 'Marcos M. López de Prado', tags: ['投资与资产管理', '英文原版 · PDF'], intro: '面向从业者的精简读本：特征提取、聚类、去噪与组合构建的实操方法。', introEn: '', textbookId: 'lopezdeprado-ml-asset-managers', cover: BOOK_COVER_DIR + 'tb-lopezdeprado-ml-asset-managers.jpg' },
+/* 25 */ { id: 25, titleCn: '第二次机器革命', titleEn: 'The Second Machine Age: Work, Progress, and Prosperity in a Time of Brilliant Technologies', author: 'Erik Brynjolfsson, Andrew McAfee', tags: ['技术创新与经济增长', '英文原版 · PDF'], intro: '英文原版（书架里另有一本法文译本）：数字化技术如何重塑生产率、就业与收入分配。', introEn: '', textbookId: 'second-machine-age-en', cover: BOOK_COVER_DIR + 'tb-second-machine-age-en.jpg' },
+/* 26 */ { id: 26, titleCn: '企业、契约与财务结构', titleEn: 'Firms, Contracts, and Financial Structure', author: 'Oliver Hart', tags: ['公司治理与战略', '英文原版 · PDF'], intro: '不完全契约与剩余控制权的经典专著，公司治理与资本结构理论的基石。', introEn: '', textbookId: 'hart-1995-firms', cover: BOOK_COVER_DIR + 'tb-hart-1995-firms.jpg' },
+/* 27 */ { id: 27, titleCn: '个人主义与经济秩序', titleEn: 'Individualism and Economic Order', author: 'F. A. Hayek', tags: ['思想与决策基础', '英文原版 · PDF'], intro: '分散知识、自发秩序与市场过程的经典文集，奥地利学派的方法论宣言。', introEn: '', textbookId: 'hayek-individualism', cover: BOOK_COVER_DIR + 'tb-hayek-individualism.jpg' },
+/* 28 */ { id: 28, titleCn: '控制论革命者：智利阿连德时期的技术与政治', titleEn: 'Cybernetic Revolutionaries: Technology and Politics in Allende\'s Chile', author: 'Eden Medina', tags: ['技术创新与经济增长', '英文原版 · EPUB'], intro: '以 Cybersyn 项目为切口，讲技术设计与政治制度如何相互塑造。', introEn: '', textbookId: 'medina-cybernetic-revolutionaries', cover: BOOK_COVER_DIR + 'tb-medina-cybernetic-revolutionaries.jpg' },
+/* 29 */ { id: 29, titleCn: '信息为何增长：从原子到经济的秩序演化', titleEn: 'Why Information Grows: The Evolution of Order, from Atoms to Economies', author: 'César Hidalgo', tags: ['技术创新与经济增长', '英文原版 · EPUB'], intro: '用「信息/知识如何被固化进物质」解释经济增长与产业复杂度。', introEn: '', textbookId: 'hidalgo-why-information-grows', cover: BOOK_COVER_DIR + 'tb-hidalgo-why-information-grows.jpg' },
+/* 30 */ { id: 30, titleCn: '信息规则：网络经济的策略指导', titleEn: 'Information Rules: A Strategic Guide to the Network Economy', author: 'Carl Shapiro, Hal R. Varian', tags: ['技术创新与经济增长', '英文原版 · PDF'], intro: '信息产品的定价、锁定与标准竞争——网络经济学的奠基读物。', introEn: '', textbookId: 'shapiro-varian-information-rules', cover: BOOK_COVER_DIR + 'tb-shapiro-varian-information-rules.jpg' },
+/* 31 */ { id: 31, titleCn: 'GDP：一段简史', titleEn: 'GDP: A Brief but Affectionate History', author: 'Diane Coyle', tags: ['思想与决策基础', '英文原版 · PDF'], intro: 'GDP 这个指标怎么来的、量到了什么、又漏掉了什么。', introEn: '', textbookId: 'coyle-gdp', cover: BOOK_COVER_DIR + 'tb-coyle-gdp.jpg' },
+/* 32 */ { id: 32, titleCn: '科学革命的结构（50 周年纪念版）', titleEn: 'The Structure of Scientific Revolutions', author: 'Thomas S. Kuhn', tags: ['思想与决策基础', '英文原版 · PDF'], intro: '范式、常规科学与科学革命——研究方法的元问题，也是「知识图谱」的思想背景。', introEn: '', textbookId: 'kuhn-scientific-revolutions', cover: BOOK_COVER_DIR + 'tb-kuhn-scientific-revolutions.jpg' }
 ];
 
-// 自动补全封面路径
+// 自动补全封面路径（只补「没写 cover」的；写了空串表示这本就是没有封面图，别覆盖，
+// 注意这里必须用 === undefined —— `if (!b.cover)` 会把 '' 也当成没写）
 BOOKS.forEach(b => {
-    b.cover = BOOK_COVER_DIR + String(b.id).padStart(2, '0') + BOOK_COVER_EXT;
+    if (b.cover === undefined) {
+        b.cover = BOOK_COVER_DIR + String(b.id).padStart(2, '0') + BOOK_COVER_EXT;
+    }
 });
 
 // ---------- 渲染书架 ----------
@@ -730,6 +833,11 @@ function renderBookshelf() {
             const hoverText = hasTitle
                 ? book.titleCn
                 : `第 ${book.id} 本 · 待补充`;
+            // 没有封面图（cover 为空）时干脆不输出 img，免得白打一个 404
+            const coverImg = book.cover
+                ? `<img src="${book.cover}" alt="${label}" loading="lazy" draggable="false"
+                        onerror="this.style.display='none';">`
+                : '';
 
             return `
             <div class="book-item" data-id="${book.id}">
@@ -739,8 +847,7 @@ function renderBookshelf() {
                         <span class="fb-no">${no}</span>
                         <span class="fb-label">${label}</span>
                     </span>
-                    <img src="${book.cover}" alt="${label}" loading="lazy" draggable="false"
-                        onerror="this.style.display='none';">
+                    ${coverImg}
                 </div>
                 <span class="book-name">${hoverText}</span>
             </div>
@@ -890,10 +997,16 @@ function openBookDetail(id) {
     const fallback = document.getElementById('detailCoverFallback');
 
     fallback.textContent = book.titleCn || ('第 ' + book.id + ' 本 · 待补充');
-    cover.style.visibility = 'hidden';
-    cover.onload = function () { this.style.visibility = 'visible'; };
-    cover.onerror = function () { this.style.visibility = 'hidden'; };
-    cover.src = book.cover;
+    if (book.cover) {
+        cover.style.visibility = 'hidden';
+        cover.onload = function () { this.style.visibility = 'visible'; };
+        cover.onerror = function () { this.style.visibility = 'hidden'; };
+        cover.src = book.cover;
+    } else {
+        // 没有封面图：连 src 都不给，免得浏览器去请求空地址
+        cover.removeAttribute('src');
+        cover.style.visibility = 'hidden';
+    }
 
     document.getElementById('detailTitleCn').textContent = book.titleCn || ('第 ' + book.id + ' 本 · 待补充');
     document.getElementById('detailTitleEn').textContent = book.titleEn || '';
@@ -927,9 +1040,48 @@ function openBookDetail(id) {
     document.getElementById('detailIntro').textContent = book.intro || '（中文简介待补充）';
     document.getElementById('detailIntroEn').textContent = book.introEn || '';
 
+    // ★ 电子版阅读入口（2026-09-23）：只有配了 textbookId 的书才显示
+    renderDetailReadEntry(book, actionsEl);
+
     mask.classList.add('show');
     document.body.style.overflow = 'hidden';
     setTimeout(() => renderBookGraph(book.id), 60);
+}
+
+// ===============================
+// 17.5 书籍详情 · 电子版阅读入口
+// --------------------------------------------------------------
+// 电子版清单在后端 data/media/textbooks.json（由 scripts/import_textbooks.py 生成），
+// 正文由 /assets/textbooks/ 提供；点「阅读原文」调 js/textbook-reader.js 的 TextbookReader.open()。
+// 想给某本书挂上电子版：在该书 BOOKS 条目里加 textbookId: '清单里的 id' 即可。
+// 没有 textbookId 的书统一显示一句「电子版暂未上传」——否则用户会以为按钮漏了
+// （例如第 1–5 本只有知识图谱/视频，没有电子书文件）。
+// ===============================
+function renderDetailReadEntry(book, anchorEl) {
+    let el = document.getElementById('detailRead');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'detailRead';
+        el.className = 'detail-read';
+        const anchor = anchorEl || document.getElementById('detailTags');
+        if (anchor) anchor.after(el); else return;
+    }
+
+    const tid = book.textbookId;
+    if (!tid || !window.TextbookReader) {
+        el.hidden = false;
+        el.innerHTML = '<span class="detail-read-none">电子版暂未上传</span>' +
+            '<span class="detail-read-hint">上传后这里会出现「📖 阅读原文」</span>';
+        return;
+    }
+
+    el.hidden = false;
+    el.innerHTML =
+        '<button type="button" class="detail-read-btn" id="detailReadBtn">📖 阅读原文</button>' +
+        '<span class="detail-read-hint">电子版已在服务器上，直接在这里打开（PDF / EPUB），不用下载</span>';
+    el.querySelector('#detailReadBtn').addEventListener('click', function () {
+        window.TextbookReader.open(tid);
+    });
 }
 // ===============================
 // 17.6 书籍详情 · 知识图谱（宏观章层小图）

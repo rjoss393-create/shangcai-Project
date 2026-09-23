@@ -134,12 +134,24 @@
     }
         // ---------- 悬浮球拖动 ----------
     function setupFabDrag() {
-        // 把初始的 right/bottom 换算成 left/top，交给 JS 接管
-        const r0 = fab.getBoundingClientRect();
-        fab.style.left   = r0.left + 'px';
-        fab.style.top    = r0.top  + 'px';
-        fab.style.right  = 'auto';
-        fab.style.bottom = 'auto';
+        // ★ 定位接管：只在「几何有效」时才把 CSS 的 right/bottom 换算成 left/top。
+        //   登录态未就绪时，main.js 的 Auth.onChange 会同步回调一次"未登录"，
+        //   把悬浮球置为 display:none；此时 getBoundingClientRect() 全为 0，
+        //   照搬就会把按钮永久钉死在左上角（悬浮球跑到左上角的根因）。
+        //   几何无效就先不接管 —— CSS 的 right/bottom 本来就能自适应窗口，
+        //   等用户真正开始拖动（那一刻必然可见）再换算。
+        let anchored = false;
+        function anchorToLeftTop() {
+            if (anchored) return;
+            const r = fab.getBoundingClientRect();
+            if (!r.width && !r.height) return;      // 不可见：这份零值不可用
+            fab.style.left   = r.left + 'px';
+            fab.style.top    = r.top  + 'px';
+            fab.style.right  = 'auto';
+            fab.style.bottom = 'auto';
+            anchored = true;
+        }
+        anchorToLeftTop();
 
         let dragging = false;
         let moved    = false;
@@ -147,6 +159,7 @@
 
         fab.addEventListener('pointerdown', e => {
             if (e.button !== 0 && e.pointerType === 'mouse') return;
+            anchorToLeftTop();
             dragging = true;
             moved    = false;
             startX = e.clientX;
@@ -191,7 +204,9 @@
 
         // 窗口尺寸变化时，保证按钮不出界
         window.addEventListener('resize', () => {
+            if (!anchored) return;                  // 未接管：CSS 的 right/bottom 自适应
             const r = fab.getBoundingClientRect();
+            if (!r.width && !r.height) return;      // 隐藏态也别拿零值去收敛
             const w = fab.offsetWidth, h = fab.offsetHeight;
             const nl = Math.max(8, Math.min(window.innerWidth  - w - 8, r.left));
             const nt = Math.max(8, Math.min(window.innerHeight - h - 8, r.top));

@@ -1,0 +1,699 @@
+/* ============================================================
+   数据库板块（Database Board）
+   ------------------------------------------------------------
+   由 js/database-board.js 渲染，完全外挂在 #database 内。
+   两态：
+     ① 概览 —— 按原表分组的「年鉴式」表格，点条目名打开表格
+     ② 阅读 —— 仿 Excel 工作簿模态（列标/行号/编辑栏/工作表标签/状态栏）
+   配色沿用站点主题：财大红 #811c21 + 米白 #F1F0E9 + 思源宋体。
+   ============================================================ */
+
+/* ---------- 板块导语 ---------- */
+.db-intro {
+    margin: 18px 10% 0 10%;
+    font-size: 15px;
+    line-height: 1.8;
+    color: #8a8a8a;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+/* ---------- 顶部统计 + 搜索 ---------- */
+.db-toolbar {
+    margin: 26px 10% 0 10%;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.db-stat {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 13.5px;
+    color: #8a8a8a;
+}
+.db-stat-total {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 3px;
+    color: var(--main-red);
+}
+.db-stat-total b {
+    font-family: "Times New Roman", serif;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+}
+.db-stat-total i {
+    font-style: normal;
+    font-size: 12px;
+    letter-spacing: .08em;
+    opacity: .7;
+}
+
+.db-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 13px;
+    border: 1px solid rgba(129, 28, 33, .16);
+    border-radius: 15px;
+    background: rgba(129, 28, 33, .045);
+    color: var(--main-red);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: .25s;
+}
+.db-chip b { font-family: "Times New Roman", serif; font-weight: 700; }
+.db-chip:hover { background: rgba(129, 28, 33, .1); }
+.db-chip.is-active {
+    background: var(--main-red);
+    border-color: var(--main-red);
+    color: #fff;
+    box-shadow: 0 5px 14px rgba(129, 28, 33, .22);
+}
+
+.db-search {
+    margin-left: auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 292px;
+    max-width: 100%;
+}
+.db-search svg {
+    position: absolute;
+    left: 13px;
+    width: 15px;
+    height: 15px;
+    color: rgba(129, 28, 33, .45);
+    pointer-events: none;
+}
+.db-search input {
+    width: 100%;
+    height: 38px;
+    padding: 0 34px 0 36px;
+    border: 1px solid rgba(129, 28, 33, .16);
+    border-radius: 19px;
+    background: var(--paper);
+    color: #444;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 13px;
+    outline: none;
+    transition: .25s;
+}
+.db-search input::placeholder { color: #b3ada4; }
+.db-search input:focus {
+    background: #fff;
+    border-color: rgba(129, 28, 33, .42);
+    box-shadow: 0 0 0 3px rgba(129, 28, 33, .07);
+}
+.db-search-clear {
+    position: absolute;
+    right: 8px;
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(129, 28, 33, .1);
+    color: var(--main-red);
+    font-family: "Times New Roman", serif;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    transition: .2s;
+}
+.db-search-clear:hover { background: var(--main-red); color: #fff; }
+
+/* ---------- 分组 ---------- */
+.db-group {
+    margin: 40px 10% 0 10%;
+}
+.db-group-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding-bottom: 11px;
+    border-bottom: 2px solid var(--main-red);
+}
+.db-group-name {
+    margin: 0;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--main-red);
+    letter-spacing: .04em;
+}
+.db-group-count {
+    font-family: "Times New Roman", serif;
+    font-size: 12.5px;
+    color: rgba(129, 28, 33, .55);
+    padding: 2px 9px;
+    border-radius: 10px;
+    background: rgba(129, 28, 33, .07);
+}
+.db-group-sub {
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 12.5px;
+    color: #a8a29a;
+}
+
+.db-table-scroll { overflow-x: auto; }
+
+.db-table {
+    width: 100%;
+    min-width: 680px;
+    border-collapse: collapse;
+    background: var(--paper);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+.db-table thead th {
+    padding: 15px 16px 11px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: .1em;
+    color: rgba(129, 28, 33, .62);
+    border-bottom: 1px solid rgba(129, 28, 33, .16);
+    white-space: nowrap;
+}
+.db-table tbody td {
+    padding: 14px 16px;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #4e4a45;
+    border-bottom: 1px solid rgba(129, 28, 33, .09);
+    vertical-align: middle;
+    text-align: left;           /* 覆盖站点全局 td 居中，数据表左对齐更易读 */
+}
+.db-table tbody tr:last-child td { border-bottom: none; }
+.db-table tbody tr.db-row { transition: background .22s; }
+.db-table tbody tr.db-row:hover { background: rgba(255, 255, 255, .82); }
+.db-table tbody tr.db-row:hover .db-cta { opacity: 1; transform: none; }
+
+/* 首尾圆角，让米白表体像一张卡片 */
+.db-table thead th:first-child { border-top-left-radius: 16px; }
+.db-table thead th:last-child  { border-top-right-radius: 16px; }
+.db-table tbody tr:last-child td:first-child { border-bottom-left-radius: 16px; }
+.db-table tbody tr:last-child td:last-child  { border-bottom-right-radius: 16px; }
+
+.db-c-idx {
+    width: 58px;
+    text-align: center;
+    font-family: "Times New Roman", serif;
+    font-size: 12.5px;
+    color: rgba(129, 28, 33, .5);
+}
+.db-c-name { width: 25%; min-width: 180px; }
+.db-c-provider { width: 25%; min-width: 150px; color: #8a857d; font-size: 12.5px; }
+.db-c-act { width: 104px; text-align: right; }
+
+/* 条目名：像「可打开的表格文件」 */
+.db-open {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    max-width: 100%;
+    padding: 4px 10px 4px 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 14.5px;
+    color: var(--main-red);
+    text-align: left;
+    transition: .22s;
+}
+.db-open-ico {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border-radius: 6px;
+    background: rgba(129, 28, 33, .09);
+    color: var(--main-red);
+    transition: .22s;
+}
+.db-open-ico svg { width: 13px; height: 13px; }
+.db-open-name {
+    border-bottom: 1px solid rgba(129, 28, 33, .28);
+    padding-bottom: 1px;
+    transition: .22s;
+}
+.db-open:hover .db-open-ico { background: var(--main-red); color: #fff; }
+.db-open:hover .db-open-name { border-bottom-color: var(--main-red); }
+.db-open:focus-visible { outline: 2px solid rgba(129, 28, 33, .5); outline-offset: 3px; border-radius: 4px; }
+
+.db-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--main-red);
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: .25s;
+}
+.db-cta svg { width: 12px; height: 12px; }
+
+.db-empty {
+    margin: 54px 10% 40px;
+    text-align: center;
+    font-size: 13.5px;
+    color: #a8a29a;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+.db-loading {
+    margin: 60px 10%;
+    text-align: center;
+    font-size: 13.5px;
+    color: #b3ada4;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+.db-foot-tip {
+    margin: 34px 10% 0 10%;
+    padding-top: 14px;
+    border-top: 1px dashed rgba(129, 28, 33, .18);
+    font-size: 12.5px;
+    color: #a8a29a;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+
+/* ============================================================
+   仿 Excel 阅读模态
+   ============================================================ */
+.xls-mask {
+    position: fixed;
+    inset: 0;
+    z-index: 1060;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 26px;
+    background: rgba(32, 10, 12, .68);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .3s ease, visibility .3s;
+}
+.xls-mask.show { opacity: 1; visibility: visible; }
+
+.xls-panel {
+    width: min(1120px, 100%);
+    height: min(90vh, 100%);
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .48);
+    transform: translateY(20px) scale(.985);
+    transition: transform .35s cubic-bezier(.2, .8, .3, 1);
+}
+.xls-mask.show .xls-panel { transform: translateY(0) scale(1); }
+
+/* ---------- 标题栏 ---------- */
+.xls-titlebar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    height: 48px;
+    padding: 0 12px 0 18px;
+    background: linear-gradient(180deg, #8d2027 0%, var(--main-red) 100%);
+    color: #fff;
+}
+.xls-titlebar-ico {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    border-radius: 7px;
+    background: rgba(255, 255, 255, .16);
+}
+.xls-titlebar-ico svg { width: 15px; height: 15px; }
+.xls-file-name {
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 14.5px;
+    letter-spacing: .02em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.xls-file-ext {
+    flex-shrink: 0;
+    font-family: "Times New Roman", serif;
+    font-size: 11.5px;
+    padding: 2px 8px;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, .18);
+    letter-spacing: .06em;
+}
+.xls-file-sub {
+    flex: 1;
+    min-width: 0;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 12px;
+    color: rgba(255, 255, 255, .62);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.xls-titlebar-actions {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.xls-act {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 13px;
+    border: 1px solid rgba(255, 255, 255, .34);
+    border-radius: 15px;
+    background: none;
+    color: #fff;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: .22s;
+}
+.xls-act svg { width: 12px; height: 12px; }
+.xls-act:hover { background: #fff; color: var(--main-red); border-color: #fff; }
+.xls-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .16);
+    color: #fff;
+    font-family: "Times New Roman", serif;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    transition: .22s;
+}
+.xls-close:hover { background: #fff; color: var(--main-red); }
+
+/* ---------- 菜单栏（装饰） ---------- */
+.xls-menubar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 0 18px;
+    height: 32px;
+    background: #fff;
+    border-bottom: 1px solid #ebe7de;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 12.5px;
+    color: #8d8880;
+    user-select: none;
+}
+.xls-menu-item.is-active { color: var(--main-red); font-weight: 600; }
+
+/* ---------- 编辑栏 ---------- */
+.xls-formulabar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    height: 34px;
+    border-bottom: 1px solid #ebe7de;
+    background: #fff;
+}
+.xls-namebox {
+    width: 96px;
+    text-align: center;
+    font-family: "Times New Roman", serif;
+    font-size: 12.5px;
+    color: #4e4a45;
+    border-right: 1px solid #ebe7de;
+}
+.xls-fx {
+    padding: 0 14px;
+    font-family: "Times New Roman", serif;
+    font-style: italic;
+    font-size: 14px;
+    color: rgba(129, 28, 33, .5);
+    border-right: 1px solid #ebe7de;
+}
+.xls-formula {
+    flex: 1;
+    min-width: 0;
+    padding: 0 14px;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 12.5px;
+    color: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.xls-formula.is-empty { color: #bcb6ac; }
+
+/* ---------- 网格 ---------- */
+.xls-gridwrap {
+    flex: 1;
+    overflow: auto;
+    background: #fff;
+    outline: none;
+    scrollbar-width: thin;
+}
+.xls-grid {
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+}
+.xls-grid th,
+.xls-grid td {
+    border-right: 1px solid #e9e5dc;
+    border-bottom: 1px solid #e9e5dc;
+    box-sizing: border-box;
+}
+/* 列标 */
+.xls-grid thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    height: 27px;
+    padding: 0;
+    background: #f4f2ec;
+    border-bottom: 1px solid #ddd8ce;
+    color: #7b756c;
+    font-family: "Times New Roman", serif;
+    font-size: 11.5px;
+    font-weight: 400;
+    text-align: center;
+}
+/* 左上角全选块 */
+.xls-grid thead th.xls-corner {
+    left: 0;
+    z-index: 5;
+    background: #eeebe3;
+}
+/* 行号 */
+.xls-grid tbody th.xls-rownum {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    width: 48px;
+    padding: 0;
+    background: #f4f2ec;
+    color: #7b756c;
+    font-family: "Times New Roman", serif;
+    font-size: 11.5px;
+    font-weight: 400;
+    text-align: center;
+    vertical-align: middle;
+}
+.xls-grid tbody tr.xls-headrow td {
+    background: #fbf8f4;
+    color: var(--deep-red);
+    font-weight: 600;
+    font-size: 13px;
+}
+.xls-grid tbody td {
+    padding: 8px 11px;
+    height: 34px;
+    color: #3d3a36;
+    font-size: 13px;
+    line-height: 1.6;
+    word-break: break-word;
+    vertical-align: middle;
+    text-align: left;           /* Excel 语义：文本左对齐（覆盖站点全局居中） */
+    cursor: cell;
+    transition: background .15s;
+}
+.xls-grid tbody tr:hover td { background: #fdfaf9; }
+/* 当前条目行（在「全部数据库」表里） */
+.xls-grid tbody tr.is-current td { background: rgba(129, 28, 33, .062); }
+.xls-grid tbody tr.is-current th.xls-rownum {
+    color: var(--main-red);
+    font-weight: 700;
+}
+
+/* 选中单元格：Excel 式红框 + 右下填充柄 */
+.xls-grid td.is-sel,
+.xls-grid tbody tr:hover td.is-sel {
+    background: #fff;
+    outline: 2px solid var(--main-red);
+    outline-offset: -2px;
+    position: relative;
+    z-index: 1;
+    color: #2f2c29;
+}
+.xls-grid td.is-sel::after {
+    content: "";
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    width: 6px;
+    height: 6px;
+    background: var(--main-red);
+    border: 1px solid #fff;
+}
+.xls-grid thead th.is-selcol,
+.xls-grid tbody th.xls-rownum.is-selrow {
+    background: rgba(129, 28, 33, .16);
+    color: var(--main-red);
+}
+
+/* ---------- 工作表标签 ---------- */
+.xls-sheetbar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: stretch;
+    height: 36px;
+    background: #f7f5f0;
+    border-top: 1px solid #e2ded4;
+}
+.xls-sheetnav,
+.xls-sheetadd {
+    flex-shrink: 0;
+    width: 32px;
+    display: grid;
+    place-items: center;
+    color: #a29c92;
+    font-family: "Times New Roman", serif;
+    font-size: 13px;
+    border-right: 1px solid #e6e2d8;
+    user-select: none;
+}
+.xls-sheetadd { border-right: none; border-left: 1px solid #e6e2d8; }
+.xls-tabs {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: stretch;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.xls-tabs::-webkit-scrollbar { display: none; }
+.xls-tab {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 18px;
+    border: none;
+    border-right: 1px solid #e6e2d8;
+    background: none;
+    color: #7b756c;
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 12.5px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: .2s;
+}
+.xls-tab:hover { background: rgba(255, 255, 255, .7); color: var(--main-red); }
+.xls-tab.is-active {
+    background: #fff;
+    color: var(--main-red);
+    font-weight: 600;
+}
+.xls-tab.is-active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: var(--main-red);
+}
+
+/* ---------- 状态栏 ---------- */
+.xls-statusbar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: 27px;
+    padding: 0 14px;
+    background: rgba(129, 28, 33, .055);
+    border-top: 1px solid rgba(129, 28, 33, .1);
+    font-family: "Source Han Serif SC", "思源宋体", serif;
+    font-size: 11.5px;
+    color: rgba(129, 28, 33, .78);
+}
+.xls-status-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    color: rgba(129, 28, 33, .55);
+}
+.xls-zoom {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.xls-zoom-bar {
+    position: relative;
+    width: 78px;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(129, 28, 33, .18);
+}
+.xls-zoom-bar::after {
+    content: "";
+    position: absolute;
+    left: 40%;
+    top: 50%;
+    width: 9px;
+    height: 9px;
+    margin: -4.5px 0 0 -4.5px;
+    border-radius: 50%;
+    background: var(--main-red);
+}
+
+/* ---------- 触屏/窄屏 ---------- */
+@media (max-width: 900px) {
+    .db-toolbar,
+    .db-group,
+    .db-intro,
+    .db-foot-tip { margin-left: 5%; margin-right: 5%; }
+    .db-search { width: 100%; margin-left: 0; }
+    .db-table { min-width: 620px; }
+    .db-table thead th,
+    .db-table tbody td { padding-left: 12px; padding-right: 12px; }
+    .xls-mask { padding: 10px; }
+    .xls-panel { height: 94vh; border-radius: 12px; }
+    .xls-file-sub { display: none; }
+    .xls-act span { display: none; }
+    .xls-menubar { gap: 15px; overflow-x: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .xls-mask,
+    .xls-panel,
+    .db-row,
+    .db-cta { transition-duration: .01ms; }
+}

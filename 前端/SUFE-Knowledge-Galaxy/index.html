@@ -13,12 +13,16 @@
 <link rel="stylesheet" href="css/profile-ui.css">
 <link rel="stylesheet" href="css/course-galaxy.css">
 <link rel="stylesheet" href="css/knowledge-galaxy.css">
+<!-- 页面左右切换（新增，独立外挂；移除本文件即恢复纵向滚动） -->
 <link rel="stylesheet" href="css/page-slider.css">
+<link rel="stylesheet" href="css/database-board.css">
+<!-- ★ 2026-09-23 本地加回：课程 · 教材原文阅读（外挂式，删掉本行即还原） -->
+<link rel="stylesheet" href="css/textbook-reader.css">
 
 <!-- 知识星系数据源：走后端 /api/graph/load（对接约定第 1 条）；后端不可用时引擎自动回退本地 data/galaxy_v12.json -->
 <script>window.__KG_DATA_SOURCE__ = 'api';</script>
 
-<!-- 图表库（本地化：原先走 jsdelivr CDN，国内网络常被重置导致 Chart 未定义、行情图表与指数表不渲染） -->
+<!-- 图表库（本地化：原先走 jsdelivr CDN，国内网络常被重置 → window.Chart 未定义 → 行情图表与指数表整块不渲染） -->
 <script src="js/chart.min.js"></script>
 
 </head>
@@ -92,102 +96,80 @@
         </div>
     </div>
 
-    <!-- 股票区域 -->
+    <!-- 股票区域：图表 + 紧凑指数栏 一行排布 -->
     <div class="market-container">
 
         <h2>市场指数</h2>
 
-        <!-- 折线图 -->
-        <div class="chart-box">
-    <!-- 股票选项卡 -->
-            <div class="stock-tabs" id="stockTabs">
-                <button class="stock-tab active" data-stock="上证指数">上证指数</button>
-                <button class="stock-tab" data-stock="深证成指">深证成指</button>
-                <button class="stock-tab" data-stock="创业板指数">创业板指数</button>
-                <button class="stock-tab" data-stock="科创50">科创50</button>
-                <button class="stock-tab" data-stock="北证50">北证50</button>
-                <button class="stock-tab" data-stock="恒生指数">恒生指数</button>
-                <button class="stock-tab" data-stock="纳斯达克指数">纳斯达克指数</button>
-                <button class="stock-tab" data-stock="道琼斯工业指数">道琼斯工业指数</button>
-                <button class="stock-tab" data-stock="数据库">数据库</button>
-            </div>
-            <!-- 图表容器 -->
-            <div style="height: 320px; position: relative;">
-                <canvas id="stockChart"></canvas>
-            </div>
-            <!-- 当前股票信息 -->
-            <div id="stockCurrentInfo" style="margin-top: 12px; text-align: center; font-size: 14px; color: #666; font-family: 'Source Han Serif SC', serif;">
-                当前查看：<span id="currentStockName" style="color: var(--main-red); font-weight: bold;">上证指数</span>
-                ｜ 最新价：<span id="currentStockPrice" style="color: var(--main-red); font-weight: bold;">--</span>
-                ｜ 涨跌幅：<span id="currentStockChange" style="font-weight: bold;">--</span>
-            </div>
-        </div>
+        <div class="market-row">
 
-        <!-- 数据表格 -->
-        <div class="table-box">
-            <table>
-                <thead>
-                    <tr>
-                        <th>指数名称</th>
-                        <th>当前价格</th>
-                        <th>涨跌</th>
-                        <th>涨跌幅</th>
-                    </tr>
-                </thead>
-                <tbody id="stock-data">
-                </tbody>
-            </table>
+            <!-- 折线图（左侧竖排 三日/单日 切换） -->
+            <div class="chart-box">
+                <div class="chart-body">
+                    <div class="range-rail" id="chartRangeRail" title="切换时间范围">
+                        <button class="range-btn active" data-range="day3">三日</button>
+                        <button class="range-btn" data-range="day1">单日</button>
+                    </div>
+                    <div class="chart-canvas-wrap">
+                        <canvas id="stockChart"></canvas>
+                    </div>
+                </div>
+                <!-- 当前股票信息 -->
+                <div id="stockCurrentInfo" class="chart-current-info">
+                    当前查看：<span id="currentStockName" style="color: var(--main-red); font-weight: bold;">上证指数</span>
+                    ｜ 最新价：<span id="currentStockPrice" style="color: var(--main-red); font-weight: bold;">--</span>
+                    ｜ 涨跌幅：<span id="currentStockChange" style="font-weight: bold;">--</span>
+                </div>
+            </div>
+
+            <!-- 紧凑指数数据栏（点击可切换图表） -->
+            <aside class="market-side" id="stockSideList" aria-label="指数行情列表">
+                <!-- 由 JS 渲染 -->
+            </aside>
+
         </div>
 
     </div>
 
     <!-- ======================
-    新闻区域
+    新闻区域（国内 / 国际并排）
     ====================== -->
     <div class="news-section">
 
-        <!-- 国内 -->
-        <h2 class="outside-title">国内最新新闻</h2>
+        <div class="news-row">
 
-        <div class="news-panel">
-
-            <div class="news-tabs" data-news-type="domestic">
-                <button class="tab active" data-category="economy">经济</button>
-                <button class="tab" data-category="policy">政策</button>
-                <button class="tab" data-category="market">市场</button>
+            <!-- 国内 -->
+            <div class="news-column">
+                <h2 class="outside-title">国内最新新闻</h2>
+                <div class="news-panel">
+                    <div class="news-tabs" data-news-type="domestic">
+                        <button class="tab active" data-category="economy">经济</button>
+                        <button class="tab" data-category="policy">政策</button>
+                        <button class="tab" data-category="market">市场</button>
+                    </div>
+                    <div class="news-content">
+                        <ul id="domestic-news">
+                            <li>加载中...</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
 
-            <div class="news-content">
-                <ul id="domestic-news">
-                    <li>加载中...</li>
-                </ul>
-            </div>
-
-            <div class="news-image">
-                <img src="https://picsum.photos/seed/domestic/400/300" alt="国内新闻配图">
-            </div>
-
-        </div>
-
-        <!-- 国际 -->
-        <h2 class="outside-title">国际最新新闻</h2>
-
-        <div class="news-panel">
-
-            <div class="news-tabs" data-news-type="international">
-                <button class="tab active" data-category="international-economy">国际经济</button>
-                <button class="tab" data-category="financial-markets">金融市场</button>
-                <button class="tab" data-category="global-policy">全球政策</button>
-            </div>
-
-            <div class="news-content">
-                <ul id="international-news">
-                    <li>加载中...</li>
-                </ul>
-            </div>
-
-            <div class="news-image">
-                <img src="https://picsum.photos/seed/international/400/300" alt="国际新闻配图">
+            <!-- 国际 -->
+            <div class="news-column">
+                <h2 class="outside-title">国际最新新闻</h2>
+                <div class="news-panel">
+                    <div class="news-tabs" data-news-type="international">
+                        <button class="tab active" data-category="international-economy">国际经济</button>
+                        <button class="tab" data-category="financial-markets">金融市场</button>
+                        <button class="tab" data-category="global-policy">全球政策</button>
+                    </div>
+                    <div class="news-content">
+                        <ul id="international-news">
+                            <li>加载中...</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -205,8 +187,8 @@
     </div>
 
     <p class="course-intro">
-        收录 35 本经济学与金融学经典著作 —— 在书架上滚动鼠标滚轮或按住拖动，即可平滑浏览；
-        悬停封面查看书名，点击进入书籍详情。
+        收录 32 本经济学与金融学经典著作 —— 在书架上滚动鼠标滚轮或按住拖动，即可平滑浏览；
+        悬停封面查看书名，点击进入书籍详情。每本都配了电子版，在详情里点「📖 阅读原文」就能直接开读。
     </p>
 
     <!-- 书架 -->
@@ -332,7 +314,7 @@
 
                 <!-- 右下工具条 -->
                 <div class="kg-toolbar">
-                    <div class="kg-toolbar-row">
+                    <div class="kg-toolbar-row kg-tb-view">
                         <span class="kg-tb-label">视图</span>
                         <button class="kg-chip kg-vm-btn is-on" data-mode="invest">投资学视图</button>
                         <button class="kg-chip kg-vm-btn" data-mode="extend">扩展视图</button>
@@ -345,7 +327,7 @@
                         <button class="kg-chip kg-rel-chip is-on" data-rel="度量">度量</button>
                         <button class="kg-chip kg-rel-chip is-on" data-rel="映射">映射</button>
                     </div>
-                    <div class="kg-toolbar-row">
+                    <div class="kg-toolbar-row kg-tb-cross">
                         <button class="kg-chip is-on" id="kgCrossBtn">跨域航线</button>
                     </div>
                 </div>
@@ -353,11 +335,11 @@
                 <!-- 左下图例 -->
                 <div class="kg-legend" id="kgLegend">
                     <div class="kg-legend-title">星图图例 · 六层钻取</div>
-                    <div class="kg-legend-row"><span class="lg-dot" style="background:var(--kg-dom-1)"></span>宏观金融</div>
-                    <div class="kg-legend-row"><span class="lg-dot" style="background:var(--kg-dom-2)"></span>微观金融</div>
-                    <div class="kg-legend-row"><span class="lg-dot" style="background:var(--kg-dom-3)"></span>交叉学科</div>
-                    <div class="kg-legend-row"><span class="lg-dot" style="background:var(--kg-dom-4)"></span>财经扩展（扩展视图）</div>
-                    <div class="kg-legend-row"><span class="lg-dot" style="background:var(--kg-dom-5)"></span>跨学科知识（扩展视图）</div>
+                    <div class="kg-legend-row is-domain"><span class="lg-dot" style="background:var(--kg-dom-1)"></span>宏观金融</div>
+                    <div class="kg-legend-row is-domain"><span class="lg-dot" style="background:var(--kg-dom-2)"></span>微观金融</div>
+                    <div class="kg-legend-row is-domain"><span class="lg-dot" style="background:var(--kg-dom-3)"></span>交叉学科</div>
+                    <div class="kg-legend-row is-domain"><span class="lg-dot" style="background:var(--kg-dom-4)"></span>财经扩展（扩展视图）</div>
+                    <div class="kg-legend-row is-domain"><span class="lg-dot" style="background:var(--kg-dom-5)"></span>跨学科知识（扩展视图）</div>
                     <div class="kg-legend-row"><span class="lg-dot" style="background:var(--kg-dt-expl)"></span>名词解释 · 第 5 层</div>
                     <div class="kg-legend-row"><span class="lg-glyph" style="color:var(--kg-dt-formula)">ƒ</span>公式 · 第 6 层</div>
                     <div class="kg-legend-row"><span class="lg-glyph" style="color:var(--kg-dt-case)">▶</span>案例 · 第 6 层</div>
@@ -402,17 +384,26 @@
 
 </section>
 
-<!-- ==========  course-galaxy 课程星系板块（新增，2026-09-19 前端负责人交付） ========== -->
+<!-- ==========  course-galaxy 课程星系板块（新增2） ========== -->
 <section class="page-section" id="course-galaxy">
 
-    <div class="section-title">
-        <h1>课程星系</h1>
-    </div>
+    <!-- 页头：左＝大标题 + 灰色操作提示（与知识星系同款：左对齐、上下排列、低透明度），
+         右＝课程选项卡靠右对齐。两者同一行，把纵向空间让给星图。 -->
+    <div class="cg-head">
+        <div class="section-title">
+            <h1>课程星系</h1>
+            <p class="cg-intro">
+                课程 → 主题 → 知识点 → 名词解释 → 深层内容 · 点击节点逐层下潜 · 双击空白处返回上一层 · 左上搜索框可直接定位知识点
+            </p>
+        </div>
 
-    <p class="cg-intro">
-        以「课程」为节点的投资学 / 经济学课程图谱 —— 展示课程节点、先修关系、学习路径、课程卡片与资源。
-        滚轮缩放切换宏观 / 中观 / 微观层级 · 悬停查看课程详情 · 单击展开课程卡片 · 卡片内可跳转至知识星系对应概念。
-    </p>
+        <!-- 课程切换：每门课程一张知识图谱（与知识星系同一套引擎 / 同一份样式） -->
+        <div class="cg-tabs" id="cgTabs">
+            <button class="cg-tab active" data-graph-id="invest">投资学</button>
+            <button class="cg-tab" data-graph-id="ma">并购与重组</button>
+            <button class="cg-tab" data-graph-id="corp_fin">公司金融</button>
+        </div>
+    </div>
 
     <!-- 工具栏：缩放层级 + 学习路径 + 重置 -->
     <div class="cg-toolbar">
@@ -438,6 +429,22 @@
         <div class="cg-guest-tip" id="cgGuestTip"></div>
         <div class="cg-hint">滚轮缩放 · 拖动平移 · 悬停看详情 · 单击开课程卡片</div>
         <div class="cg-loading show" id="cgLoading">课程图谱加载中…</div>
+    </div>
+
+    <!-- 知识图谱容器：切换到某门课程时，知识星系的星图舞台移植到这里
+         （位置固定，避免布局跳动）。无数据的课程在图谱位置显示「待接入」空态。 -->
+    <div class="cg-knowledge-host" id="cgKnowledgeHost" hidden>
+        <div class="cg-kg-empty" id="cgKgEmpty" hidden>
+            <div class="cg-kg-empty-mark">◈</div>
+            <div class="cg-kg-empty-title" id="cgKgEmptyTitle">课程</div>
+            <div class="cg-kg-empty-sub">知识图谱待接入</div>
+            <p class="cg-kg-empty-desc">
+                该课程的图谱数据尚未提供。数据到位后无需改前端：
+                在项目里放入对应的 JSON，或由后端按
+                <code>POST /api/graph/load</code>、<code>graph_id</code> 返回即可自动显示，
+                接口契约与知识星系完全一致。
+            </p>
+        </div>
     </div>
 
     <!-- 课程卡片（右侧滑出面板） -->
@@ -763,14 +770,23 @@
 </section>
 
 
+<!-- ======================
+     数据库 · 分组表格 + Excel 阅读
+====================== -->
 <section class="page-section" id="database">
     <div class="section-title">
         <h1>数据库</h1>
     </div>
 
-    <p class="paper-intro">
-        数据库板块建设中，敬请期待。
+    <p class="db-intro">
+        按国际市场 / 中国市场 / 免费公开数据三组收录常用金融与商科数据库。
+        点击条目名称即可打开对应的 Excel 表格 —— 支持选中单元格、切换工作表与导出 CSV。
     </p>
+
+    <!-- 板块主体由 js/database-board.js 渲染 -->
+    <div id="dbBoardHost"></div>
+
+    <div class="db-loading" id="dbLoading">数据清单加载中…</div>
 </section>
 
 
@@ -804,6 +820,22 @@
 
 
 </main>
+
+<!-- ★ 2026-09-23 本地加回：教材原文阅读遮罩（position:fixed，放在 section 外；同上，删除即还原） -->
+<div class="tb-mask" id="tbReaderMask" role="dialog" aria-modal="true" aria-label="教材原文阅读">
+    <div class="tb-bar">
+        <span class="tb-bar-title" id="tbReaderTitle"></span>
+        <span class="tb-bar-sub" id="tbReaderSub"></span>
+        <span class="tb-bar-right">
+            <span class="tb-bar-pos" id="tbReaderPos"></span>
+            <button class="tb-bar-btn" id="tbReaderPrev" type="button">上一页</button>
+            <button class="tb-bar-btn" id="tbReaderNext" type="button">下一页</button>
+            <a class="tb-bar-btn" id="tbReaderOpen" href="#" target="_blank" rel="noopener">新标签打开</a>
+            <button class="tb-bar-btn" id="tbReaderClose" type="button">关闭</button>
+        </span>
+    </div>
+    <div class="tb-stage" id="tbReaderStage"></div>
+</div>
 
 <footer>
     <img src="assets/sufe-logo.png" alt="SUFE Logo" class="footer-logo">
@@ -855,7 +887,13 @@
 <script src="js/profile-ui.js"></script>
 <script src="js/course-galaxy.js"></script>
 <script src="js/main.js"></script>
+<!-- ★ 2026-09-23 本地加回：课程 · 教材原文阅读（外挂式，删掉本行即还原）
+     必须放在 page-slider.js 之前；阅读遮罩内的键盘事件也做了捕获阶段拦截 -->
+<script src="js/textbook-reader.js"></script>
+<!-- 页面左右切换（新增，必须在 main.js 之后；移除本行即恢复纵向滚动） -->
 <script src="js/page-slider.js"></script>
+<!-- 数据库板块：分组表格 + 仿 Excel 阅读器（新增，独立外挂，可单独移除） -->
+<script src="js/database-board.js"></script>
 
 </body>
 

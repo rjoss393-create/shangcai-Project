@@ -2,8 +2,9 @@
    页面左右切换（Page Slider）
    ------------------------------------------------------------
    · 把 <main> 下的 .page-section 变成「一页一屏、左右切换」，
-     切换时拉下不透明的财大红翻页幕布（带米白页码铭牌）遮住旧页，
-     幕布停留期间完成后台换页，再推走露出新页。
+     切换时先拉下不透明的财大红翻页幕布（带米白页码铭牌）盖住旧页，
+     ★ 等幕布「完全盖满」的那一瞬才在幕后换页，最后幕布推走露出新页 ——
+     顺序永远是「幕布 → 换页 → 揭示」，不会先冒出下一页内容再补动画。
    · 完全外挂：不修改 main.js。切换靠重写 Element.prototype.scrollIntoView
      接管（main.js 里跳页用的就是它），删除本文件的 <script> 即恢复原纵向滚动。
    · 页面仍可纵向滚动（main 高度同步为当前页高度），故长页面、回到顶部、
@@ -38,11 +39,26 @@
         NAV_BY_ID[id] = b;
     });
 
-    /* 与 css/page-slider.css 的 --pg-anim 保持一致（1.08s + 一点余量） */
-    var DURATION = 1100;
+    /* ------------------------------------------------------------
+       时序常量 —— 必须与 css/page-slider.css 严格对齐
+       ------------------------------------------------------------
+       --pg-anim: 1.08s；关键帧 pgVeilSweep 到 38% 才把屏幕完全盖住，
+       38%~62% 停住，之后推走。
+       ★ 换页发生在幕布「完全盖住」的那一瞬（COVER_AT），
+         而不是 go() 被调用的那一刻。否则幕布还在往里扫的时候，
+         新页就已经滑进来了 —— 视觉上就是「先冒出下一页的内容，
+         动画才姗姗来迟」，而且旧页会被 setScroll 拽着当场跳一下。
+    ------------------------------------------------------------ */
+    var CURTAIN_MS  = 1080;
+    var COVER_RATIO = 0.38;
+    var REDUCED = !!(window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    var COVER_AT = REDUCED ? 0 : Math.round(CURTAIN_MS * COVER_RATIO);   /* ≈ 410ms */
+    var DURATION = REDUCED ? 30 : CURTAIN_MS + 100;                      /* 幕布走完 + 余量 */
     var currentId = null;
     var animating = false;
     var animTimer = null;
+    var swapTimer = null;
     var scrollMemo = Object.create(null);   /* 各页离开时的滚动位置 */
 
     /* ------------------------------------------------------------
@@ -148,62 +164,73 @@
         if (currentId) scrollMemo[currentId] = window.scrollY;
         animating = true;
         document.body.setAttribute('data-pg-dir', dir);
-        document.body.classList.add('pg-anim');
 
-        /* 离场页：定住当前视觉状态 → 反向淡出 */
-        if (prevEl) {
-            prevEl.classList.remove('pg-active');
-            prevEl.classList.add('pg-leaving');
-            prevEl.style.transition = 'none';
-            prevEl.style.transform =
-                'translate3d(' + (dir === 'next' ? -7 : 7) + '%,0,0) scale(0.982)';
-            prevEl.style.opacity = '0';
-        }
-
-        /* 入场页：先摆到起始位置，下一帧回落到 CSS 终态（触发过渡） */
-        nextEl.style.transition = 'none';
-        nextEl.style.transform =
-            'translate3d(' + (dir === 'next' ? 9 : -9) + '%,0,0) scale(0.982)';
-        nextEl.style.opacity = '0';
-        nextEl.classList.add('pg-active');
-
-        currentId = id;
-        setScroll(scrollMemo[id] || 0);
-
+        /* ============ 第一拍：只拉幕布 ============
+           旧页保持原样原位、不碰滚动条，新页此刻还没登场 ——
+           观众看到的纯粹是「幕布从一侧扫过当前页」。 */
         playCurtain(dir, id);
-        syncHeight();
-        syncNav();
-        syncProgress();
-        setHash(id, opt.fromHash);
 
-        /* 强制同步重排：把上面写入的「起始态」提交为已计算样式，
-           然后立刻清空内联样式，让 CSS 终态 + transition 接管。
-           —— 不用双 requestAnimationFrame：在后台标签页 / 无头环境下
-           rAF 会被节流甚至不触发，内联的 translate/scale 便会永久残留，
-           表现为「整页向左偏移且缩小、不再居中」。 */
-        void nextEl.offsetWidth;
+        /* ============ 第二拍：幕布盖满的那一瞬，在幕后换页 ============
+           此刻画面被不透明幕布 100% 遮住，所以：
+             · 旧页直接撤下（看不见，不需要离场动画）
+             · 新页摆到终态附近的起始位，交给 CSS 过渡「轻微归位」
+             · 滚动位置 / main 高度 / 导航高亮 / 进度条 / hash 一并更新
+           等幕布推走时，露出来的已经是一个落定的新页。 */
+        clearTimeout(swapTimer);
+        swapTimer = setTimeout(function () {
+            document.body.classList.add('pg-anim');
 
-        if (prevEl) {
-            prevEl.style.transition = '';
-            prevEl.style.transform = '';
-            prevEl.style.opacity = '';
-        }
-        nextEl.style.transition = '';
-        nextEl.style.transform = '';
-        nextEl.style.opacity = '';
-        syncHeight();
+            nextEl.classList.add('pg-active');
+            nextEl.style.transition = 'none';
+            /* 只做轻微归位：真正的叙事主体是幕布，页面本身不抢戏 */
+            nextEl.style.transform =
+                'translate3d(' + (dir === 'next' ? 3.2 : -3.2) + '%,0,0) scale(1.012)';
+            nextEl.style.opacity = '0';
+
+            if (prevEl) {
+                prevEl.classList.remove('pg-active');
+                prevEl.style.transition = 'none';
+                prevEl.style.transform = '';
+                prevEl.style.opacity = '';
+            }
+
+            currentId = id;
+            setScroll(scrollMemo[id] || 0);
+
+            /* 强制同步重排：把上面写入的「起始态」提交为已计算样式，
+               然后立刻清空内联样式，让 CSS 终态 + transition 接管。
+               —— 不用双 requestAnimationFrame：在后台标签页 / 无头环境下
+               rAF 会被节流甚至不触发，内联的 translate/scale 便会永久残留，
+               表现为「整页向左偏移且缩小、不再居中」。 */
+            void nextEl.offsetWidth;
+
+            nextEl.style.transition = '';
+            nextEl.style.transform = '';
+            nextEl.style.opacity = '';
+            if (prevEl) prevEl.style.transition = '';
+
+            syncHeight();
+            syncNav();
+            syncProgress();
+            setHash(id, opt.fromHash);
+
+            /* 幕后多量一次高度：新页的图片/字体回流不会波及到观众 */
+            void nextEl.offsetWidth;
+            syncHeight();
+        }, COVER_AT);
 
         clearTimeout(animTimer);
         animTimer = setTimeout(function () {
-            if (prevEl) prevEl.classList.remove('pg-leaving');
             document.body.classList.remove('pg-anim');
             /* 清掉方向标记：避免它残留后继续参与 .page-section 的样式计算 */
             document.body.removeAttribute('data-pg-dir');
             animating = false;
-            /* 兜底：绝不让任何页面停在偏移态 */
-            nextEl.style.transition = '';
-            nextEl.style.transform = '';
-            nextEl.style.opacity = '';
+            /* 兜底：绝不让任何页面停在偏移 / 透明态 */
+            SECTIONS.forEach(function (s) {
+                s.style.transition = '';
+                s.style.transform = '';
+                s.style.opacity = '';
+            });
             syncHeight();
         }, DURATION);
 
@@ -245,10 +272,19 @@
         }
     }, true);
 
+    /* 全屏模态打开时（PDF / 视频 / Excel 表格…）不响应翻页键，
+       否则 ←/→ 会在弹窗背后偷偷换页 */
+    var MODAL_SELECTOR = '.pdf-mask.show, .study-player-mask.show, .book-detail-mask.show, ' +
+        '.paper-detail-mask.show, .xls-mask.show, .assistant-panel.show';
+    function modalOpen() {
+        return !!document.querySelector(MODAL_SELECTOR);
+    }
+
     document.addEventListener('keydown', function (e) {
         if (e.metaKey || e.ctrlKey || e.altKey) return;
         /* 沉浸星图（全屏）时禁止翻页，否则会切到被隐藏的页面 */
         if (document.body.classList.contains('immersive')) return;
+        if (modalOpen()) return;
         var t = e.target;
         if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
         if (e.key === 'ArrowRight') { if (next()) e.preventDefault(); }

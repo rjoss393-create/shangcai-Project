@@ -43,6 +43,10 @@
     --kg-dt-person: #6D4C41;    /* 人物 · 深棕 */
     --kg-dt-history: #2F8F46;   /* 历史 · 正绿 */
     --kg-dt-debate: #546E7A;    /* 争议 · 蓝灰 */
+    /* ★ 课程图谱专属色：整张课程图只用「一种蓝」，
+       唯有第 1 层正中央的课程根节点保留财大红（直接复用 --kg-accent）。
+       第 5/6 层的内容类型色（--kg-dt-*）与知识星系完全共用，不另立一套。 */
+    --kg-course-blue: #2C6BA8;        /* 课程统一蓝 · 主题 / 知识点 / 各层中央节点 */
 }
 
 .kg-root[data-theme="dark"] {
@@ -82,6 +86,8 @@
     --kg-dt-person: #C7A088;    /* 人物 · 深棕 */
     --kg-dt-history: #58C877;   /* 历史 · 正绿 */
     --kg-dt-debate: #9FB8C4;    /* 争议 · 蓝灰 */
+    /* ★ 课程图谱专属色（深空模式：提亮，保证暗底上可读） */
+    --kg-course-blue: #5B9BDF;
 }
 
 /* ---------- 布局骨架 ---------- */
@@ -968,4 +974,32 @@ button.kg-badge.is-link:hover { border-color: var(--kg-accent); color: var(--kg-
     .kg-search { width: 170px; }
     .kg-detail { width: min(86vw, 330px); }
     .kg-legend { display: none; }
+}
+
+/* ============================================================
+   课程图谱形态（data-graph-profile="course"）
+   ------------------------------------------------------------
+   课程知识图谱用的是同一个 .kg-root，只是数据没有「领域」层：
+   所有与多领域相关的控件（视图切换 / 跨域航线 / 领域图例）在这里收起，
+   其余（面包屑、搜索、关系筛选、详情面板、六层徽标）完全一致。
+   ============================================================ */
+.kg-root[data-graph-profile="course"] .kg-tb-view,
+.kg-root[data-graph-profile="course"] .kg-tb-cross {
+    display: none;
+}
+.kg-root[data-graph-profile="course"] .kg-legend-row.is-domain {
+    display: none;
+}
+/* 图例只剩内容类型时，标题也更贴切一点 */
+.kg-root[data-graph-profile="course"] .kg-legend-title::after {
+    content: " · 课程图谱";
+    opacity: 0.55;
+}
+/* 课程图谱：侧栏「主题目录」每个主题前的配色点（与星图节点同色） */
+.kg-side-item .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-right: 7px;
 }

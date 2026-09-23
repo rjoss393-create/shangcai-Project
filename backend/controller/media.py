@@ -9,10 +9,15 @@
     /assets/videos/46-cover.jpg           data/media/videos/46-cover.jpg
     /assets/papers/jf-01.pdf              data/media/papers/jf-01.pdf
     /assets/books/01.png                  data/media/books/01.png
+    /assets/textbooks/nelson-winter-1982.pdf   data/media/textbooks/nelson-winter-1982.pdf
     /data/videos.json                     data/media/videos.json
     /data/courses.json                    data/media/courses.json（课程星系数据）
+    /data/textbooks.json                  data/media/textbooks.json（教材清单）
+    /data/databases.json                  data/media/databases.json（数据库板块清单）
+    /course_graph_投资学等 3 个课程图谱.json   data/media/graphs/（后端没登记该图时的本地兜底）
     /api/kline?secid=...                  A股/港美股走新浪；北证50(bj899050) 走东方财富
     /api/news                             新浪滚动财经新闻（5 分钟缓存，供首页新闻区）
+    /api/databases                        数据库板块清单（带统一响应外壳；前端当前读 /data/ 那份）
     /（其余全部）                          前端/SUFE-Knowledge-Galaxy/（页面自身的 html/css/js/字体/logo）
 
 视频/PDF 用 StaticFiles（内部 FileResponse）提供，支持 HTTP Range，
@@ -42,7 +47,18 @@ MEDIA_MOUNTS: dict[str, str] = {
     "/assets/videos": "videos",
     "/assets/papers": "papers",
     "/assets/books": "books",
+    "/assets/textbooks": "textbooks",
 }
+
+# 课程图谱的本地兜底 JSON。
+# 前端 js/knowledge-galaxy.js 的 GRAPH_REGISTRY 里每一门课都写了 local（文件名），
+# 只有当后端 POST /api/graph/load 没登记这张图时才会去请求它兜底；
+# 前端按「站点根目录 + 原文件名」请求，所以这里的路由路径必须与文件名完全一致。
+COURSE_GRAPH_FILES: tuple[str, ...] = (
+    "course_graph_investment.json",
+    "course_graph_mergers.json",
+    "course_graph_corporate_finance.json",
+)
 
 SINA_KLINE_URL = "https://quotes.sina.cn/cn/api/json_v2.php/CN_MarketDataService.getKLineData"
 SINA_REALTIME_URL = "https://hq.sinajs.cn/list="
@@ -205,6 +221,52 @@ def create_media_router(media_dir: str) -> APIRouter:
         if not os.path.exists(path):
             raise HTTPException(status_code=404, detail="课程数据缺失：data/media/courses.json")
         return FileResponse(path, media_type="application/json")
+
+    @router.get("/data/textbooks.json")
+    async def textbook_manifest():
+        """教材清单（书名/作者/页数/格式/体积），正文由 /assets/textbooks/ 提供。
+
+        由 scripts/import_textbooks.py 从根目录 书/ 生成。
+        """
+        path = os.path.join(media_dir, "textbooks.json")
+        if not os.path.exists(path):
+            raise HTTPException(status_code=404, detail="教材清单缺失：data/media/textbooks.json")
+        return FileResponse(path, media_type="application/json")
+
+    @router.get("/data/databases.json")
+    async def database_manifest():
+        """数据库板块清单（数据源与措辞照抄《数据库.docx》三张原表，原 前端/data/databases.json）。
+
+        前端 js/database-board.js 当前按 data/databases.json 请求（其 USE_API 为 false）。
+        """
+        path = os.path.join(media_dir, "databases.json")
+        if not os.path.exists(path):
+            raise HTTPException(status_code=404, detail="数据库清单缺失：data/media/databases.json")
+        return FileResponse(path, media_type="application/json")
+
+    @router.get("/api/databases")
+    async def database_manifest_api():
+        """同 /data/databases.json，但套统一响应外壳（前端 USE_API=true 时走这条）"""
+        path = os.path.join(media_dir, "databases.json")
+        if not os.path.exists(path):
+            raise HTTPException(status_code=404, detail="数据库清单缺失：data/media/databases.json")
+        with open(path, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+        return {"code": 0, "message": "ok", "data": payload}
+
+    # 课程图谱本地兜底 JSON：前端在站点根目录按原文件名请求（见 COURSE_GRAPH_FILES）
+    def _make_course_graph_handler(file_name: str):
+        async def _course_graph():
+            path = os.path.join(media_dir, "graphs", file_name)
+            if not os.path.exists(path):
+                raise HTTPException(status_code=404,
+                                    detail=f"课程图谱兜底数据缺失：data/media/graphs/{file_name}")
+            return FileResponse(path, media_type="application/json")
+        return _course_graph
+
+    for _fname in COURSE_GRAPH_FILES:
+        router.add_api_route(f"/{_fname}", _make_course_graph_handler(_fname),
+                             methods=["GET"], name=f"course_graph_{_fname}")
 
     @router.get("/api/kline")
     async def kline(secid: str = "sh000001"):

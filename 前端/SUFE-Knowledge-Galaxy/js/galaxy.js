@@ -113,12 +113,12 @@
         roamAbort:  false
     };
 
-    // ★ 2026-09-20：图谱字段名兼容。本文件用 state.currentGraphId（旧版叫 state.graphId），
-    //   但页面其它脚本（js/assistant.js）读的是 state.graphId —— 不加别名的话取到 undefined，
-    //   AI 助手会退回 'econ'，变成"不管当前看哪本书，问答都只在经济综合图里检索"。
+    /* ★ 回归红线②（2026-09-20）：assistant.js / 外部脚本历史上按 state.graphId 读取当前图谱，
+       场次迁移后本模块内部统一用 currentGraphId。这里加一层别名，两个名字读写同一份值，
+       避免旧调用方拿到 undefined。 */
     Object.defineProperty(state, 'graphId', {
-        get()  { return state.currentGraphId; },
-        set(v) { state.currentGraphId = v; },
+        get()      { return this.currentGraphId; },
+        set(v)     { this.currentGraphId = v; },
         enumerable: true,
         configurable: true
     });
@@ -179,11 +179,6 @@
         }
     }
 
-    // ★ 2026-09-15：清洗质量标记 low = 短词/表格小标题类（后端放在 extra.quality），
-    //   这类标签默认不显示、hover 才出（避免上千个短标签叠成一片）。
-    //   接入新 galaxy.js 时该逻辑被丢掉，此处找回。
-    const qualityOf = n => n.quality || (n.extra && n.extra.quality) || '';
-
     // 后端未下发 polarity；用 relation 文本推断（仅渲染用途）
     function edgePolarity(e) {
         const rel = String(e.relation || '').toLowerCase();
@@ -232,26 +227,49 @@
             state.focusedId = null;
         }
 
+        // ★ 2026-09-20：后端把层级放在 extra 里（extra.parents / extra.source_books），
+        //   顶层没有 domain / parent_id，这里做回退读取。
+        //   - extra.parents      = 父节点 id 列表（数组，取第一个即可）
+        //   - extra.source_books = 来源书目（只有「经济综合」图有）
+        function backendParent(raw) {
+            const ps = raw && raw.extra && raw.extra.parents;
+            return (ps && ps.length) ? String(ps[0]) : null;
+        }
+        function backendDomain(raw) {
+            const sb = raw && raw.extra && raw.extra.source_books;
+            return (sb && sb.length)
+                ? String(sb[0]).replace(/_知识图谱\.json$/, '')
+                : '';
+        }
+
+        // ★ 回归红线④（2026-09-20）：后端会给概念打质量标记（quality=low 表示
+        //   抽取质量偏低的概念，经济综合图里约 672 个）。这类节点默认隐藏标签，
+        //   但节点本体仍然保留可点击 —— 只降噪，不删数据。
+        //   读取顺序：extra.quality → 顶层 quality（兼容旧 JSON）。
+        function qualityOf(raw) {
+            if (!raw) return '';
+            const q = (raw.extra && raw.extra.quality) ?? raw.quality;
+            return q == null ? '' : String(q).toLowerCase();
+        }
+
         // 后端字段 → 前端节点对象（唯一转换点，函数内部使用）
-        // ★ 2026-09-20 接入适配：本文件原按前端交付包自带 galaxy.json 的字段写
-        //   （{ name, level, domain, parent_id }），我方后端契约是
-        //   { id, label, type, page, layer, media, extra }（见《字段.md》）。
-        //   这里两者都认，优先前端包字段、回退后端字段。
+        // ★ 双端字段兼容：
+        //   label/name、level/layer 两组字段名都要认，否则换后端数据后
+        //   标签会全空、所有节点会被判成 micro（2026-09-20 实测确认）
         function toNode(raw) {
             return {
                 id:            String(raw.id),
                 label:         raw.name          ?? raw.label ?? '',
                 type:          raw.level         ?? raw.layer ?? 'micro',
-                domain:        raw.domain        ?? '',
-                parent_id:     raw.parent_id     ?? null,
+                domain:        raw.domain        ?? backendDomain(raw),
+                parent_id:     raw.parent_id     ?? backendParent(raw),
                 domains:       raw.domains       ?? [],
                 courses:       raw.courses       ?? [],
                 description:   raw.description   ?? '',
                 media:         raw.media         ?? null,
                 tags:          raw.tags          ?? null,
                 teaching_case: raw.teaching_case ?? null,
-                // ★ 后端把清洗质量标记放在 extra.quality（也有直接放 quality 的）
-                quality:       raw.quality ?? (raw.extra && raw.extra.quality) ?? '',
+                quality:       qualityOf(raw),
                 x:             typeof raw.x === 'number' ? raw.x : 0,
                 y:             typeof raw.y === 'number' ? raw.y : 0,
                 _visible:      true
@@ -286,6 +304,44 @@
         state.edges = Array.from(edgeMap.values());
 
         state.visibleIds = new Set(data.nodes.map(n => String(n.id)));
+
+        // ★ 2026-09-20：补「书 / 域」这一层合成根节点。
+        //   新版 layoutGalaxy() 是四层放射布局（domain → macro → meso → micro），
+        //   它把「没有 parent_id 的节点」当根。后端数据顶层只有「章」，
+        //   若直接当根 → roots 变成几十个，宏环半径按根数放大，整图散到看不见。
+        //   补一层根后：econ 得到 4 个（4 本书），单本书图得到 1 个。
+        //   同时必须同步 visibleIds，否则合成节点会被 render() 判为不可见而变灰。
+        const SYNTH_DOMAIN_PREFIX = '__domain__';
+        const hasDomainLevel = state.nodes.some(n => n.type === 'domain');
+        if (!hasDomainLevel) {
+            const topNodes = state.nodes.filter(n => !n.parent_id);
+            const groups = new Map();
+            topNodes.forEach(n => {
+                // 没有 source_books 的图（投资学 / 公司金融 / 国际投资学 / 并购与重组）
+                // 全部归到同一个根，根名用后端给的图标题
+                const key = n.domain || (data.title || '全部');
+                if (!groups.has(key)) groups.set(key, []);
+                groups.get(key).push(n);
+            });
+            const synth = [];
+            groups.forEach((members, key) => {
+                const sid = SYNTH_DOMAIN_PREFIX + key;
+                synth.push({
+                    id: sid, label: key, type: 'domain', domain: key,
+                    parent_id: null, domains: [], courses: [],
+                    description: '', media: null, tags: null, teaching_case: null,
+                    x: 0, y: 0, _visible: true, _synthetic: true
+                });
+                members.forEach(n => { n.parent_id = sid; });
+            });
+            if (synth.length) {
+                state.nodes = [...synth, ...state.nodes];
+                synth.forEach(n => state.visibleIds.add(n.id));
+                // 节点集合变了 → 类型/度缓存必须失效
+                state._typeOf = null;
+                state._degree = null;
+            }
+        }
 
         const idSet = new Set(state.nodes.map(n => n.id));
         state.selectedIds = state.selectedIds.filter(id => idSet.has(id));
@@ -459,8 +515,8 @@
                 // 按缩放层级决定可见类型（旧逻辑用的 RING_RADIUS 已与新布局脱节）
                 const allowed = LABEL_LEVELS[lvl] || LABEL_LEVELS.micro;
                 if (!allowed.includes(d.type)) cls += ' hidden';
-                // ★ 2026-09-15：quality=low 的短概念标签默认不显示，hover 才出
-                if (qualityOf(d) === 'low') cls += ' low-q';
+                // ★ 回归红线④：低质量抽取的概念标签默认隐藏（节点仍可点击）
+                if (d.quality === 'low') cls += ' low-q';
                 return cls;
             })
             .text(d => lvl === 'macro' ? shortName(d.label) : d.label)
@@ -505,8 +561,19 @@
                     return c;
                 })
             
-                /* ---- 关系标签（保持「两端都可见」才显示，避免断头标签堆积） ---- */
-        const lls = gLinkLabels.selectAll('.g-link-label').data(activeEdges, edgeKey);
+                /* ---- 关系标签（只创建「当前确实需要显示」的，避免常驻 DOM） ----
+                   ★ 2026-09-20：原先对全部 activeEdges 建 <text> 再靠 CSS 藏，
+                     econ 7718 条边 → 7718 个常驻 SVG 元素（占总量 34%），是卡顿主因。
+                     改为 data join 前先过滤：只有「高倍微观层」或
+                     「两端同时高亮 / 位于当前路径上」才真正创建标签节点。        */
+        const labelsNeeded = activeEdges.filter(e => {
+            const s = srcId(e), t = tgtId(e);
+            if (lvl === 'micro') return true;
+            const bothHi = state.highlightedIds.has(s) && state.highlightedIds.has(t);
+            const onPath = state.activePath && isPathEdge(s, t);
+            return !!(bothHi || onPath);
+        });
+        const lls = gLinkLabels.selectAll('.g-link-label').data(labelsNeeded, edgeKey);
         lls.exit().remove();
         lls.enter().append('text').attr('class', 'g-link-label');
 
@@ -514,13 +581,7 @@
             .attr('class', e => {
                 const s = srcId(e), t = tgtId(e);
                 const bothVisible = state.visibleIds.has(s) && state.visibleIds.has(t);
-                let c = 'g-link-label' + (bothVisible ? '' : ' faded');
-                // 关系文字只在高倍微观层（或两端被高亮 / 位于路径上）显示，
-                // 否则 2896 条边的中点文字会糊成一片
-                const bothHi = state.highlightedIds.has(s) && state.highlightedIds.has(t);
-                const onPath = state.activePath && isPathEdge(s, t);
-                if (lvl !== 'micro' && !bothHi && !onPath) c += ' hidden';
-                return c;
+                return 'g-link-label' + (bothVisible ? '' : ' faded');
             })
             .text(e => e.relation || '')
             .attr('x', e => {
@@ -1156,13 +1217,15 @@
         resize();
 
         const ctx = cv.getContext('2d');
-        const stars = Array.from({ length: 220 }, () => ({
+        // ★ 深空星点风：更密的星场 + 少量带光晕的亮星（模仿参考视频星空）
+        const stars = Array.from({ length: 300 }, () => ({
             x: Math.random() * cv.width,
             y: Math.random() * cv.height,
             r: (Math.random() * 1.1 + 0.25) * dpr,
             a: Math.random() * 0.55 + 0.15,
             tw: Math.random() * 6.28,          // 闪烁相位
-            sp: Math.random() * 0.9 + 0.35    // 闪烁速度
+            sp: Math.random() * 0.9 + 0.35,   // 闪烁速度
+            big: Math.random() < 0.05          // 5% 亮星：本体 + 光晕
         }));
 
         let raf = null, t0 = performance.now();
@@ -1174,12 +1237,19 @@
             ctx.clearRect(0, 0, cv.width, cv.height);
             for (const s of stars) {
                 const a = s.a * (0.55 + 0.45 * Math.sin(s.tw + dt * s.sp));
-                ctx.beginPath();
-                ctx.arc(s.x, s.y, s.r, 0, 6.283);
                 // 夜晚：淡蓝星光；白天：淡红细点（配合米白底）
-                ctx.fillStyle = isNight
-                    ? `rgba(200, 225, 255, ${a})`
-                    : `rgba(129, 28, 33, ${a * 0.30})`;
+                const color = isNight ? `200, 225, 255` : `129, 28, 33`;
+                const alpha = isNight ? a : a * 0.30;
+                if (s.big && isNight) {
+                    // 亮星光晕：外圈低透明大圆（两笔 arc，无 filter 开销）
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.r * 3.2, 0, 6.283);
+                    ctx.fillStyle = `rgba(${color}, ${alpha * 0.22})`;
+                    ctx.fill();
+                }
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.big ? s.r * 1.6 : s.r, 0, 6.283);
+                ctx.fillStyle = `rgba(${color}, ${alpha})`;
                 ctx.fill();
             }
             raf = requestAnimationFrame(draw);
@@ -1358,15 +1428,16 @@
             return;
         }
 
+        // ★ 合成节点（书/域层）不在后端图谱里 → 本地聚焦即可，不发请求
+        if (String(nodeId).startsWith('__domain__')) { localFocusNode(nodeId); return; }
+
         // 有 sessionId → 走后端
         if (state.sessionId) {
             try {
                 const r = await api('/api/graph/click', {
                     node_id:    nodeId,
                     session_id: state.sessionId,
-                    // ★ 2026-09-20 补回：后端 service._require() 要求 graph_id 必填，
-                    //   缺了会返回 code=500「graph_id 必填」，点节点整个失效
-                    graph_id:   state.currentGraphId
+                    graph_id:   state.currentGraphId      // ★ 后端 _require() 必填
                 });
                 await handleResponse(r);
                 return;
@@ -1579,23 +1650,20 @@
     async function load() {
         setLoading(true);
         try {
-            // ★ 2026-09-20：改为"只走后端"。原逻辑是"本地 JSON 优先、失败再回退后端"，
-            //   但按项目约定数据一律由后端提供（data/layered/ → /api/graph/load），
-            //   前端目录不放 galaxy.json 等数据文件，本地优先只会每次多一个 404。
-            //   如需临时离线看图，把下面整段注释放开即可。
-            // if (state.currentGraphId) {
-            //     try {
-            //         const data = await loadGraphFromFile(state.currentGraphId);
-            //         if (data && data.nodes && data.nodes.length) {
-            //             mergeGraph(data, true);
-            //             render();
-            //             startExpandAnimation();
-            //             return;
-            //         }
-            //     } catch (e) {
-            //         console.warn('[galaxy] 本地图谱加载失败，回退后端：', e.message);
-            //     }
-            // }
+            if (state.currentGraphId) {
+                try {
+                    const data = await loadGraphFromFile(state.currentGraphId);
+                    if (data && data.nodes && data.nodes.length) {
+                        mergeGraph(data, true);
+                        render();
+                        // ★ 从中心"炸开"的入场动画（1 次，之后完全静止）
+                        startExpandAnimation();
+                        return;
+                    }
+                } catch (e) {
+                    console.warn('[galaxy] 本地图谱加载失败，回退后端：', e.message);
+                }
+            }
 
             const r = await api('/api/graph/load', {
                 session_id: state.sessionId,
@@ -1660,8 +1728,7 @@
             const r = await api('/api/graph/query', {
                 text:       text.trim(),
                 session_id: state.sessionId,
-                // ★ 2026-09-20 补回：同上，后端 Agent/关键词检索都按 graph_id 选图
-                graph_id:   state.currentGraphId
+                graph_id:   state.currentGraphId      // ★ 后端 _require() 必填
             });
             await handleResponse(r);
         } catch (e) {
