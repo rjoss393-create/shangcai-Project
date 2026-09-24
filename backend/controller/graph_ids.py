@@ -22,11 +22,14 @@ GRAPH_IDS: Final[dict[str, str]] = {
 }
 
 # graph_id -> 数据文件（供数据层/Service 层对照；控制层不读文件，仅作文档）
+# ★ 2026-09-24：invest / corp_fin / ma 改用新版课程知识图谱（六层完整版，前端负责人交付，
+#   与前端本地兜底同一份文件）；intl_inv 无新版课程图谱，仍用旧分层文件。
+#   旧 layered/{invest,corp_fin,ma}_layered.json 保留未删（只抽到部分章），回退指回即可。
 GRAPH_FILES: Final[dict[str, str]] = {
-    "ma": "layered/ma_layered.json",
-    "corp_fin": "layered/corp_fin_layered.json",
+    "ma": "media/graphs/course_graph_mergers.json",
+    "corp_fin": "media/graphs/course_graph_corporate_finance.json",
     "intl_inv": "layered/intl_inv_layered.json",
-    "invest": "layered/invest_layered.json",
+    "invest": "media/graphs/course_graph_investment.json",
     "econ": "layered/econ_layered.json",
     "v6": "layered/v6_layered.json",
     "v12": "layered/v12_layered.json",

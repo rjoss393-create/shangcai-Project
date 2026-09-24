@@ -1,0 +1,279 @@
+/* ============================================================
+   知识点小漫画 · 样式（外挂式，与 js/comic-reader.js 配套）
+   ------------------------------------------------------------
+   · 入口在「知识节点」详情面板（#kgDetail）里：点「看图解漫画」进入全屏遮罩 .comic-mask。
+   · 清单由后端 /data/comics.json 提供，图片由 /assets/comics/ 提供。
+   · 整块外挂：删掉 index.html 里这两行
+       <link href="css/comic-reader.css"> 与 <script src="js/comic-reader.js">
+     即完全还原（本文件只新增 .kg-comic 与 .comic-* 两组类，不覆盖任何原有样式）。
+   · 配色沿用站点变量（--main-red / --deep-red / --paper），夜间模式走 body.theme-night 覆盖。
+
+   为什么不用 page-slider 的遮罩忽略列表：那个列表挂在 document 的**冒泡**阶段，
+   而本组件在 window + document 的**捕获**阶段拦截 keydown（见 comic-reader.js
+   onGuardKey）——捕获先于冒泡，page-slider 根本收不到方向键，所以无需改它一行。
+   ============================================================ */
+
+/* ---------------- 详情面板里的入口 ---------------- */
+
+.kg-comic {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(129, 28, 33, 0.18);
+    background: rgba(129, 28, 33, 0.05);
+}
+
+.kg-comic[hidden] { display: none; }
+
+.kg-comic-btn {
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1;
+    padding: 9px 16px;
+    border-radius: 7px;
+    border: 1px solid var(--main-red);
+    background: var(--main-red);
+    color: #fff;
+    cursor: pointer;
+    letter-spacing: .4px;
+    transition: opacity .15s, transform .15s;
+}
+
+.kg-comic-btn:hover { opacity: .88; transform: translateY(-1px); }
+
+.kg-comic-hint {
+    font-size: 12px;
+    line-height: 1.45;
+    color: #7d7d78;
+}
+
+.kg-comic-hint b {
+    font-weight: 600;
+    color: #5f5f5a;
+}
+
+body.theme-night .kg-comic {
+    border-color: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+body.theme-night .kg-comic-hint { color: #a5a5a0; }
+body.theme-night .kg-comic-hint b { color: #d6d6d0; }
+
+/* ---------------- 全屏漫画遮罩 ---------------- */
+
+.comic-mask {
+    position: fixed;
+    inset: 0;
+    /* 高于书架详情弹窗(9980) 与助手悬浮球(9999)：这是全屏阅读态 */
+    z-index: 10050;
+    background: rgba(18, 15, 14, 0.95);
+    display: none;
+    flex-direction: column;
+}
+
+.comic-mask.is-open { display: flex; }
+
+.comic-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: var(--deep-red);
+    color: #f4efe6;
+    flex: 0 0 auto;
+}
+
+.comic-bar-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.comic-bar-badge {
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: rgba(244, 239, 230, 0.6);
+}
+
+.comic-bar-title {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.comic-bar-sub {
+    font-size: 12px;
+    color: rgba(244, 239, 230, 0.62);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.comic-bar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.comic-nav-btn {
+    font-family: inherit;
+    font-size: 16px;
+    line-height: 1;
+    width: 34px;
+    height: 30px;
+    border-radius: 6px;
+    border: 1px solid rgba(244, 239, 230, 0.35);
+    background: transparent;
+    color: #f4efe6;
+    cursor: pointer;
+}
+
+.comic-nav-btn:hover { background: rgba(244, 239, 230, 0.14); }
+.comic-nav-btn[disabled] { opacity: .32; cursor: default; }
+
+.comic-counter {
+    font-size: 12px;
+    color: rgba(244, 239, 230, 0.78);
+    min-width: 54px;
+    text-align: center;
+}
+
+/* ---------------- 舞台 ---------------- */
+
+.comic-stage {
+    flex: 1 1 auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    padding: 14px;
+}
+
+.comic-img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55);
+}
+
+/* 左右各半屏的点击热区（像看图软件那样点哪边往哪翻） */
+.comic-hot {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 22%;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+}
+
+.comic-hot-l { left: 0; }
+.comic-hot-r { right: 0; }
+.comic-hot[disabled] { cursor: default; }
+
+.comic-hot span {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 34px;
+    line-height: 1;
+    color: rgba(244, 239, 230, 0.35);
+    transition: color .15s;
+}
+
+.comic-hot-l span { left: 16px; }
+.comic-hot-r span { right: 16px; }
+.comic-hot:hover span { color: rgba(244, 239, 230, 0.85); }
+
+.comic-msg {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: rgba(244, 239, 230, 0.8);
+    text-align: center;
+    padding: 0 24px;
+}
+
+.comic-msg[hidden] { display: none; }
+
+/* ---------------- 缩略图与提示 ---------------- */
+
+.comic-foot {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 8px 16px 10px;
+    background: rgba(244, 239, 230, 0.06);
+    border-top: 1px solid rgba(244, 239, 230, 0.12);
+}
+
+.comic-thumbs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+}
+
+.comic-thumb {
+    flex: 0 0 auto;
+    width: 42px;
+    height: 62px;
+    padding: 0;
+    border-radius: 3px;
+    border: 1px solid rgba(244, 239, 230, 0.25);
+    background-color: #262020;
+    background-size: cover;
+    background-position: center top;
+    cursor: pointer;
+    position: relative;
+}
+
+.comic-thumb.is-cur {
+    border-color: #f4efe6;
+    box-shadow: 0 0 0 2px rgba(244, 239, 230, 0.35);
+}
+
+.comic-thumb-num {
+    position: absolute;
+    left: 2px;
+    bottom: 1px;
+    font-size: 9px;
+    line-height: 1;
+    padding: 1px 3px;
+    border-radius: 2px;
+    background: rgba(0, 0, 0, 0.55);
+    color: #f4efe6;
+}
+
+.comic-hint {
+    margin-left: auto;
+    font-size: 11.5px;
+    color: rgba(244, 239, 230, 0.5);
+    white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+    .comic-bar { flex-wrap: wrap; }
+    .comic-bar-right { width: 100%; justify-content: flex-end; }
+    .comic-hint { display: none; }
+    .comic-hot { width: 26%; }
+}

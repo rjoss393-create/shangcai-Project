@@ -15,12 +15,21 @@ logger = logging.getLogger(__name__)
 
 # graph_id -> 数据文件名（与 controller/graph_ids.py 的 GRAPH_IDS 编码一致；
 # service 层不 import controller，避免层间依赖，此处维护同一份文件名映射）
-# 数据层分层设计（《数据层分层设计.md》）后，指向 data/layered/ 下的分层文件
+#
+# ★ 2026-09-24：四本书的「课程星系」图谱改用**新版课程知识图谱**
+#   （data/media/graphs/course_graph_*.json，前端负责人交付、与前端本地兜底同一份文件）：
+#     旧版 layered/*_layered.json 只抽到教材的一部分章（投资学 11/28 章、公司金融仅第 20~33 章），
+#     课程星系里缺马科维茨、指数模型、行为金融、APT、久期、期权、期货等整章；
+#     新版是六层完整图谱（课程 → 章 → 知识点 → 名词解释 → 深层内容），章名与教材一一对应，
+#     知识点小漫画也因此才能按章挂上（见 scripts/link_comics.py）。
+#   旧文件仍留在 data/layered/ 未删（回退只需把下面几行指回去）。
+#   intl_inv 没有新版课程图谱，继续用旧分层文件（该课程已下架，界面无选项卡）；
+#   econ / v6 / v12 不受影响。
 GRAPH_FILES: dict[str, str] = {
-    "ma": "layered/ma_layered.json",
-    "corp_fin": "layered/corp_fin_layered.json",
+    "ma": "media/graphs/course_graph_mergers.json",
+    "corp_fin": "media/graphs/course_graph_corporate_finance.json",
     "intl_inv": "layered/intl_inv_layered.json",
-    "invest": "layered/invest_layered.json",
+    "invest": "media/graphs/course_graph_investment.json",
     "econ": "layered/econ_layered.json",
     # v6 统一知识星系（前端 v6 引擎数据，由 scripts/import_v6_galaxy.py 转换而来）
     "v6": "layered/v6_layered.json",
@@ -130,6 +139,8 @@ class DataService:
             raw = json.load(f)
 
         # 节点必填 id / label；type/page/layer/media/extra 可缺省（《字段.md》+ 分层设计）
+        # ★ 新版课程图谱（course_graph_*.json）用 level/parent_id 而非 layer/parents，
+        #   这里把 layer 兜到 level（parent_id 本来就在 extra 里，前端按 extra.level/parent_id 消费）
         nodes = []
         for n in raw.get("nodes", []):
             nodes.append(
@@ -138,7 +149,7 @@ class DataService:
                     label=n.get("label") or n.get("name") or str(n["id"]),
                     type=n.get("type") or n.get("category", ""),
                     page=n.get("page"),
-                    layer=n.get("layer", ""),
+                    layer=n.get("layer") or n.get("level") or "",
                     media=n.get("media"),
                     extra={k: v for k, v in n.items()
                            if k not in {"id", "label", "name", "type", "category",

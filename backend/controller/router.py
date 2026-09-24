@@ -28,6 +28,17 @@ BOOK_GRAPH_MAP: dict[int, str] = {
     4: "ma",
 }
 
+# 各图谱里「章」所在的层 —— 书籍详情小图只画章层节点。
+#   旧分层图谱（layered/*_layered.json）：章在 macro 层（meso 是「节」）；
+#   新版课程知识图谱（course_graph_*.json，2026-09-24 起 invest/corp_fin/ma 在用）：
+#   macro 只有 1 个课程根，**章在 meso 层**。取错层会退化成只有一个节点的图。
+CHAPTER_LAYER: dict[str, str] = {
+    "invest": "meso",
+    "corp_fin": "meso",
+    "ma": "meso",
+    "intl_inv": "macro",
+}
+
 
 class LoadRequest(BaseModel):
     session_id: str | None = None
@@ -74,7 +85,7 @@ def create_router(service, qa_agent=None, **orchestrator_kwargs) -> APIRouter:
         if graph_id is None:
             return UnifiedResponse(message="该书籍暂无图谱", data=GraphData())
         try:
-            graph = await service.get_layer(graph_id, "macro")
+            graph = await service.get_layer(graph_id, CHAPTER_LAYER.get(graph_id, "macro"))
         except Exception:
             logger.exception("书详情小图获取失败: book_id=%s", book_id)
             return UnifiedResponse(message="图谱数据暂不可用", data=GraphData())

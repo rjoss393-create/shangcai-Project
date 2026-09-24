@@ -10,10 +10,12 @@
     /assets/papers/jf-01.pdf              data/media/papers/jf-01.pdf
     /assets/books/01.png                  data/media/books/01.png
     /assets/textbooks/nelson-winter-1982.pdf   data/media/textbooks/nelson-winter-1982.pdf
+    /assets/comics/inv/inv_p01_2.jpg       data/media/comics/inv/inv_p01_2.jpg
     /data/videos.json                     data/media/videos.json
     /data/courses.json                    data/media/courses.json（课程星系数据）
     /data/textbooks.json                  data/media/textbooks.json（教材清单）
     /data/databases.json                  data/media/databases.json（数据库板块清单）
+    /data/comics.json                     data/media/comics.json（知识点小漫画清单）
     /course_graph_投资学等 3 个课程图谱.json   data/media/graphs/（后端没登记该图时的本地兜底）
     /api/kline?secid=...                  A股/港美股走新浪；北证50(bj899050) 走东方财富
     /api/news                             新浪滚动财经新闻（5 分钟缓存，供首页新闻区）
@@ -48,6 +50,7 @@ MEDIA_MOUNTS: dict[str, str] = {
     "/assets/papers": "papers",
     "/assets/books": "books",
     "/assets/textbooks": "textbooks",
+    "/assets/comics": "comics",
 }
 
 # 课程图谱的本地兜底 JSON。
@@ -250,6 +253,28 @@ def create_media_router(media_dir: str) -> APIRouter:
         path = os.path.join(media_dir, "databases.json")
         if not os.path.exists(path):
             raise HTTPException(status_code=404, detail="数据库清单缺失：data/media/databases.json")
+        with open(path, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+        return {"code": 0, "message": "ok", "data": payload}
+
+    @router.get("/data/comics.json")
+    async def comic_manifest():
+        """知识点小漫画清单（24 部 / 144 页），图片由 /assets/comics/ 提供。
+
+        由 scripts/import_comics.py 从根目录 知识点小漫画/ 生成；
+        节点上的 media.comic 只存 {album, page} 这类轻量引用，页清单以本清单为准。
+        """
+        path = os.path.join(media_dir, "comics.json")
+        if not os.path.exists(path):
+            raise HTTPException(status_code=404, detail="漫画清单缺失：data/media/comics.json")
+        return FileResponse(path, media_type="application/json")
+
+    @router.get("/api/comics")
+    async def comic_manifest_api():
+        """同 /data/comics.json，但套统一响应外壳"""
+        path = os.path.join(media_dir, "comics.json")
+        if not os.path.exists(path):
+            raise HTTPException(status_code=404, detail="漫画清单缺失：data/media/comics.json")
         with open(path, "r", encoding="utf-8") as f:
             payload = json.load(f)
         return {"code": 0, "message": "ok", "data": payload}

@@ -48,13 +48,21 @@ class TestRouter:
         assert body["code"] == 0
         assert [a["type"] for a in body["actions"]] == ["highlight", "zoom"]
 
-    def test_book_graph_returns_macro_layer(self):
-        from controller.router import create_router as _create
+    def test_book_graph_returns_chapter_layer(self):
+        """书详情小图只画「章」层。章所在的层随图谱格式而变（见 router.CHAPTER_LAYER）：
+        1/2/4 号书是新版课程知识图谱（章在 meso），3 号书是旧分层图谱（章在 macro）。"""
+        from controller.router import CHAPTER_LAYER, create_router as _create
         from fakes import FakeGraphService, FakeQaAgent
+
+        assert CHAPTER_LAYER["invest"] == "meso"
+        assert CHAPTER_LAYER["corp_fin"] == "meso"
+        assert CHAPTER_LAYER["ma"] == "meso"
+        assert CHAPTER_LAYER["intl_inv"] == "macro"
+
         svc = FakeGraphService()
-        svc.nodes["n1"].layer = "macro"
-        svc.nodes["n3"].layer = "macro"          # 只有 macro 节点可见
-        svc.edges[0].layer = "macro"             # n1-n2 相关边两端不都在宏观层 → 被过滤
+        svc.nodes["n1"].layer = "meso"
+        svc.nodes["n3"].layer = "meso"           # book 1 = invest → 取 meso 层
+        svc.edges[0].layer = "meso"              # n1-n2 相关边两端不都在该层 → 被过滤
         app = FastAPI()
         app.include_router(_create(svc, FakeQaAgent()))
         client = TestClient(app)
@@ -63,6 +71,11 @@ class TestRouter:
         assert body["code"] == 0
         assert {n["id"] for n in body["data"]["nodes"]} == {"n1", "n3"}
         assert [e["relation"] for e in body["data"]["edges"]] == []
+
+        svc.nodes["n1"].layer = "macro"
+        svc.nodes["n3"].layer = "macro"          # book 3 = intl_inv → 取 macro 层
+        r3 = client.get("/api/graph/book/3")
+        assert {n["id"] for n in r3.json()["data"]["nodes"]} == {"n1", "n3"}
 
     def test_book_graph_unknown_book_returns_empty(self):
         client = make_client()

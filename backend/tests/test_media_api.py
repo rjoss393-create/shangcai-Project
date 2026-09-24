@@ -117,6 +117,34 @@ class TestManifests:
         assert body["code"] == 0
         assert body["data"]["groups"][0]["id"] == "intl"
 
+    def test_comics_assets_served_at_original_relative_path(self, client, tmp_path):
+        """知识点小漫画图片按前端原相对路径提供：/assets/comics/<dir>/<album>_<n>.jpg"""
+        d = tmp_path / "comics" / "inv"
+        d.mkdir(parents=True)
+        (d / "inv_p01_2.jpg").write_bytes(b"\xff\xd8\xff\xe0 demo jpeg")
+        r = client.get("/assets/comics/inv/inv_p01_2.jpg")
+        assert r.status_code == 200
+        assert r.content.startswith(b"\xff\xd8\xff")
+
+    def test_comics_manifest(self, client, tmp_path):
+        """漫画清单：前端 js/comic-reader.js 按 data/comics.json 请求"""
+        (tmp_path / "comics.json").write_text(
+            '{"pages_per_part":6,"total_albums":1,"albums":[{"id":"inv_p01","part":1}]}',
+            encoding="utf-8")
+        r = client.get("/data/comics.json")
+        assert r.status_code == 200
+        assert r.json()["albums"][0]["id"] == "inv_p01"
+        assert r.json()["pages_per_part"] == 6
+
+    def test_comics_api_wraps_unified_envelope(self, client, tmp_path):
+        """同一份清单也提供带统一响应外壳的 /api/comics"""
+        (tmp_path / "comics.json").write_text('{"albums":[{"id":"cf_p06"}]}', encoding="utf-8")
+        r = client.get("/api/comics")
+        assert r.status_code == 200
+        body = r.json()
+        assert body["code"] == 0
+        assert body["data"]["albums"][0]["id"] == "cf_p06"
+
     def test_course_graph_fallback_served_at_site_root(self, client, tmp_path):
         """课程图谱本地兜底 JSON 按前端原文件名挂在站点根目录"""
         d = tmp_path / "graphs"
@@ -132,6 +160,8 @@ class TestManifests:
         assert client.get("/data/textbooks.json").status_code == 404
         assert client.get("/data/databases.json").status_code == 404
         assert client.get("/api/databases").status_code == 404
+        assert client.get("/data/comics.json").status_code == 404
+        assert client.get("/api/comics").status_code == 404
         assert client.get("/course_graph_investment.json").status_code == 404
         assert client.get("/course_graph_mergers.json").status_code == 404
         assert client.get("/course_graph_corporate_finance.json").status_code == 404

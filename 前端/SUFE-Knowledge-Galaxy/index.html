@@ -18,6 +18,8 @@
 <link rel="stylesheet" href="css/database-board.css">
 <!-- ★ 2026-09-23 本地加回：课程 · 教材原文阅读（外挂式，删掉本行即还原） -->
 <link rel="stylesheet" href="css/textbook-reader.css">
+<!-- ★ 2026-09-24 新增：课程星系 · 知识点小漫画阅读器（外挂式，删掉本行即还原） -->
+<link rel="stylesheet" href="css/comic-reader.css">
 
 <!-- 知识星系数据源：走后端 /api/graph/load（对接约定第 1 条）；后端不可用时引擎自动回退本地 data/galaxy_v12.json -->
 <script>window.__KG_DATA_SOURCE__ = 'api';</script>
@@ -837,6 +839,34 @@
     <div class="tb-stage" id="tbReaderStage"></div>
 </div>
 
+<!-- ★ 2026-09-24 新增：知识点小漫画遮罩（外挂式，position:fixed 放在 section 外；删除即还原）
+     入口由 js/comic-reader.js 注入到「知识节点」详情面板里（#kgDetail） -->
+<div class="comic-mask" id="comicMask" role="dialog" aria-modal="true" aria-label="知识点小漫画">
+    <div class="comic-bar">
+        <span class="comic-bar-main">
+            <span class="comic-bar-badge" id="comicBarBadge">知识点小漫画</span>
+            <span class="comic-bar-title" id="comicBarTitle"></span>
+            <span class="comic-bar-sub" id="comicBarSub"></span>
+        </span>
+        <span class="comic-bar-right">
+            <span class="comic-counter" id="comicCounter"></span>
+            <button class="comic-nav-btn" id="comicPrev" type="button" aria-label="上一页">‹</button>
+            <button class="comic-nav-btn" id="comicNext" type="button" aria-label="下一页">›</button>
+            <button class="comic-nav-btn" id="comicClose" type="button" aria-label="关闭">✕</button>
+        </span>
+    </div>
+    <div class="comic-stage" id="comicStage">
+        <img class="comic-img" id="comicImg" alt="" hidden>
+        <div class="comic-msg" id="comicMsg">漫画加载中…</div>
+        <button class="comic-hot comic-hot-l" id="comicHotL" type="button" aria-label="上一页"><span>‹</span></button>
+        <button class="comic-hot comic-hot-r" id="comicHotR" type="button" aria-label="下一页"><span>›</span></button>
+    </div>
+    <div class="comic-foot">
+        <div class="comic-thumbs" id="comicThumbs"></div>
+        <div class="comic-hint">← / → 翻页 · Home / End 首末页 · Esc 关闭</div>
+    </div>
+</div>
+
 <footer>
     <img src="assets/sufe-logo.png" alt="SUFE Logo" class="footer-logo">
 </footer>
@@ -890,6 +920,9 @@
 <!-- ★ 2026-09-23 本地加回：课程 · 教材原文阅读（外挂式，删掉本行即还原）
      必须放在 page-slider.js 之前；阅读遮罩内的键盘事件也做了捕获阶段拦截 -->
 <script src="js/textbook-reader.js"></script>
+<!-- ★ 2026-09-24 新增：知识点小漫画阅读器（外挂式，删掉本行即还原）
+     与教材阅读器同样放在 page-slider.js 之前；遮罩内的键盘事件在捕获阶段被拦下 -->
+<script src="js/comic-reader.js"></script>
 <!-- 页面左右切换（新增，必须在 main.js 之后；移除本行即恢复纵向滚动） -->
 <script src="js/page-slider.js"></script>
 <!-- 数据库板块：分组表格 + 仿 Excel 阅读器（新增，独立外挂，可单独移除） -->

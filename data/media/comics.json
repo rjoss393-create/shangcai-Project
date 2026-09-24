@@ -1,0 +1,1523 @@
+{
+  "generated_at": "2026-09-24 13:50:14",
+  "source_dir": "知识点小漫画/",
+  "asset_root": "/assets/comics",
+  "pages_per_part": 6,
+  "total_albums": 24,
+  "total_pages": 144,
+  "note": "每部 6 页：1 封面 / 2-5 知识点 / 6 小结。页标题为人工读图录入（源文件无文字层）。",
+  "albums": [
+    {
+      "id": "inv_p01",
+      "course": "invest",
+      "course_label": "投资学",
+      "book": "博迪《投资学》第10版",
+      "part": 1,
+      "title": "绪论：什么是投资",
+      "subtitle": "金融资产与实物资产",
+      "chips": [
+        "投资环境",
+        "资产类别",
+        "证券交易",
+        "共同基金"
+      ],
+      "dir": "/assets/comics/inv",
+      "files": [
+        "inv_p01_1.jpg",
+        "inv_p01_2.jpg",
+        "inv_p01_3.jpg",
+        "inv_p01_4.jpg",
+        "inv_p01_5.jpg",
+        "inv_p01_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "绪论：什么是投资",
+          "section": "金融资产与实物资产"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "实物资产与金融资产",
+          "section": "投资的定义"
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "资产类别全景",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "证券如何交易",
+          "section": "交易机制关键词"
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "共同基金 vs ETF",
+          "section": null
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_bodi_8部48页.pdf"
+    },
+    {
+      "id": "inv_p02",
+      "course": "invest",
+      "course_label": "投资学",
+      "book": "博迪《投资学》第10版",
+      "part": 2,
+      "title": "组合理论与实践",
+      "subtitle": "风险与收益的权衡",
+      "chips": [
+        "风险收益",
+        "资产配置",
+        "马科维茨",
+        "指数模型"
+      ],
+      "dir": "/assets/comics/inv",
+      "files": [
+        "inv_p02_1.jpg",
+        "inv_p02_2.jpg",
+        "inv_p02_3.jpg",
+        "inv_p02_4.jpg",
+        "inv_p02_5.jpg",
+        "inv_p02_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "组合理论与实践",
+          "section": "风险与收益的权衡"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "风险与收益入门",
+          "section": null
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "风险厌恶与资产配置",
+          "section": "资本配置决策"
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "马科维茨组合选择",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "单指数模型",
+          "section": null
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_bodi_8部48页.pdf"
+    },
+    {
+      "id": "inv_p03",
+      "course": "invest",
+      "course_label": "投资学",
+      "book": "博迪《投资学》第10版",
+      "part": 3,
+      "title": "资本市场均衡",
+      "subtitle": "CAPM·APT·有效市场·行为",
+      "chips": [
+        "CAPM",
+        "APT",
+        "有效市场",
+        "行为金融"
+      ],
+      "dir": "/assets/comics/inv",
+      "files": [
+        "inv_p03_1.jpg",
+        "inv_p03_2.jpg",
+        "inv_p03_3.jpg",
+        "inv_p03_4.jpg",
+        "inv_p03_5.jpg",
+        "inv_p03_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "资本市场均衡",
+          "section": "CAPM·APT·有效市场·行为"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "CAPM 资本资产定价模型",
+          "section": null
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "APT 与多因子模型",
+          "section": "套利定价理论"
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "有效市场假说 EMH",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "行为金融的批评",
+          "section": "三大批评与异象"
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_bodi_8部48页.pdf"
+    },
+    {
+      "id": "inv_p04",
+      "course": "invest",
+      "course_label": "投资学",
+      "book": "博迪《投资学》第10版",
+      "part": 4,
+      "title": "固定收益证券",
+      "subtitle": "债券的世界",
+      "chips": [
+        "债券定价",
+        "期限结构",
+        "久期凸性",
+        "债券管理"
+      ],
+      "dir": "/assets/comics/inv",
+      "files": [
+        "inv_p04_1.jpg",
+        "inv_p04_2.jpg",
+        "inv_p04_3.jpg",
+        "inv_p04_4.jpg",
+        "inv_p04_5.jpg",
+        "inv_p04_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "固定收益证券",
+          "section": "债券的世界"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "债券的价格与收益",
+          "section": null
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "利率的期限结构",
+          "section": "收益率曲线"
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "久期与凸性",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "被动 vs 主动债券管理",
+          "section": null
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_bodi_8部48页.pdf"
+    },
+    {
+      "id": "inv_p05",
+      "course": "invest",
+      "course_label": "投资学",
+      "book": "博迪《投资学》第10版",
+      "part": 5,
+      "title": "证券分析",
+      "subtitle": "从宏观到个股",
+      "chips": [
+        "行业分析",
+        "股利贴现",
+        "市盈率",
+        "财报分析"
+      ],
+      "dir": "/assets/comics/inv",
+      "files": [
+        "inv_p05_1.jpg",
+        "inv_p05_2.jpg",
+        "inv_p05_3.jpg",
+        "inv_p05_4.jpg",
+        "inv_p05_5.jpg",
+        "inv_p05_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "证券分析",
+          "section": "从宏观到个股"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "自上而下的分析",
+          "section": null
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "股利贴现模型 DDM",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "市盈率与相对估值",
+          "section": "市盈率 PE 的两面"
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "财务报表分析",
+          "section": "三张表与 ROE 分解"
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_bodi_8部48页.pdf"
+    },
+    {
+      "id": "inv_p06",
+      "course": "invest",
+      "course_label": "投资学",
+      "book": "博迪《投资学》第10版",
+      "part": 6,
+      "title": "期权与期货",
+      "subtitle": "衍生工具的世界",
+      "chips": [
+        "期权策略",
+        "平价关系",
+        "BS 公式",
+        "期货互换"
+      ],
+      "dir": "/assets/comics/inv",
+      "files": [
+        "inv_p06_1.jpg",
+        "inv_p06_2.jpg",
+        "inv_p06_3.jpg",
+        "inv_p06_4.jpg",
+        "inv_p06_5.jpg",
+        "inv_p06_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "期权与期货",
+          "section": "衍生工具的世界"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "期权合约与策略",
+          "section": "基本头寸"
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "平价关系与 BS 公式",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "二叉树定价",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "期货与互换",
+          "section": null
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_bodi_8部48页.pdf"
+    },
+    {
+      "id": "inv_p07",
+      "course": "invest",
+      "course_label": "投资学",
+      "book": "博迪《投资学》第10版",
+      "part": 7,
+      "title": "业绩评价与积极管理",
+      "subtitle": "谁在真创造价值",
+      "chips": [
+        "夏普比率",
+        "选股择时",
+        "特雷纳-布莱克",
+        "对冲基金"
+      ],
+      "dir": "/assets/comics/inv",
+      "files": [
+        "inv_p07_1.jpg",
+        "inv_p07_2.jpg",
+        "inv_p07_3.jpg",
+        "inv_p07_4.jpg",
+        "inv_p07_5.jpg",
+        "inv_p07_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "业绩评价与积极管理",
+          "section": "谁在真创造价值"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "风险调整后的业绩",
+          "section": null
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "选股与择时能力",
+          "section": "怎么检验"
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "特雷纳-布莱克模型",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "对冲基金与另类策略",
+          "section": "对冲基金的特点"
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_bodi_8部48页.pdf"
+    },
+    {
+      "id": "inv_p08",
+      "course": "invest",
+      "course_label": "投资学",
+      "book": "博迪《投资学》第10版",
+      "part": 8,
+      "title": "全球投资与政策",
+      "subtitle": "视野决定组合",
+      "chips": [
+        "国际分散化",
+        "汇率风险",
+        "投资政策",
+        "资产配置"
+      ],
+      "dir": "/assets/comics/inv",
+      "files": [
+        "inv_p08_1.jpg",
+        "inv_p08_2.jpg",
+        "inv_p08_3.jpg",
+        "inv_p08_4.jpg",
+        "inv_p08_5.jpg",
+        "inv_p08_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "全球投资与政策",
+          "section": "视野决定组合"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "投资的国际分散化",
+          "section": "为什么要全球化"
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "汇率与收益分解",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "投资政策声明 IPS",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "全书收官：投资清单",
+          "section": "从绪论到全球的地图"
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_bodi_8部48页.pdf"
+    },
+    {
+      "id": "brealey_p01",
+      "course": "corp_fin",
+      "course_label": "公司金融",
+      "book": "布雷利《公司金融》第12版",
+      "part": 1,
+      "title": "价值",
+      "subtitle": "现值·NPV·投资准则",
+      "chips": [
+        "公司目标",
+        "现值",
+        "NPV",
+        "投资准则"
+      ],
+      "dir": "/assets/comics/brealey",
+      "files": [
+        "brealey_p01_1.jpg",
+        "brealey_p01_2.jpg",
+        "brealey_p01_3.jpg",
+        "brealey_p01_4.jpg",
+        "brealey_p01_5.jpg",
+        "brealey_p01_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "价值",
+          "section": "现值·NPV·投资准则"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "公司金融的目标",
+          "section": "财务经理的三大决策"
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "现值与净现值",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "投资准则大家族",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "NPV vs IRR vs 回收期",
+          "section": null
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_brealey_11部66页.pdf"
+    },
+    {
+      "id": "brealey_p02",
+      "course": "corp_fin",
+      "course_label": "公司金融",
+      "book": "布雷利《公司金融》第12版",
+      "part": 2,
+      "title": "风险",
+      "subtitle": "组合·CAPM·资本成本",
+      "chips": [
+        "风险收益",
+        "组合理论",
+        "CAPM",
+        "资本成本"
+      ],
+      "dir": "/assets/comics/brealey",
+      "files": [
+        "brealey_p02_1.jpg",
+        "brealey_p02_2.jpg",
+        "brealey_p02_3.jpg",
+        "brealey_p02_4.jpg",
+        "brealey_p02_5.jpg",
+        "brealey_p02_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "风险",
+          "section": "组合·CAPM·资本成本"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "风险与收益导论",
+          "section": "两组基本事实"
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "组合理论与 CAPM",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "资本成本怎么算",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "公司风险 vs 项目风险",
+          "section": null
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_brealey_11部66页.pdf"
+    },
+    {
+      "id": "brealey_p03",
+      "course": "corp_fin",
+      "course_label": "公司金融",
+      "book": "布雷利《公司金融》第12版",
+      "part": 3,
+      "title": "资本预算的最佳实践",
+      "subtitle": "项目分析·经济租金·代理",
+      "chips": [
+        "项目分析",
+        "经济租金",
+        "盈亏平衡",
+        "代理问题"
+      ],
+      "dir": "/assets/comics/brealey",
+      "files": [
+        "brealey_p03_1.jpg",
+        "brealey_p03_2.jpg",
+        "brealey_p03_3.jpg",
+        "brealey_p03_4.jpg",
+        "brealey_p03_5.jpg",
+        "brealey_p03_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "资本预算的最佳实践",
+          "section": "项目分析·经济租金·代理"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "项目分析的现金流陷阱",
+          "section": "六大陷阱"
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "经济租金与竞争优势",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "不确定性的三面镜子",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "代理问题与激励机制",
+          "section": null
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_brealey_11部66页.pdf"
+    },
+    {
+      "id": "brealey_p04",
+      "course": "corp_fin",
+      "course_label": "公司金融",
+      "book": "布雷利《公司金融》第12版",
+      "part": 4,
+      "title": "融资决策与市场有效性",
+      "subtitle": "EMH·融资全景·发行",
+      "chips": [
+        "有效市场",
+        "行为金融",
+        "融资综述",
+        "IPO"
+      ],
+      "dir": "/assets/comics/brealey",
+      "files": [
+        "brealey_p04_1.jpg",
+        "brealey_p04_2.jpg",
+        "brealey_p04_3.jpg",
+        "brealey_p04_4.jpg",
+        "brealey_p04_5.jpg",
+        "brealey_p04_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "融资决策与市场有效性",
+          "section": "EMH·融资全景·发行"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "有效市场假说（公司视角）",
+          "section": "三种有效形态"
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "公司如何发行证券",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "四种发行方式对比",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "公司融资综述",
+          "section": null
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_brealey_11部66页.pdf"
+    },
+    {
+      "id": "brealey_p05",
+      "course": "corp_fin",
+      "course_label": "公司金融",
+      "book": "布雷利《公司金融》第12版",
+      "part": 5,
+      "title": "股利政策与资本结构",
+      "subtitle": "MM·权衡·优序融资",
+      "chips": [
+        "股利回购",
+        "MM定理",
+        "权衡理论",
+        "APV"
+      ],
+      "dir": "/assets/comics/brealey",
+      "files": [
+        "brealey_p05_1.jpg",
+        "brealey_p05_2.jpg",
+        "brealey_p05_3.jpg",
+        "brealey_p05_4.jpg",
+        "brealey_p05_5.jpg",
+        "brealey_p05_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "股利政策与资本结构",
+          "section": "MM·权衡·优序融资"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "股利政策：分还是回购？",
+          "section": "两种返还方式"
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "MM 定理：负债无关论",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "权衡理论 vs 优序融资",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "WACC 法 vs APV 法",
+          "section": null
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_brealey_11部66页.pdf"
+    },
+    {
+      "id": "brealey_p06",
+      "course": "corp_fin",
+      "course_label": "公司金融",
+      "book": "布雷利《公司金融》第12版",
+      "part": 6,
+      "title": "期权",
+      "subtitle": "从金融期权到实物期权",
+      "chips": [
+        "看涨看跌",
+        "BS公式",
+        "风险中性",
+        "实物期权"
+      ],
+      "dir": "/assets/comics/brealey",
+      "files": [
+        "brealey_p06_1.jpg",
+        "brealey_p06_2.jpg",
+        "brealey_p06_3.jpg",
+        "brealey_p06_4.jpg",
+        "brealey_p06_5.jpg",
+        "brealey_p06_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "期权",
+          "section": "从金融期权到实物期权"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "理解期权",
+          "section": "期权的两面"
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "期权估值",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "实物期权：柔性就是钱",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "二叉树与风险中性",
+          "section": null
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_brealey_11部66页.pdf"
+    },
+    {
+      "id": "brealey_p07",
+      "course": "corp_fin",
+      "course_label": "公司金融",
+      "book": "布雷利《公司金融》第12版",
+      "part": 7,
+      "title": "债务融资",
+      "subtitle": "信用风险·债券品种·租赁",
+      "chips": [
+        "信用风险",
+        "债券品种",
+        "可转债",
+        "租赁"
+      ],
+      "dir": "/assets/comics/brealey",
+      "files": [
+        "brealey_p07_1.jpg",
+        "brealey_p07_2.jpg",
+        "brealey_p07_3.jpg",
+        "brealey_p07_4.jpg",
+        "brealey_p07_5.jpg",
+        "brealey_p07_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "债务融资",
+          "section": "信用风险·债券品种·租赁"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "信用风险与公司债价值",
+          "section": "信用风险三要素"
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "债券品种万花筒",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "租赁 vs 借款购买",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "久期与利率风险",
+          "section": null
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_brealey_11部66页.pdf"
+    },
+    {
+      "id": "brealey_p08",
+      "course": "corp_fin",
+      "course_label": "公司金融",
+      "book": "布雷利《公司金融》第12版",
+      "part": 8,
+      "title": "风险管理",
+      "subtitle": "对冲工具与国际风险",
+      "chips": [
+        "为什么要对冲",
+        "期货互换",
+        "汇率风险",
+        "政治风险"
+      ],
+      "dir": "/assets/comics/brealey",
+      "files": [
+        "brealey_p08_1.jpg",
+        "brealey_p08_2.jpg",
+        "brealey_p08_3.jpg",
+        "brealey_p08_4.jpg",
+        "brealey_p08_5.jpg",
+        "brealey_p08_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "风险管理",
+          "section": "对冲工具与国际风险"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "为什么要管理风险",
+          "section": "公司对冲的四大理由"
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "对冲工具箱",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "汇率风险与利率平价",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "政治风险与治理风险",
+          "section": null
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_brealey_11部66页.pdf"
+    },
+    {
+      "id": "brealey_p09",
+      "course": "corp_fin",
+      "course_label": "公司金融",
+      "book": "布雷利《公司金融》第12版",
+      "part": 9,
+      "title": "财务分析与营运资本",
+      "subtitle": "比率·计划·现金周期",
+      "chips": [
+        "财务比率",
+        "可持续增长",
+        "现金周期",
+        "短期融资"
+      ],
+      "dir": "/assets/comics/brealey",
+      "files": [
+        "brealey_p09_1.jpg",
+        "brealey_p09_2.jpg",
+        "brealey_p09_3.jpg",
+        "brealey_p09_4.jpg",
+        "brealey_p09_5.jpg",
+        "brealey_p09_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "财务分析与营运资本",
+          "section": "比率·计划·现金周期"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "财务比率体系",
+          "section": "三大类比率"
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "可持续增长率",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "营运资本与现金周期",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "长期 vs 短期融资",
+          "section": null
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_brealey_11部66页.pdf"
+    },
+    {
+      "id": "brealey_p10",
+      "course": "corp_fin",
+      "course_label": "公司金融",
+      "book": "布雷利《公司金融》第12版",
+      "part": 10,
+      "title": "并购、公司控制与治理",
+      "subtitle": "协同·防御·治理模式",
+      "chips": [
+        "并购动机",
+        "协同效应",
+        "防御措施",
+        "公司治理"
+      ],
+      "dir": "/assets/comics/brealey",
+      "files": [
+        "brealey_p10_1.jpg",
+        "brealey_p10_2.jpg",
+        "brealey_p10_3.jpg",
+        "brealey_p10_4.jpg",
+        "brealey_p10_5.jpg",
+        "brealey_p10_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "并购、公司控制与治理",
+          "section": "协同·防御·治理模式"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "并购的动机与幻觉",
+          "section": "合理动机"
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "并购的价值账本",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "并购攻防战",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "两大治理模式",
+          "section": null
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_brealey_11部66页.pdf"
+    },
+    {
+      "id": "brealey_p11",
+      "course": "corp_fin",
+      "course_label": "公司金融",
+      "book": "布雷利《公司金融》第12版",
+      "part": 11,
+      "title": "结论：已知与未知",
+      "subtitle": "财务的确定与争议",
+      "chips": [
+        "可靠结论",
+        "争议地带",
+        "金融箴言",
+        "收官"
+      ],
+      "dir": "/assets/comics/brealey",
+      "files": [
+        "brealey_p11_1.jpg",
+        "brealey_p11_2.jpg",
+        "brealey_p11_3.jpg",
+        "brealey_p11_4.jpg",
+        "brealey_p11_5.jpg",
+        "brealey_p11_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "结论：已知与未知",
+          "section": "财务的确定与争议"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "财务学的确定地带",
+          "section": "经过验证的基石"
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "争议地带",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "公司金融全图",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "五条金融箴言",
+          "section": null
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_brealey_11部66页.pdf"
+    },
+    {
+      "id": "intl_p01",
+      "course": "intl_inv",
+      "course_label": "国际投资学",
+      "book": "《国际投资学》第二版",
+      "part": 1,
+      "title": "国际投资基础",
+      "subtitle": "概念·理论·主体·决策",
+      "chips": [
+        "国际投资",
+        "理论谱系",
+        "跨国公司",
+        "环境评估"
+      ],
+      "dir": "/assets/comics/intl",
+      "files": [
+        "intl_p01_1.jpg",
+        "intl_p01_2.jpg",
+        "intl_p01_3.jpg",
+        "intl_p01_4.jpg",
+        "intl_p01_5.jpg",
+        "intl_p01_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "国际投资基础",
+          "section": "概念·理论·主体·决策"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "国际投资的概念与分类",
+          "section": "核心概念"
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "国际直接投资理论谱系",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "跨国公司：投资主体",
+          "section": "跨国公司概览"
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "投资环境评估方法",
+          "section": null
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_intl_5部30页.pdf"
+    },
+    {
+      "id": "intl_p02",
+      "course": "intl_inv",
+      "course_label": "国际投资学",
+      "book": "《国际投资学》第二版",
+      "part": 2,
+      "title": "国际投资方式",
+      "subtitle": "直接·间接·灵活方式",
+      "chips": [
+        "独资合资",
+        "国际证券",
+        "租赁承包",
+        "风险投资"
+      ],
+      "dir": "/assets/comics/intl",
+      "files": [
+        "intl_p02_1.jpg",
+        "intl_p02_2.jpg",
+        "intl_p02_3.jpg",
+        "intl_p02_4.jpg",
+        "intl_p02_5.jpg",
+        "intl_p02_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "国际投资方式",
+          "section": "直接·间接·灵活方式"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "直接投资三大形式",
+          "section": null
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "直接投资与非股权安排",
+          "section": "绿地 vs 并购"
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "国际间接投资",
+          "section": "三大间接渠道"
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "灵活的国际投资方式",
+          "section": null
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_intl_5部30页.pdf"
+    },
+    {
+      "id": "intl_p03",
+      "course": "intl_inv",
+      "course_label": "国际投资学",
+      "book": "《国际投资学》第二版",
+      "part": 3,
+      "title": "国际投资管理",
+      "subtitle": "筹资·项目·税收",
+      "chips": [
+        "国际筹资",
+        "项目周期",
+        "可行性研究",
+        "税收筹划"
+      ],
+      "dir": "/assets/comics/intl",
+      "files": [
+        "intl_p03_1.jpg",
+        "intl_p03_2.jpg",
+        "intl_p03_3.jpg",
+        "intl_p03_4.jpg",
+        "intl_p03_5.jpg",
+        "intl_p03_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "国际投资管理",
+          "section": "筹资·项目·税收"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "国际投资资金筹集",
+          "section": "筹资渠道"
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "国际项目管理周期",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "国际项目的财务评估",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "国际税收筹划",
+          "section": "国际税收核心问题"
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_intl_5部30页.pdf"
+    },
+    {
+      "id": "intl_p04",
+      "course": "intl_inv",
+      "course_label": "国际投资学",
+      "book": "《国际投资学》第二版",
+      "part": 4,
+      "title": "国际投资政策与协调",
+      "subtitle": "法规·协定·争端解决",
+      "chips": [
+        "准入政策",
+        "双边协定",
+        "多边机制",
+        "争端解决"
+      ],
+      "dir": "/assets/comics/intl",
+      "files": [
+        "intl_p04_1.jpg",
+        "intl_p04_2.jpg",
+        "intl_p04_3.jpg",
+        "intl_p04_4.jpg",
+        "intl_p04_5.jpg",
+        "intl_p04_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "国际投资政策与协调",
+          "section": "法规·协定·争端解决"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "东道国的政策法规",
+          "section": "政策工具箱"
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "双边、区域与多边协定",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "投资争端解决路径",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "国际直接投资协调",
+          "section": "协调的层次"
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_intl_5部30页.pdf"
+    },
+    {
+      "id": "intl_p05",
+      "course": "intl_inv",
+      "course_label": "国际投资学",
+      "book": "《国际投资学》第二版",
+      "part": 5,
+      "title": "中国与国际投资",
+      "subtitle": "引进来·走出去·证券开放",
+      "chips": [
+        "利用外资",
+        "对外投资",
+        "一带一路",
+        "市场开放"
+      ],
+      "dir": "/assets/comics/intl",
+      "files": [
+        "intl_p05_1.jpg",
+        "intl_p05_2.jpg",
+        "intl_p05_3.jpg",
+        "intl_p05_4.jpg",
+        "intl_p05_5.jpg",
+        "intl_p05_6.jpg"
+      ],
+      "pages": [
+        {
+          "index": 1,
+          "role": "cover",
+          "title": "中国与国际投资",
+          "section": "引进来·走出去·证券开放"
+        },
+        {
+          "index": 2,
+          "role": "point",
+          "title": "中国利用外商直接投资",
+          "section": "历程三阶段"
+        },
+        {
+          "index": 3,
+          "role": "point",
+          "title": "三资企业对比",
+          "section": null
+        },
+        {
+          "index": 4,
+          "role": "point",
+          "title": "中国对外投资（走出去）",
+          "section": null
+        },
+        {
+          "index": 5,
+          "role": "point",
+          "title": "中国证券市场开放",
+          "section": "开放四通道"
+        },
+        {
+          "index": 6,
+          "role": "summary",
+          "title": "今日知识收获",
+          "section": null
+        }
+      ],
+      "source_file": "合集_intl_5部30页.pdf"
+    }
+  ]
+}
