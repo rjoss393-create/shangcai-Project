@@ -1,0 +1,186 @@
+部署更新包_2026-09-23.zip  ·  更新清单.txt
+==============================================================================
+基线：版本库提交 d9fc961（= 2026-09-22 交付的 部署更新包_2026-09-22.zip 覆盖后的状态）
+生成时间：2026-09-23 22:33:46
+
+用法：解压后整体覆盖到服务器项目根目录，保持目录结构（不要把文件挑出来手拷）。压缩包约 473 MiB（495.7 MB），解压后约 495 MiB，主要是 data/media/textbooks/。
+
+【替换】 4 个
+------------------------------------------------------------------------------
+  backend/controller/media.py
+      体积 12,687 字节  SHA256 fe03394507d1c7561046a18a3c15d9570e6d5a7620c8fdd68f3b4d815a5a58cd
+  backend/tests/test_media_api.py
+      体积 6,486 字节  SHA256 5a1c9aa84d2b5fa2baf50537a9724fee72ae2d0857694d81437045b2ae1aa201
+  前端/SUFE-Knowledge-Galaxy/index.html
+      体积 38,638 字节  SHA256 5024b83ffab3a6e21324c4f68a399783ab506610ba23b59ef8f9b850602e05a5
+  前端/SUFE-Knowledge-Galaxy/js/main.js
+      体积 106,805 字节  SHA256 a643d07d35bf22d993c13b3a0b829cd2b34b8da9ee418db2debb8c93692d9a55
+
+【替换（可选）】 2 个
+------------------------------------------------------------------------------
+  .gitignore
+      体积 1,880 字节  SHA256 976452d79a0d3cddbd5acb2a320b0a79202affe8f93325aac13f8bcb53ffe639
+  文档/记录/前端改动记录.md
+      体积 95,454 字节  SHA256 f1418b971251f9c8daf5780c15325348498e432a229a9deaa7c3da74465b4d6d
+
+【新增】 65 个
+------------------------------------------------------------------------------
+  data/media/books/tb-acemoglu-2023.jpg
+      体积 45,980 字节  SHA256 22aaba01af90854bb2f36158d444426893a426935f539527e826c521fa6c1b58
+  data/media/books/tb-aghion-2021.jpg
+      体积 43,116 字节  SHA256 f8c413902d834d4bfbf4a3292cd0115c832e403d5b49a04f0ff8dd5acabcd693
+  data/media/books/tb-aghion-howitt-2009.jpg
+      体积 46,363 字节  SHA256 5d73d5758d6b2ef4ddff73430008e6ac46e484990ddfefd2a698c7c265d74a35
+  data/media/books/tb-agrawal-2019.jpg
+      体积 55,087 字节  SHA256 f3cff345157e03e5233b1bdc2282e26baf2c1ee6a7b8662bbbe93f5441f337a5
+  data/media/books/tb-bruner-2004.jpg
+      体积 51,502 字节  SHA256 a88d6b555d3fd5ab6d7f6d6d625e67460d4b0a831a6492ee9f512e4bcc1c08df
+  data/media/books/tb-brynjolfsson-2014-fr.jpg
+      体积 84,728 字节  SHA256 15dbf690ebaf059de1cb1bb7105b1beccfc44fa944bc5ef38e6c9b50cd748e78
+  data/media/books/tb-coyle-gdp.jpg
+      体积 34,531 字节  SHA256 adc5d1b94e36cc6c2e879877125a826c83466371bc509d00e6dd4a712266b403
+  data/media/books/tb-edmans-2020.jpg
+      体积 54,831 字节  SHA256 7c2e63190b14a1a34c4c5431ec6c5c8eceb3da56456b0f614687b210bc089bae
+  data/media/books/tb-frey-2019.jpg
+      体积 93,073 字节  SHA256 a0e767e3542a62dfa3de7286b3fa28da1393e1efba3d756da8d01018d6641d48
+  data/media/books/tb-gaughan-ma.jpg
+      体积 68,001 字节  SHA256 635a3c6a301e1057fc5bf2cd1f566b111aa4f9bcf6de69d8e238d9c1316718ec
+  data/media/books/tb-gordon-2016.jpg
+      体积 79,703 字节  SHA256 a49ac686b06302ea5a4ad678e7f855fdba3d8e26d2b2cd418b256743e2bcbef4
+  data/media/books/tb-hart-1995-firms.jpg
+      体积 68,800 字节  SHA256 b68f95c21eb7caef20337932e559525104619580356e3ef1b2ff8f88ce559e2a
+  data/media/books/tb-hayek-individualism.jpg
+      体积 53,550 字节  SHA256 d470234fb514bab65d330351f4cda4fc283bd3e67c67eafeca51e73ad9706428
+  data/media/books/tb-hidalgo-why-information-grows.jpg
+      体积 79,293 字节  SHA256 107037d1670bbd01c49df53ef5abb5c471c821650cf71b638d2244146d203955
+  data/media/books/tb-kelly-capital-growth.jpg
+      体积 47,039 字节  SHA256 062d251d10f151019d4f8e7a954ccdd0871fb68a122a8a7395be9accab33a809
+  data/media/books/tb-kuhn-scientific-revolutions.jpg
+      体积 74,285 字节  SHA256 4c921d2d82a93f5794ab80a0a2fb421413d53c468f33dee65c5d17879d87f4c9
+  data/media/books/tb-lopezdeprado-ml-asset-managers.jpg
+      体积 58,130 字节  SHA256 762534cc260594445205dd7c805c4805f92c6a4cf925a9841c30e6d333151c96
+  data/media/books/tb-medina-cybernetic-revolutionaries.jpg
+      体积 56,662 字节  SHA256 f0790d1e68658af4633a053a23953ab58483c5523ca5f2cd6d9c0e61aea901e6
+  data/media/books/tb-mokyr-1990.jpg
+      体积 66,821 字节  SHA256 bcec013354cb40abf7e09ba67742b2ecbd6ff1cbf5ccefcbdbc4e6e091786d1f
+  data/media/books/tb-nelson-winter-1982.jpg
+      体积 22,494 字节  SHA256 e5138a1da550e2eed555c02571a49ee8f639ba8f7dfe02928387670078159c6b
+  data/media/books/tb-perez-2002.jpg
+      体积 66,794 字节  SHA256 92c5735fdd6edb74ce072c51c53a299e7b7285ad291ede079c6d8c595667b498
+  data/media/books/tb-rodgers-2014.jpg
+      体积 79,245 字节  SHA256 c2c62ba6fee81076f065abb2b8f3079c58160d142927a4d69ac465eb266bc47b
+  data/media/books/tb-rosenberg-1982.jpg
+      体积 47,500 字节  SHA256 65e33b15a1eee491d15a9d50003342e2a737de4c38f62c7cc4cd1a0c93b9e8c1
+  data/media/books/tb-second-machine-age-en.jpg
+      体积 82,254 字节  SHA256 1c0ddea9f3a8dab5fda73a9fa1d5d8b6c44bd7908ce888b92a2c0c40fe383e45
+  data/media/books/tb-shapiro-varian-information-rules.jpg
+      体积 68,263 字节  SHA256 573a37804bf5ef9c211477bb374e29541c80230fcf3d8b6ace9efd1f49c6df04
+  data/media/books/tb-simon-bounded-rationality.jpg
+      体积 88,287 字节  SHA256 39c57c4ad4f598056a5a1f5658f7a6ce61a3187d2ae2847ab5fbe6ba0b9a42a6
+  data/media/books/tb-weston-takeovers.jpg
+      体积 43,452 字节  SHA256 1997541864b17babdc79e45be3a71911a0d955595fb1e73c32c1980a82699e57
+  data/media/books/tb-zhousheng-rongzi-binggou.jpg
+      体积 53,356 字节  SHA256 b7e5829c14ca70b6732ec1a862e9809e2aba8aaf1c6080535cecd845d0c2649c
+  data/media/textbooks.json
+      体积 22,625 字节  SHA256 07821915e31c54add8d26cca99508cafee302a457f33ef1917ef640dd8ee66f1
+  data/media/textbooks/acemoglu-2023.epub
+      体积 3,655,089 字节  SHA256 750c7c1cc0572c2f0b0777b30e7a800513bbcb884760df98377b345c93c7dead
+  data/media/textbooks/aghion-2021.epub
+      体积 21,465,078 字节  SHA256 87369252da03b0bc3e481dd390c38c70e522687170a34ab7d50f29e4531d2085
+  data/media/textbooks/aghion-howitt-2009.pdf
+      体积 2,980,854 字节  SHA256 d6eebef783dce65a8bdf37cef887acc1c6075a94b39dd799ca42639b094f56bb
+  data/media/textbooks/agrawal-2019.pdf
+      体积 3,983,207 字节  SHA256 7f3e4ef096e63727facd42f052b69209be1eea5c5a5465fe7df5f928e366fcf7
+  data/media/textbooks/bruner-2004.pdf
+      体积 65,390,438 字节  SHA256 7d7278c92c5e8ca0e8ad1aca65ea612fbf2de0ea50fbaf87d81cd11e23e57aae
+  data/media/textbooks/brynjolfsson-2014-fr.epub
+      体积 2,172,418 字节  SHA256 d494ab48029c44c6d3052ec4172ca15381ac76597ead9b807bc52ddb82248383
+  data/media/textbooks/coyle-gdp.pdf
+      体积 7,680,758 字节  SHA256 86ba442ff3fb0b898a9dbd867b67adeb236e7b036e4c6f8922690ceb1daed50f
+  data/media/textbooks/depamphilis-ma.pdf
+      体积 11,005,596 字节  SHA256 72ffb33d732daccc083bf333e7600b74e40a84812a6ebe67db0a458410319fc9
+  data/media/textbooks/edmans-2020.pdf
+      体积 20,676,853 字节  SHA256 81b1e36876f26c082d447dbe58e53db30e9f56c0405fcf194817c9af43472f09
+  data/media/textbooks/freeman-1984.pdf
+      体积 6,186,334 字节  SHA256 1491b7647fbb28d7fa29f6dc99372aa52b9fc2ef3a1e8a5de5163c87605930c6
+  data/media/textbooks/frey-2019.pdf
+      体积 26,445,244 字节  SHA256 8a1ce7c6b55b52411edaee25e93a49fab98e3bd26ede4c1968cb2a7aaf715c78
+  data/media/textbooks/gaughan-ma.pdf
+      体积 43,619,499 字节  SHA256 10549ec483e5301774af3af10e53a37d30c3fe3f98346184e1b1a27942c2872f
+  data/media/textbooks/gordon-2016.epub
+      体积 6,988,805 字节  SHA256 52b284df7ea58cd33a9760f29447b8122331e658e23d58a9092c446819f115b8
+  data/media/textbooks/hart-1995-firms.pdf
+      体积 11,918,112 字节  SHA256 8de4e36996523c0e4dae4eea1489c149c370d8605b04d76ada1af04e66eca7e2
+  data/media/textbooks/hayek-individualism.pdf
+      体积 13,144,240 字节  SHA256 623b9ee562392259d35adf9d8dc240983467c436a235e00b14ccffc26aa10b11
+  data/media/textbooks/hidalgo-why-information-grows.epub
+      体积 6,090,150 字节  SHA256 5ffa8ea1861988b8d132c6ee2eed485d95be8aa2b4f4695b83cdc1d363184308
+  data/media/textbooks/kelly-capital-growth.epub
+      体积 14,804,511 字节  SHA256 ec12e79b295c660a09fafa1f2c3935d43553c0f892bca6117d9b94a5ef5689bf
+  data/media/textbooks/kuhn-scientific-revolutions.pdf
+      体积 1,514,957 字节  SHA256 b97d24e2a5daca2e875ef35a909e4192fd8c241d8a5d8b2a48b9712404658965
+  data/media/textbooks/lopezdeprado-ml-asset-managers.pdf
+      体积 4,563,635 字节  SHA256 ac101c48f631d2beee4ec4fa4a27c526efa5c0e20e9b02f00b5214107eba6c5a
+  data/media/textbooks/medina-cybernetic-revolutionaries.epub
+      体积 9,929,536 字节  SHA256 16083818aa15dc54722aebe2c748cc670ea6f97cc6ea760b343b49fad852ab8e
+  data/media/textbooks/mokyr-1990.epub
+      体积 9,684,488 字节  SHA256 e9fbf9453b161ff6e8041cdcda0ef3ec8f3d52ee161f3d09ff843e2e199c315a
+  data/media/textbooks/mokyr-2002.pdf
+      体积 20,918,461 字节  SHA256 660e91f1e9076cc3a29bb49c380a6e700558e4e2d69384bfc0f475f27b03397e
+  data/media/textbooks/nagel-ml-asset-pricing.pdf
+      体积 6,741,151 字节  SHA256 212d3f71186377089e0dcd2f52e869eb340fc5ccf0734fa5badf258f09586869
+  data/media/textbooks/nelson-winter-1982.pdf
+      体积 30,792,600 字节  SHA256 1442f33ea4a01bdbbaec66e70604dc8daa75b7ba44623de61ad4768f98bc187d
+  data/media/textbooks/perez-2002.epub
+      体积 3,075,872 字节  SHA256 06af7eb5b3acb828de89d6590cc18e1b076f637ac67346609dd475d0ba60ca01
+  data/media/textbooks/rodgers-2014.pdf
+      体积 39,606,280 字节  SHA256 104b2b23dabe3386a44ecf13e1948277f9497935b4df5b73e92ce5debfb187b8
+  data/media/textbooks/rosenberg-1982.pdf
+      体积 22,768,245 字节  SHA256 bd943797eb3be2642bd994db37f205ded7d990d5b07945809bb44203d774628d
+  data/media/textbooks/second-machine-age-en.pdf
+      体积 14,816,208 字节  SHA256 238081639832cab9d14d88a0958908e40bb98917dd76fc84452b6cfc16ce0d20
+  data/media/textbooks/shapiro-varian-information-rules.pdf
+      体积 3,120,044 字节  SHA256 35d40b1ede063fefa41243a237424abb848c18b4a1d0d28ffe1abf8794fe7829
+  data/media/textbooks/simon-bounded-rationality.pdf
+      体积 27,776,816 字节  SHA256 08064a9a54ccbbd7da60d8cc44884b2648f1b28550a6def325eb6ea48dee3f6a
+  data/media/textbooks/weston-takeovers.pdf
+      体积 51,921,481 字节  SHA256 c565e36d7b645e3d493a066da53d9455042a4453b88276faed2430461c1b5ba0
+  data/media/textbooks/zhousheng-rongzi-binggou.epub
+      体积 2,751,719 字节  SHA256 c2127db25482e313666b35de6b4ff16532bc71b48881e34f2da42713581c194b
+  前端/SUFE-Knowledge-Galaxy/css/textbook-reader.css
+      体积 4,112 字节  SHA256 726a14dee0de51ad9cfe76eab4837b10c466d9f3dd03adf00060c6d651c00339
+  前端/SUFE-Knowledge-Galaxy/js/epub.min.js
+      体积 223,875 字节  SHA256 06eae15745107b4aa508c95538275251f69bfb9f1175621fc458d9f42ed082d4
+  前端/SUFE-Knowledge-Galaxy/js/jszip.min.js
+      体积 97,630 字节  SHA256 acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c947d59e
+  前端/SUFE-Knowledge-Galaxy/js/textbook-reader.js
+      体积 12,511 字节  SHA256 b6b0452ea10b074a3b46dab4fc6451c6f49c4d6ef2771ca5f177266eb2bcbb05
+
+【新增（可选）】 2 个
+------------------------------------------------------------------------------
+  scripts/import_textbook_covers.py
+      体积 8,765 字节  SHA256 db07649d95406dd7c19b1f8b8b6143187f4e35d8f24962ea53a33a8a3d07ce02
+  scripts/import_textbooks.py
+      体积 17,483 字节  SHA256 68d9dff193d632a5b99e82ad36c06896a4ac80b879268373b29653fbdce577af
+
+【说明】 1 个
+------------------------------------------------------------------------------
+  更新说明.md
+      体积 23,159 字节  SHA256 e8526ec62e5c9e1698d2abbb4aba361c956d6e650fde2f06ec998523562e84fb
+
+==============================================================================
+包内不含（无需更新，也不用重传）：.git/  .workbuddy/  书/(约495MB，与包内 data/media/textbooks/ 逐字节相同)
+  data/media/{videos,papers}/  data/media/videos.json  data/media/books/01-35.png
+  前端/SUFE-Knowledge-Galaxy/data/galaxy_v12.json  数据/(4.8GB)
+  backend/cache/  前端/proxy-server/node_modules/  文档/交接/（本说明文档除外，已作为 更新说明.md 置于包内）
+
+本次不需要 pip install：requirements.txt 与上一版逐字节相同。
+本次不需要清 backend/cache/：图谱数据一个没动，教材是静态文件不参与 embedding。
+注意：data/media/textbooks/ 必须完整落位（32 个文件 / 494.2 MiB / 518,188,679 字节），缺一个该书的「阅读原文」即 404。
+
+更新后自检：
+  curl -s http://127.0.0.1:8000/health
+  curl -s http://127.0.0.1:8000/data/textbooks.json | head -c 120      # 期望 count=32 totalMB=494.1
+  curl -s -o /dev/null -D - -H 'Range: bytes=0-1023' http://127.0.0.1:8000/assets/textbooks/nelson-winter-1982.pdf | grep -iE 'HTTP/|content-range'   # 期望 206
+  curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8000/js/epub.min.js    # 期望 200
+  cd backend && python -m pytest -q                                    # 期望 123 passed

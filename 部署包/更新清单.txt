@@ -1,186 +1,399 @@
-部署更新包_2026-09-23.zip  ·  更新清单.txt
+部署更新包_2026-09-24.zip  ·  更新清单.txt
 ==============================================================================
-基线：版本库提交 d9fc961（= 2026-09-22 交付的 部署更新包_2026-09-22.zip 覆盖后的状态）
-生成时间：2026-09-23 22:33:46
+基线：版本库提交 d9fc961（2026-09-22 交付）叠加 部署更新包_2026-09-23.zip 覆盖后的状态；本次 = 该状态 → 当前工作区（提交 f718504「前端并入最终交付版」+ bb1fc45「知识点小漫画接入」）
+生成时间：2026-09-24 14:23:55
 
-用法：解压后整体覆盖到服务器项目根目录，保持目录结构（不要把文件挑出来手拷）。压缩包约 473 MiB（495.7 MB），解压后约 495 MiB，主要是 data/media/textbooks/。
+用法：解压后整体覆盖到服务器项目根目录，保持目录结构（不要把文件挑出来手拷）。压缩包约 16.9 MiB（约 17.8 MB），解开后约 27.2 MiB，主要是 data/media/comics/（21.38 MiB）。⚠️ 覆盖后必须先清 backend/cache/{invest,corp_fin,ma}_all-MiniLM-L6-v2/ 再启动，详见 更新说明.md 第 0 节。
 
-【替换】 4 个
+【替换】 18 个
 ------------------------------------------------------------------------------
+  backend/controller/graph_ids.py
+      体积 1,999 字节  SHA256 12c333b82f1d39d6cfebcb1a918e950dce9ee898e862a2e32ccd8d2673b0f8bb
   backend/controller/media.py
-      体积 12,687 字节  SHA256 fe03394507d1c7561046a18a3c15d9570e6d5a7620c8fdd68f3b4d815a5a58cd
+      体积 16,709 字节  SHA256 eedf32c325e14c7895cdc4cb12546fe8a4c152293ae530243c792bbf4188117d
+  backend/controller/router.py
+      体积 4,275 字节  SHA256 05cb6b701e2b331aa6acd536baef12a71891ffc43cc6277e2b4683c895328c75
+  backend/service/data_service.py
+      体积 8,105 字节  SHA256 61468a96cd594b0a65d3b54795aafbb1060da4222b79f975c0395ab823fdca62
   backend/tests/test_media_api.py
-      体积 6,486 字节  SHA256 5a1c9aa84d2b5fa2baf50537a9724fee72ae2d0857694d81437045b2ae1aa201
+      体积 9,823 字节  SHA256 55ac0da02e31771db763eca761681b421d273afcc3b74044f715fb5bcf78d20f
+  backend/tests/test_router.py
+      体积 5,225 字节  SHA256 98eb1c9b7befccb010b86a4f9b07b7f944c37e284c86be7456dfd1368219c14d
+  data/layered/intl_inv_layered.json
+      体积 878,132 字节  SHA256 07379c7422c4214dbb48bb344ee6a34d8014def00148e4f52053561079ef275a
+  前端/SUFE-Knowledge-Galaxy/css/course-galaxy.css
+      体积 18,655 字节  SHA256 f611acba2317025e80d60d2da0c64f2428e8aadb2ab7ffdcdecadda681e99888
+  前端/SUFE-Knowledge-Galaxy/css/knowledge-galaxy.css
+      体积 29,251 字节  SHA256 cc4b68418e9b0d4c77971c30fbe6d02d896ec63eae8a3ab93d48c4363d896de4
+  前端/SUFE-Knowledge-Galaxy/css/page-slider.css
+      体积 7,792 字节  SHA256 9b0271bafbc46764775ceea503cc25d419b2f02c16298f84809a0e1261ea3d88
+  前端/SUFE-Knowledge-Galaxy/css/style.css
+      体积 129,554 字节  SHA256 1faf40f46b13c9607adf270277c713a20bc5c889ad18b3e568378e4b22038574
   前端/SUFE-Knowledge-Galaxy/index.html
-      体积 38,638 字节  SHA256 5024b83ffab3a6e21324c4f68a399783ab506610ba23b59ef8f9b850602e05a5
+      体积 43,693 字节  SHA256 09b5aea3aac3ec069f85d868ef80fa5e64590833008eeb7a66482b44a08b91d2
+  前端/SUFE-Knowledge-Galaxy/js/assistant.js
+      体积 15,771 字节  SHA256 b099a55e5724dabfb9dc1212b15863114a5871a8a6747af92132ede2e1f6f8da
+  前端/SUFE-Knowledge-Galaxy/js/course-galaxy.js
+      体积 40,517 字节  SHA256 a1649e121b9cf1f4e4fd1acfb4d203d3adaf7f898e8f214503175fd0ea9d1982
+  前端/SUFE-Knowledge-Galaxy/js/galaxy.js
+      体积 76,044 字节  SHA256 65d9d1b7fafb68a8fa54141e7d1858aff6cb3fe50f31d09f5cc9fa3499d8eec5
+  前端/SUFE-Knowledge-Galaxy/js/knowledge-galaxy.js
+      体积 139,738 字节  SHA256 74360b29adafd39ba2868b38bbc2cb1d8d3e6b60a90d1b6fb280370f28c21f52
   前端/SUFE-Knowledge-Galaxy/js/main.js
-      体积 106,805 字节  SHA256 a643d07d35bf22d993c13b3a0b829cd2b34b8da9ee418db2debb8c93692d9a55
+      体积 112,732 字节  SHA256 e11bc1126436d3ad97b81d7d9f3afdc44422ac9fb8db812cb5447da02de1aa2b
+  前端/SUFE-Knowledge-Galaxy/js/page-slider.js
+      体积 15,771 字节  SHA256 501ce86bea5c1539d361ac4f01ea7b4d42e3bddd89fa085c78ef9aa46ac5eca1
 
-【替换（可选）】 2 个
+【替换（可选）】 3 个
 ------------------------------------------------------------------------------
   .gitignore
-      体积 1,880 字节  SHA256 976452d79a0d3cddbd5acb2a320b0a79202affe8f93325aac13f8bcb53ffe639
+      体积 2,119 字节  SHA256 d6796fb10d56482aef9404a6412cd2062c6ae2b942eb763775ca0dd3f4933926
   文档/记录/前端改动记录.md
-      体积 95,454 字节  SHA256 f1418b971251f9c8daf5780c15325348498e432a229a9deaa7c3da74465b4d6d
+      体积 111,054 字节  SHA256 732fc2a61df3238b1c306d46a42f57094b6b9efc989a3c925c38e9aae6ac67cd
+  文档/设计/数据层分层设计.md
+      体积 6,514 字节  SHA256 394d2f551209205425103ca4bfed4db4e6c434ad0d882da4b95f3b25921facb4
 
-【新增】 65 个
+【新增】 154 个
 ------------------------------------------------------------------------------
-  data/media/books/tb-acemoglu-2023.jpg
-      体积 45,980 字节  SHA256 22aaba01af90854bb2f36158d444426893a426935f539527e826c521fa6c1b58
-  data/media/books/tb-aghion-2021.jpg
-      体积 43,116 字节  SHA256 f8c413902d834d4bfbf4a3292cd0115c832e403d5b49a04f0ff8dd5acabcd693
-  data/media/books/tb-aghion-howitt-2009.jpg
-      体积 46,363 字节  SHA256 5d73d5758d6b2ef4ddff73430008e6ac46e484990ddfefd2a698c7c265d74a35
-  data/media/books/tb-agrawal-2019.jpg
-      体积 55,087 字节  SHA256 f3cff345157e03e5233b1bdc2282e26baf2c1ee6a7b8662bbbe93f5441f337a5
-  data/media/books/tb-bruner-2004.jpg
-      体积 51,502 字节  SHA256 a88d6b555d3fd5ab6d7f6d6d625e67460d4b0a831a6492ee9f512e4bcc1c08df
-  data/media/books/tb-brynjolfsson-2014-fr.jpg
-      体积 84,728 字节  SHA256 15dbf690ebaf059de1cb1bb7105b1beccfc44fa944bc5ef38e6c9b50cd748e78
-  data/media/books/tb-coyle-gdp.jpg
-      体积 34,531 字节  SHA256 adc5d1b94e36cc6c2e879877125a826c83466371bc509d00e6dd4a712266b403
-  data/media/books/tb-edmans-2020.jpg
-      体积 54,831 字节  SHA256 7c2e63190b14a1a34c4c5431ec6c5c8eceb3da56456b0f614687b210bc089bae
-  data/media/books/tb-frey-2019.jpg
-      体积 93,073 字节  SHA256 a0e767e3542a62dfa3de7286b3fa28da1393e1efba3d756da8d01018d6641d48
-  data/media/books/tb-gaughan-ma.jpg
-      体积 68,001 字节  SHA256 635a3c6a301e1057fc5bf2cd1f566b111aa4f9bcf6de69d8e238d9c1316718ec
-  data/media/books/tb-gordon-2016.jpg
-      体积 79,703 字节  SHA256 a49ac686b06302ea5a4ad678e7f855fdba3d8e26d2b2cd418b256743e2bcbef4
-  data/media/books/tb-hart-1995-firms.jpg
-      体积 68,800 字节  SHA256 b68f95c21eb7caef20337932e559525104619580356e3ef1b2ff8f88ce559e2a
-  data/media/books/tb-hayek-individualism.jpg
-      体积 53,550 字节  SHA256 d470234fb514bab65d330351f4cda4fc283bd3e67c67eafeca51e73ad9706428
-  data/media/books/tb-hidalgo-why-information-grows.jpg
-      体积 79,293 字节  SHA256 107037d1670bbd01c49df53ef5abb5c471c821650cf71b638d2244146d203955
-  data/media/books/tb-kelly-capital-growth.jpg
-      体积 47,039 字节  SHA256 062d251d10f151019d4f8e7a954ccdd0871fb68a122a8a7395be9accab33a809
-  data/media/books/tb-kuhn-scientific-revolutions.jpg
-      体积 74,285 字节  SHA256 4c921d2d82a93f5794ab80a0a2fb421413d53c468f33dee65c5d17879d87f4c9
-  data/media/books/tb-lopezdeprado-ml-asset-managers.jpg
-      体积 58,130 字节  SHA256 762534cc260594445205dd7c805c4805f92c6a4cf925a9841c30e6d333151c96
-  data/media/books/tb-medina-cybernetic-revolutionaries.jpg
-      体积 56,662 字节  SHA256 f0790d1e68658af4633a053a23953ab58483c5523ca5f2cd6d9c0e61aea901e6
-  data/media/books/tb-mokyr-1990.jpg
-      体积 66,821 字节  SHA256 bcec013354cb40abf7e09ba67742b2ecbd6ff1cbf5ccefcbdbc4e6e091786d1f
-  data/media/books/tb-nelson-winter-1982.jpg
-      体积 22,494 字节  SHA256 e5138a1da550e2eed555c02571a49ee8f639ba8f7dfe02928387670078159c6b
-  data/media/books/tb-perez-2002.jpg
-      体积 66,794 字节  SHA256 92c5735fdd6edb74ce072c51c53a299e7b7285ad291ede079c6d8c595667b498
-  data/media/books/tb-rodgers-2014.jpg
-      体积 79,245 字节  SHA256 c2c62ba6fee81076f065abb2b8f3079c58160d142927a4d69ac465eb266bc47b
-  data/media/books/tb-rosenberg-1982.jpg
-      体积 47,500 字节  SHA256 65e33b15a1eee491d15a9d50003342e2a737de4c38f62c7cc4cd1a0c93b9e8c1
-  data/media/books/tb-second-machine-age-en.jpg
-      体积 82,254 字节  SHA256 1c0ddea9f3a8dab5fda73a9fa1d5d8b6c44bd7908ce888b92a2c0c40fe383e45
-  data/media/books/tb-shapiro-varian-information-rules.jpg
-      体积 68,263 字节  SHA256 573a37804bf5ef9c211477bb374e29541c80230fcf3d8b6ace9efd1f49c6df04
-  data/media/books/tb-simon-bounded-rationality.jpg
-      体积 88,287 字节  SHA256 39c57c4ad4f598056a5a1f5658f7a6ce61a3187d2ae2847ab5fbe6ba0b9a42a6
-  data/media/books/tb-weston-takeovers.jpg
-      体积 43,452 字节  SHA256 1997541864b17babdc79e45be3a71911a0d955595fb1e73c32c1980a82699e57
-  data/media/books/tb-zhousheng-rongzi-binggou.jpg
-      体积 53,356 字节  SHA256 b7e5829c14ca70b6732ec1a862e9809e2aba8aaf1c6080535cecd845d0c2649c
-  data/media/textbooks.json
-      体积 22,625 字节  SHA256 07821915e31c54add8d26cca99508cafee302a457f33ef1917ef640dd8ee66f1
-  data/media/textbooks/acemoglu-2023.epub
-      体积 3,655,089 字节  SHA256 750c7c1cc0572c2f0b0777b30e7a800513bbcb884760df98377b345c93c7dead
-  data/media/textbooks/aghion-2021.epub
-      体积 21,465,078 字节  SHA256 87369252da03b0bc3e481dd390c38c70e522687170a34ab7d50f29e4531d2085
-  data/media/textbooks/aghion-howitt-2009.pdf
-      体积 2,980,854 字节  SHA256 d6eebef783dce65a8bdf37cef887acc1c6075a94b39dd799ca42639b094f56bb
-  data/media/textbooks/agrawal-2019.pdf
-      体积 3,983,207 字节  SHA256 7f3e4ef096e63727facd42f052b69209be1eea5c5a5465fe7df5f928e366fcf7
-  data/media/textbooks/bruner-2004.pdf
-      体积 65,390,438 字节  SHA256 7d7278c92c5e8ca0e8ad1aca65ea612fbf2de0ea50fbaf87d81cd11e23e57aae
-  data/media/textbooks/brynjolfsson-2014-fr.epub
-      体积 2,172,418 字节  SHA256 d494ab48029c44c6d3052ec4172ca15381ac76597ead9b807bc52ddb82248383
-  data/media/textbooks/coyle-gdp.pdf
-      体积 7,680,758 字节  SHA256 86ba442ff3fb0b898a9dbd867b67adeb236e7b036e4c6f8922690ceb1daed50f
-  data/media/textbooks/depamphilis-ma.pdf
-      体积 11,005,596 字节  SHA256 72ffb33d732daccc083bf333e7600b74e40a84812a6ebe67db0a458410319fc9
-  data/media/textbooks/edmans-2020.pdf
-      体积 20,676,853 字节  SHA256 81b1e36876f26c082d447dbe58e53db30e9f56c0405fcf194817c9af43472f09
-  data/media/textbooks/freeman-1984.pdf
-      体积 6,186,334 字节  SHA256 1491b7647fbb28d7fa29f6dc99372aa52b9fc2ef3a1e8a5de5163c87605930c6
-  data/media/textbooks/frey-2019.pdf
-      体积 26,445,244 字节  SHA256 8a1ce7c6b55b52411edaee25e93a49fab98e3bd26ede4c1968cb2a7aaf715c78
-  data/media/textbooks/gaughan-ma.pdf
-      体积 43,619,499 字节  SHA256 10549ec483e5301774af3af10e53a37d30c3fe3f98346184e1b1a27942c2872f
-  data/media/textbooks/gordon-2016.epub
-      体积 6,988,805 字节  SHA256 52b284df7ea58cd33a9760f29447b8122331e658e23d58a9092c446819f115b8
-  data/media/textbooks/hart-1995-firms.pdf
-      体积 11,918,112 字节  SHA256 8de4e36996523c0e4dae4eea1489c149c370d8605b04d76ada1af04e66eca7e2
-  data/media/textbooks/hayek-individualism.pdf
-      体积 13,144,240 字节  SHA256 623b9ee562392259d35adf9d8dc240983467c436a235e00b14ccffc26aa10b11
-  data/media/textbooks/hidalgo-why-information-grows.epub
-      体积 6,090,150 字节  SHA256 5ffa8ea1861988b8d132c6ee2eed485d95be8aa2b4f4695b83cdc1d363184308
-  data/media/textbooks/kelly-capital-growth.epub
-      体积 14,804,511 字节  SHA256 ec12e79b295c660a09fafa1f2c3935d43553c0f892bca6117d9b94a5ef5689bf
-  data/media/textbooks/kuhn-scientific-revolutions.pdf
-      体积 1,514,957 字节  SHA256 b97d24e2a5daca2e875ef35a909e4192fd8c241d8a5d8b2a48b9712404658965
-  data/media/textbooks/lopezdeprado-ml-asset-managers.pdf
-      体积 4,563,635 字节  SHA256 ac101c48f631d2beee4ec4fa4a27c526efa5c0e20e9b02f00b5214107eba6c5a
-  data/media/textbooks/medina-cybernetic-revolutionaries.epub
-      体积 9,929,536 字节  SHA256 16083818aa15dc54722aebe2c748cc670ea6f97cc6ea760b343b49fad852ab8e
-  data/media/textbooks/mokyr-1990.epub
-      体积 9,684,488 字节  SHA256 e9fbf9453b161ff6e8041cdcda0ef3ec8f3d52ee161f3d09ff843e2e199c315a
-  data/media/textbooks/mokyr-2002.pdf
-      体积 20,918,461 字节  SHA256 660e91f1e9076cc3a29bb49c380a6e700558e4e2d69384bfc0f475f27b03397e
-  data/media/textbooks/nagel-ml-asset-pricing.pdf
-      体积 6,741,151 字节  SHA256 212d3f71186377089e0dcd2f52e869eb340fc5ccf0734fa5badf258f09586869
-  data/media/textbooks/nelson-winter-1982.pdf
-      体积 30,792,600 字节  SHA256 1442f33ea4a01bdbbaec66e70604dc8daa75b7ba44623de61ad4768f98bc187d
-  data/media/textbooks/perez-2002.epub
-      体积 3,075,872 字节  SHA256 06af7eb5b3acb828de89d6590cc18e1b076f637ac67346609dd475d0ba60ca01
-  data/media/textbooks/rodgers-2014.pdf
-      体积 39,606,280 字节  SHA256 104b2b23dabe3386a44ecf13e1948277f9497935b4df5b73e92ce5debfb187b8
-  data/media/textbooks/rosenberg-1982.pdf
-      体积 22,768,245 字节  SHA256 bd943797eb3be2642bd994db37f205ded7d990d5b07945809bb44203d774628d
-  data/media/textbooks/second-machine-age-en.pdf
-      体积 14,816,208 字节  SHA256 238081639832cab9d14d88a0958908e40bb98917dd76fc84452b6cfc16ce0d20
-  data/media/textbooks/shapiro-varian-information-rules.pdf
-      体积 3,120,044 字节  SHA256 35d40b1ede063fefa41243a237424abb848c18b4a1d0d28ffe1abf8794fe7829
-  data/media/textbooks/simon-bounded-rationality.pdf
-      体积 27,776,816 字节  SHA256 08064a9a54ccbbd7da60d8cc44884b2648f1b28550a6def325eb6ea48dee3f6a
-  data/media/textbooks/weston-takeovers.pdf
-      体积 51,921,481 字节  SHA256 c565e36d7b645e3d493a066da53d9455042a4453b88276faed2430461c1b5ba0
-  data/media/textbooks/zhousheng-rongzi-binggou.epub
-      体积 2,751,719 字节  SHA256 c2127db25482e313666b35de6b4ff16532bc71b48881e34f2da42713581c194b
-  前端/SUFE-Knowledge-Galaxy/css/textbook-reader.css
-      体积 4,112 字节  SHA256 726a14dee0de51ad9cfe76eab4837b10c466d9f3dd03adf00060c6d651c00339
-  前端/SUFE-Knowledge-Galaxy/js/epub.min.js
-      体积 223,875 字节  SHA256 06eae15745107b4aa508c95538275251f69bfb9f1175621fc458d9f42ed082d4
-  前端/SUFE-Knowledge-Galaxy/js/jszip.min.js
-      体积 97,630 字节  SHA256 acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c947d59e
-  前端/SUFE-Knowledge-Galaxy/js/textbook-reader.js
-      体积 12,511 字节  SHA256 b6b0452ea10b074a3b46dab4fc6451c6f49c4d6ef2771ca5f177266eb2bcbb05
+  backend/tests/test_data_service.py
+      体积 5,067 字节  SHA256 cffa644877a1251af1020d20cd94a70242c50fd7b55f3515e9507e3b9b57431b
+  data/media/comics.json
+      体积 37,926 字节  SHA256 2d1daac75f3365d8f61180ea0e99d2ccdfb9cb58dbfe1e11810b1309130406a3
+  data/media/comics/brealey/brealey_p01_1.jpg
+      体积 149,837 字节  SHA256 15f17bbec254afe32ece6a4cc83aa06d54f94650a8aaf10f18bfd2f55d354714
+  data/media/comics/brealey/brealey_p01_2.jpg
+      体积 152,896 字节  SHA256 bd0d82e9eb9a4a324f43fa0703d27249b57a7e8a4ddd61dd8ee45b6f98c62021
+  data/media/comics/brealey/brealey_p01_3.jpg
+      体积 158,690 字节  SHA256 9ab9fbdd7ff3a55f41857e62f6e12ff341289399f22106e676928a6860910ac1
+  data/media/comics/brealey/brealey_p01_4.jpg
+      体积 138,741 字节  SHA256 b4c41133036d76ab531e5f05bd0ee3a0e16f46250b324c030f2886b46264e1ee
+  data/media/comics/brealey/brealey_p01_5.jpg
+      体积 162,132 字节  SHA256 df7fc8b705ee7fcb94086df21478a5644c0a9a2aa3f7989961ad1b00aefc53fc
+  data/media/comics/brealey/brealey_p01_6.jpg
+      体积 140,142 字节  SHA256 64436ed3abca04b3d59460ba9b4100edb06280c3619973cedcae6a36583dc656
+  data/media/comics/brealey/brealey_p02_1.jpg
+      体积 155,793 字节  SHA256 e2ae98e750f75e3dca24bf2d1d3f3915be5495e2c4cbe5f6df449db4221c778d
+  data/media/comics/brealey/brealey_p02_2.jpg
+      体积 162,356 字节  SHA256 1f9dbbea619cda45a7998b18cc994756c6d8ec2d63fef7c6096d8e930740efab
+  data/media/comics/brealey/brealey_p02_3.jpg
+      体积 168,079 字节  SHA256 8bf4904b4c2d4a6e24eb572535f48a366fc95692078f12300e0bffe9aaa05424
+  data/media/comics/brealey/brealey_p02_4.jpg
+      体积 138,922 字节  SHA256 0d12a13bb16feb70d6af9b61d574d35df083808818de3731ebf32523f7f9c854
+  data/media/comics/brealey/brealey_p02_5.jpg
+      体积 158,387 字节  SHA256 ffdd7fec2edb5cb0c10d54e00cbbbd0178004a5d919a06995075ffab122e4a0c
+  data/media/comics/brealey/brealey_p02_6.jpg
+      体积 145,716 字节  SHA256 606d361403fe58d2302276fbf6fe33f21aca9f5ebde42004339bf5eca24885ed
+  data/media/comics/brealey/brealey_p03_1.jpg
+      体积 175,946 字节  SHA256 883e8d86f3078af839b63240bb2f98ea65aa8a17831f499834dd47bda51a6d65
+  data/media/comics/brealey/brealey_p03_2.jpg
+      体积 160,007 字节  SHA256 d9bd91fc3bb6c77639e477c94a649cfd214744833606d9c9f70a63ea98cbf5a7
+  data/media/comics/brealey/brealey_p03_3.jpg
+      体积 166,462 字节  SHA256 afd46e85670f8bc7b10f9c8f5a204a8e7c4e66fab80780f51394f2c26e6f044f
+  data/media/comics/brealey/brealey_p03_4.jpg
+      体积 148,665 字节  SHA256 8decc55fe43d7ad88b03df93331188c640112c31ad3614d22be4fd6301d99039
+  data/media/comics/brealey/brealey_p03_5.jpg
+      体积 157,826 字节  SHA256 ba0557b1470f66378d9c95c965ded962e4d41ec90c31e9d7b118c7d0f2820880
+  data/media/comics/brealey/brealey_p03_6.jpg
+      体积 146,205 字节  SHA256 93f1e8cfe09a758ac6c4669311b47457842890e7df827ef372e80864824dd815
+  data/media/comics/brealey/brealey_p04_1.jpg
+      体积 171,174 字节  SHA256 e80ac051f0b0d8c4e5e144dfd0c801699005bdee96511cbfb623f997058bb189
+  data/media/comics/brealey/brealey_p04_2.jpg
+      体积 160,415 字节  SHA256 c0707e72eb5bdd05225961a1d90a2791f6f7aa542d80c1424aa83a279bfb0bce
+  data/media/comics/brealey/brealey_p04_3.jpg
+      体积 143,920 字节  SHA256 437653429854b87d8fafb04a94ee5a8809fa46e9a88563f5c7c9b7b4aee83a4f
+  data/media/comics/brealey/brealey_p04_4.jpg
+      体积 164,258 字节  SHA256 e7b7606ddc50e3f018375f20804c8de37cfcf28641bb053ed9841a1f87a23367
+  data/media/comics/brealey/brealey_p04_5.jpg
+      体积 154,786 字节  SHA256 e3622650800e1c218c3de49c604b67d0c0cafc299b4a8e1f4da97e3f6bb9b28f
+  data/media/comics/brealey/brealey_p04_6.jpg
+      体积 143,195 字节  SHA256 f7d34c54d021ba6b6daa85aa2b2a67a43ebfaadde54b09261d8dd7b016d1fd1b
+  data/media/comics/brealey/brealey_p05_1.jpg
+      体积 167,535 字节  SHA256 69094fb068aa9c4bfb834e51e445b2064162d26080848da284f53764cbf22bd0
+  data/media/comics/brealey/brealey_p05_2.jpg
+      体积 163,776 字节  SHA256 fc3283487b275f4058d76ad142b4c269de4428c8103ee9ba61f91811e39d1a20
+  data/media/comics/brealey/brealey_p05_3.jpg
+      体积 180,882 字节  SHA256 7b45b4b4827aa04a40c15e522a0666ec965ee51b19f22ed2b5955071c14893fa
+  data/media/comics/brealey/brealey_p05_4.jpg
+      体积 150,137 字节  SHA256 a03ee1044cc61c5b66b66e4f1b0dc7039610e94b37c5b4e9c9cb403df70e63f4
+  data/media/comics/brealey/brealey_p05_5.jpg
+      体积 153,864 字节  SHA256 bbeb442dfee6ea0bfa5d8f9b5854a82c5366bb2d68e29bd9dfaef1f4e574f3ef
+  data/media/comics/brealey/brealey_p05_6.jpg
+      体积 145,883 字节  SHA256 877f4c79b25cdc0602cb92341cc7ba0b2166e26b47ed038e2acd969a0a8674a1
+  data/media/comics/brealey/brealey_p06_1.jpg
+      体积 156,569 字节  SHA256 6f3c7b6800da4f923e4de5c330630d8443be6d5303e2bb5ca254035e90453e0c
+  data/media/comics/brealey/brealey_p06_2.jpg
+      体积 147,904 字节  SHA256 6308be5617aec68fa3460025e3f2cbb37604b3965b4a74daf88af9bad526b936
+  data/media/comics/brealey/brealey_p06_3.jpg
+      体积 152,938 字节  SHA256 98888f28ab9eda2f0531081e0ca24a807c71ebd54fde1cbf14449eb7d2744932
+  data/media/comics/brealey/brealey_p06_4.jpg
+      体积 156,118 字节  SHA256 db2f7aea6554d5754ff5d64c4cc755134cffd0c80cdb3d1ecdbddb82b1d8a280
+  data/media/comics/brealey/brealey_p06_5.jpg
+      体积 154,835 字节  SHA256 203274e30e6f9bcc5e79225cbb676dfbca2f6eead8148ba984dd50b631b2912a
+  data/media/comics/brealey/brealey_p06_6.jpg
+      体积 140,081 字节  SHA256 27c40db532a9ded2c7771b208b1ebc0b55ed7789f545edc84e1499f7a6c285c1
+  data/media/comics/brealey/brealey_p07_1.jpg
+      体积 160,580 字节  SHA256 bd48e574a2159770f74967415c4799f8397506c7bf8c5e8ab908bdd3c04d5f50
+  data/media/comics/brealey/brealey_p07_2.jpg
+      体积 153,494 字节  SHA256 7b76ed473e88df02a1a79dd7bca2b4f3bac32261045ea4e2d1eef046504f52b9
+  data/media/comics/brealey/brealey_p07_3.jpg
+      体积 141,667 字节  SHA256 eee58b8a2644969e1454b549f234002591c5154de4000ab9753624885e020b12
+  data/media/comics/brealey/brealey_p07_4.jpg
+      体积 154,809 字节  SHA256 15db45c4f53b354c88680ed482685f1ff07070d1074afd321df69b40ccba9795
+  data/media/comics/brealey/brealey_p07_5.jpg
+      体积 160,260 字节  SHA256 6650e8aa40855a5b2787fa192ccc1c1cc32f533ad058fc34e7639f0cb303cfe5
+  data/media/comics/brealey/brealey_p07_6.jpg
+      体积 141,471 字节  SHA256 89bc14baaaee11140a56a30a7c4ba5aff9ba273114b65740fd8fce1c9fdc1f5f
+  data/media/comics/brealey/brealey_p08_1.jpg
+      体积 158,896 字节  SHA256 17b79ad267f4fc5fc1f03927cef3b4234f91a5e31c7d51fffafe364aa12ba86c
+  data/media/comics/brealey/brealey_p08_2.jpg
+      体积 156,726 字节  SHA256 0ac80aa745416a5b7b3b6bd70ffabe9604bb0521962f3a1467990799c5da0d1a
+  data/media/comics/brealey/brealey_p08_3.jpg
+      体积 142,146 字节  SHA256 8009c858c5014cf05b5a645892a2904de39dd7573b208edf2589002dd57bc420
+  data/media/comics/brealey/brealey_p08_4.jpg
+      体积 159,199 字节  SHA256 70cdf6a99983980a5043fa7788fea98ad879b859564896c3da7be634bf4fd842
+  data/media/comics/brealey/brealey_p08_5.jpg
+      体积 154,539 字节  SHA256 8e51a332b4ce468b77b8064354cfec964f6a2b506ceba128f0ad49aa625c78a6
+  data/media/comics/brealey/brealey_p08_6.jpg
+      体积 141,499 字节  SHA256 73b3ed70917f993eb5245e6ef66a9a101ec8f4b4f97bc62464c44d5a4a856961
+  data/media/comics/brealey/brealey_p09_1.jpg
+      体积 169,654 字节  SHA256 88f22616a659571c264e2e1fe7b9010b26194746bfa8f7d5dafb291893cc698c
+  data/media/comics/brealey/brealey_p09_2.jpg
+      体积 148,729 字节  SHA256 3d2645361218f66be32dd3d509449d06e04ad72eb0a6ef73668a4981ec542374
+  data/media/comics/brealey/brealey_p09_3.jpg
+      体积 160,945 字节  SHA256 7beab2f0491932e0b5dbf90373a350fdb2c0442492a6235adbbe6d146462cd4d
+  data/media/comics/brealey/brealey_p09_4.jpg
+      体积 138,754 字节  SHA256 17b27ca7258d2b6b9e4145ed1c7a4cd06b61e9b20604a6ba9187f8a8a5b66c42
+  data/media/comics/brealey/brealey_p09_5.jpg
+      体积 147,722 字节  SHA256 0e190142d7fcb0618872b9816910973539858dd899b7b394dc60c6fd9581349f
+  data/media/comics/brealey/brealey_p09_6.jpg
+      体积 142,066 字节  SHA256 7ea3985acd56c9d015a21ec57eb8ae9981602b201ecbe8754e122ad63f678d97
+  data/media/comics/brealey/brealey_p10_1.jpg
+      体积 174,666 字节  SHA256 f1c46c4c01086a6d26449750e57c8284b9cce7945319d05c65d63a9d2fa282f8
+  data/media/comics/brealey/brealey_p10_2.jpg
+      体积 157,640 字节  SHA256 2573482327dda556f401001aed156106521f01dbee7b8fb292e0f98866453a9a
+  data/media/comics/brealey/brealey_p10_3.jpg
+      体积 169,707 字节  SHA256 1193c58843c927c14a1b001a033d443d20ab5ea58f17bcae9e9d08f71da5aa06
+  data/media/comics/brealey/brealey_p10_4.jpg
+      体积 147,286 字节  SHA256 c3e160b8dae8741a7e5bbe6b045149e77b513270f95f6951d117008bba706df0
+  data/media/comics/brealey/brealey_p10_5.jpg
+      体积 159,025 字节  SHA256 5fc3265bc1abebcbce32d92e0f795ab99b5e58cbfcb78e1693d789813c13c34b
+  data/media/comics/brealey/brealey_p10_6.jpg
+      体积 145,393 字节  SHA256 c6cfe748c8a81ad1e65c1d72f478f2afa003511ef03583bd69c9b51b39e2f675
+  data/media/comics/brealey/brealey_p11_1.jpg
+      体积 163,540 字节  SHA256 3f5bbe5a7476e1489812c5eddf54f7818174be5a05c958e684e474049925074f
+  data/media/comics/brealey/brealey_p11_2.jpg
+      体积 160,557 字节  SHA256 54f5ce52c5b9551a7b3b7996c9e0b29d9fe41194d416688bd90ba74e9db6bae9
+  data/media/comics/brealey/brealey_p11_3.jpg
+      体积 152,394 字节  SHA256 9488c7d751870fa726b8d0d27d8a54ede774acdcba39cb1a2414589f725b8ecd
+  data/media/comics/brealey/brealey_p11_4.jpg
+      体积 137,829 字节  SHA256 80d1e0bc3492f8618f2f9f4aff5a799b7b5ddf2cf6cf726213d01e184ef3c42f
+  data/media/comics/brealey/brealey_p11_5.jpg
+      体积 154,860 字节  SHA256 ec78f356e852f60df5fec7419586b2759546129c24152e560812e3ffe95af986
+  data/media/comics/brealey/brealey_p11_6.jpg
+      体积 145,259 字节  SHA256 3d57d0efed58a810403eada5124505cd142d53e960a17c5d5b9c496f3ad4a719
+  data/media/comics/intl/intl_p01_1.jpg
+      体积 163,944 字节  SHA256 4a64252b03cee601f247e920d9fd56a32ea1bae5ff39767585e8efe548385b2e
+  data/media/comics/intl/intl_p01_2.jpg
+      体积 164,257 字节  SHA256 7039db362129976d070d1d8c39f3d14519d534d96995cd125eb3d2e3b4e07557
+  data/media/comics/intl/intl_p01_3.jpg
+      体积 156,567 字节  SHA256 6b801319a6eed641e5e31948897625d3fad76017b082845df070415c0a0a4d04
+  data/media/comics/intl/intl_p01_4.jpg
+      体积 164,257 字节  SHA256 4bd65e8a39007cf3e30197b43e744f1dc7e738c1f52ceb96259cb8d4de562a21
+  data/media/comics/intl/intl_p01_5.jpg
+      体积 158,833 字节  SHA256 8ec5577684ab50b3efa38079133fc693e78e4fbe022c9713f48f9ca38fc07a75
+  data/media/comics/intl/intl_p01_6.jpg
+      体积 143,711 字节  SHA256 1f5742cae129d7db673f004e9e44a91b41c2fc3171500dfd8526b9f592294690
+  data/media/comics/intl/intl_p02_1.jpg
+      体积 161,735 字节  SHA256 5572d840e9cfc2aefe9d58e4e2233140f4449931e00db579de414947000413c9
+  data/media/comics/intl/intl_p02_2.jpg
+      体积 159,453 字节  SHA256 2556379c9827e8005636e981692d0e1a8e4d9fa73dac9930bffdabca50b5d084
+  data/media/comics/intl/intl_p02_3.jpg
+      体积 159,855 字节  SHA256 a5f034097cc63e5a84ebf8967234354590413a033f86276c3e4012d36cc3ffcf
+  data/media/comics/intl/intl_p02_4.jpg
+      体积 157,210 字节  SHA256 62eeb1f3c585d97b2fa0d1c5da8e9721d76b972c7b3bb0ef3dca9397091ee65c
+  data/media/comics/intl/intl_p02_5.jpg
+      体积 146,121 字节  SHA256 3b916a27ebd9cb02d2bf5ea2857da5b74f034148f0200f3a8e7872fac0881536
+  data/media/comics/intl/intl_p02_6.jpg
+      体积 141,467 字节  SHA256 5afcdbf6a7df3dd8b4aef19ef8a42b8881157d1384e651b7302e655c8ef8927b
+  data/media/comics/intl/intl_p03_1.jpg
+      体积 158,535 字节  SHA256 ef63a1a5bff20fcc02178cb088f53e191bf2b975655253896f0340d547ee9ce2
+  data/media/comics/intl/intl_p03_2.jpg
+      体积 154,308 字节  SHA256 1ab41c168895f0798e8e4ebdc1f8e7609017afa6906275462b03b285d50fe08e
+  data/media/comics/intl/intl_p03_3.jpg
+      体积 142,684 字节  SHA256 64e56f8ad461bf378e293347de5e99425bcf7236bf6eca71cbe7354ba5a691f2
+  data/media/comics/intl/intl_p03_4.jpg
+      体积 162,985 字节  SHA256 1f7c517ad4e3e0261480077d3fa6407cab4a5274f8a26dabd32437a92a845281
+  data/media/comics/intl/intl_p03_5.jpg
+      体积 160,891 字节  SHA256 ed9986557f97b2ae094b29250d7846f01a822782ccf262318edf8b492619db47
+  data/media/comics/intl/intl_p03_6.jpg
+      体积 139,433 字节  SHA256 188680fc3dc989e0b766ba77a84cd059830b1502c59ac53edaf04cc31a258b37
+  data/media/comics/intl/intl_p04_1.jpg
+      体积 169,278 字节  SHA256 ed5fd318354e2d056a3b349150117dc540b80648457fd80bf805bdee98202720
+  data/media/comics/intl/intl_p04_2.jpg
+      体积 153,320 字节  SHA256 5a373c04545636def245566d449cb05ab172c68bb43d78ffd874a41c6503238e
+  data/media/comics/intl/intl_p04_3.jpg
+      体积 166,410 字节  SHA256 6b6a1cc5e678284cbd45a7f396faab78f8dd0631cfac54ee56369ecfb4a0b3cb
+  data/media/comics/intl/intl_p04_4.jpg
+      体积 149,414 字节  SHA256 56d82f7fad8633e43835bf127b2d617ac9564fc3c73f59f06bce4af64a804351
+  data/media/comics/intl/intl_p04_5.jpg
+      体积 162,347 字节  SHA256 8bd5504bf69fba57ef931ff575db6ada830f9db4baf6777e536e5b1ade0323c8
+  data/media/comics/intl/intl_p04_6.jpg
+      体积 143,266 字节  SHA256 1915d28888d4382730b9cbd04a3b7c90d6d6275f7ac342b11a21418d1767168e
+  data/media/comics/intl/intl_p05_1.jpg
+      体积 164,859 字节  SHA256 0229a3162aa9baaef36925a07ef7839bb2e8e2ec417f4df8848215e4c60e20c4
+  data/media/comics/intl/intl_p05_2.jpg
+      体积 165,717 字节  SHA256 dd7ec467e162f20a6e11ce53b8cafa328cc45219a62de8884d71afe5e3287984
+  data/media/comics/intl/intl_p05_3.jpg
+      体积 162,505 字节  SHA256 aab990e37491eb70085f7ab3ce95f96b3482021c68b921306130e35a7d810daf
+  data/media/comics/intl/intl_p05_4.jpg
+      体积 148,524 字节  SHA256 544dfb4adb29e11397fcd91a99cb9f16cfa9434e1608fb37e08019d7f3bea49b
+  data/media/comics/intl/intl_p05_5.jpg
+      体积 161,385 字节  SHA256 8d1d1ba2cebf6b4cf0eef96b341c959e2a70b4547b6f1b93bb31e17393ecc4b8
+  data/media/comics/intl/intl_p05_6.jpg
+      体积 143,155 字节  SHA256 b4ce88dff1578c8efc9ee66b8715b5722c4d6bf45f7f4ebab151e5ee37c2cc84
+  data/media/comics/inv/inv_p01_1.jpg
+      体积 167,837 字节  SHA256 7a27641dc979cbb9f28c92baf106017ed10d0745284bdea6b79510f5d72df561
+  data/media/comics/inv/inv_p01_2.jpg
+      体积 176,776 字节  SHA256 dd4ce86a169845d465b0f59e487c8a8a8e4b9eab79bcda9c8aae7b671079b9b3
+  data/media/comics/inv/inv_p01_3.jpg
+      体积 161,370 字节  SHA256 1540647d59927d25a45fabcec82192e4d9df6c1c12b37ae1f185ea75a02fce84
+  data/media/comics/inv/inv_p01_4.jpg
+      体积 168,350 字节  SHA256 8e2871bb00fa7be4370a613840d456ff380ef10ea4ba523445f108d4039aa889
+  data/media/comics/inv/inv_p01_5.jpg
+      体积 161,631 字节  SHA256 2df38c9d2a5791fcdee0cd3f3acb69a59489f711250531ba9312829c307878bc
+  data/media/comics/inv/inv_p01_6.jpg
+      体积 149,558 字节  SHA256 8c707a4e79e2686c744d0822a865c91a1fb6738b00ba70d445b723829d3463bb
+  data/media/comics/inv/inv_p02_1.jpg
+      体积 162,987 字节  SHA256 0202b6d086d54e2fbd97e1bba50c9fc9aa30c2969923da44f717a9268e524e55
+  data/media/comics/inv/inv_p02_2.jpg
+      体积 165,532 字节  SHA256 b1e6c1a1601910d4b3a7924e6d6ae256666b48d89ef10c087aadd6ae857932f7
+  data/media/comics/inv/inv_p02_3.jpg
+      体积 166,822 字节  SHA256 2abce08a2f5fdbfbc801ab38a0306dadbbbc5b847c5d26b69532da84dec353cc
+  data/media/comics/inv/inv_p02_4.jpg
+      体积 149,999 字节  SHA256 62fb6e48f7af8e4df8dbfd64f8257dd0e72f285b060199135222146eae199290
+  data/media/comics/inv/inv_p02_5.jpg
+      体积 156,265 字节  SHA256 5150256125186aa9beb7fa10345b399a55fe3a71d458ceb38f41e4bed0be3145
+  data/media/comics/inv/inv_p02_6.jpg
+      体积 142,690 字节  SHA256 fc77b7a1dd5366df3f368a8c833c9c0a52741419baf54324d128430a5056a64c
+  data/media/comics/inv/inv_p03_1.jpg
+      体积 161,439 字节  SHA256 15ae742a0475b7c628b34dbc6b9b1c053b64efd254ffdfce51074e5af1dfe8c6
+  data/media/comics/inv/inv_p03_2.jpg
+      体积 159,236 字节  SHA256 83fb19f36adbf0592a3f1c68cd6f3f5e9321566cdf5f0968bcfe3c76e263f4fa
+  data/media/comics/inv/inv_p03_3.jpg
+      体积 159,322 字节  SHA256 eb76d615de489166235e0a15f5f3837c564bb2d4bd64f293c3068dc5a2a9eb10
+  data/media/comics/inv/inv_p03_4.jpg
+      体积 160,893 字节  SHA256 968532df675c6b8842ba577a7fbfd58378f051ee3920130b72531b4f7a8beffc
+  data/media/comics/inv/inv_p03_5.jpg
+      体积 154,655 字节  SHA256 5c46c588e416bec5d8357347dd7a35c282676de90209d0ba93b2a4e74306ac33
+  data/media/comics/inv/inv_p03_6.jpg
+      体积 139,334 字节  SHA256 3b2f40546973200e59d3981c86613abfde0bc2e8be9958f029780d822bedd4a4
+  data/media/comics/inv/inv_p04_1.jpg
+      体积 156,787 字节  SHA256 5ed6c8c1d9c9f79c96c55a65485bdfc61960f8fe82497d4b554f48887bfd736c
+  data/media/comics/inv/inv_p04_2.jpg
+      体积 158,115 字节  SHA256 7e392559d02cc247a4e1820b44281b804c53b68f6a0be25a623676634cff2c82
+  data/media/comics/inv/inv_p04_3.jpg
+      体积 157,641 字节  SHA256 16eba6adff03b75e083e4612ea96ca6e25962a3103d11d8a8dfd3e0815d37418
+  data/media/comics/inv/inv_p04_4.jpg
+      体积 161,079 字节  SHA256 e8409a59ccd274eb15f904c4642f98b303feac28aa51e24d3de7a30259b63a39
+  data/media/comics/inv/inv_p04_5.jpg
+      体积 157,815 字节  SHA256 9b3c1bb9ef1f04fccbd0c564bfa0be431580a6e88fab8c45b7b4210c6defd8ce
+  data/media/comics/inv/inv_p04_6.jpg
+      体积 138,755 字节  SHA256 434b45693ea16e46d5189deb8af2efe03fba172adce3c18b0034c2a5fffd276b
+  data/media/comics/inv/inv_p05_1.jpg
+      体积 152,330 字节  SHA256 8565c10f1397e385c71d4564aa2292dee37fb8dd5a535ea4366e83724701c317
+  data/media/comics/inv/inv_p05_2.jpg
+      体积 144,012 字节  SHA256 f7d0063b0721c8527a5978b6915bf30af362eb854c3a16c2dd15d9d58db95ae3
+  data/media/comics/inv/inv_p05_3.jpg
+      体积 161,985 字节  SHA256 720580926baa5b20fbacce766c9794242cc8a92fed1ff76461a3a6871a68e6e7
+  data/media/comics/inv/inv_p05_4.jpg
+      体积 160,206 字节  SHA256 e9beb0e222a0dc81ac79f57b24ce8045e65dcffa81201ad5ac83b271a31078ee
+  data/media/comics/inv/inv_p05_5.jpg
+      体积 157,982 字节  SHA256 be5c737bbff26a7ad65327abe69a7a57a900a17fc16919e41d7dce03ff6b86ce
+  data/media/comics/inv/inv_p05_6.jpg
+      体积 144,174 字节  SHA256 e439a8b98290e5d545f2f9ecbf0688369a85268e6d46f48b248a0e22671c7ffd
+  data/media/comics/inv/inv_p06_1.jpg
+      体积 157,106 字节  SHA256 1cd0a1e45b234b4c05177444687de902bb61a4b304f3c4ce587d4b37836a6c62
+  data/media/comics/inv/inv_p06_2.jpg
+      体积 162,307 字节  SHA256 e200a2e96d82edff0f58086c8686c1ba02e3d53b89ce17c1ae166c9b35e43190
+  data/media/comics/inv/inv_p06_3.jpg
+      体积 161,568 字节  SHA256 f92fb55a9a19bfdac90da73bd70ddcdee3cb9ecd302571afd32995b201fae934
+  data/media/comics/inv/inv_p06_4.jpg
+      体积 131,706 字节  SHA256 32e57cce56ec56818ed8792f8736224cd1d9f6b341ad7fe3cf608a35467b1534
+  data/media/comics/inv/inv_p06_5.jpg
+      体积 153,174 字节  SHA256 755fb3dae818ac827684f1cda0226aef10ff32dfd5479a314304f14abcf77298
+  data/media/comics/inv/inv_p06_6.jpg
+      体积 142,586 字节  SHA256 915a3cdb77f89974123607193319bcc2e3c8248d304beb886d56ee76939e1af1
+  data/media/comics/inv/inv_p07_1.jpg
+      体积 167,300 字节  SHA256 127c27aefc80aef1fea563ce6ee285161e3a0aba82314bfd816046bd25268708
+  data/media/comics/inv/inv_p07_2.jpg
+      体积 162,711 字节  SHA256 44de5b2afb70ce037239189a8d9ee74cd00f2a36528b62c484c89d201d3619ae
+  data/media/comics/inv/inv_p07_3.jpg
+      体积 159,097 字节  SHA256 04b1c70584d256362de7fa697c76bea52746b56e9342f55cc55af63dff4b961f
+  data/media/comics/inv/inv_p07_4.jpg
+      体积 164,450 字节  SHA256 75ba5eb1e3dbb529e6c3b683d8fa33388303076167313cc29729c11a6d95fef6
+  data/media/comics/inv/inv_p07_5.jpg
+      体积 161,735 字节  SHA256 9346a32c1ee160f961ce7ceb7c6899f3c0e92321b584e09d5659629c06f44a9e
+  data/media/comics/inv/inv_p07_6.jpg
+      体积 146,713 字节  SHA256 dfed1caf7c73de9f0d3703a9d9b14cfbe5dd5a72ed04d0d46856393d17aabe04
+  data/media/comics/inv/inv_p08_1.jpg
+      体积 159,116 字节  SHA256 c9d1349fe39191e63500a330a0ebe73f1e047d975520189a5b5e29e39b6c7dcc
+  data/media/comics/inv/inv_p08_2.jpg
+      体积 171,486 字节  SHA256 01f717ba04d5eb9134c04f676660b54d02a9852d4836d85725e448995943f329
+  data/media/comics/inv/inv_p08_3.jpg
+      体积 164,444 字节  SHA256 b410f999f30c54e76ce2677b971f616e05cb8ff9f031ce6567fefd80f08b40d7
+  data/media/comics/inv/inv_p08_4.jpg
+      体积 151,991 字节  SHA256 3f620bcbb5d1199b8267354deb1637f0cec1bc182680f1b91fef00e320639450
+  data/media/comics/inv/inv_p08_5.jpg
+      体积 158,624 字节  SHA256 6f3f4ee61cd1a496a3bbe27af1da477d2c84866a8411da367eb446f6f6cf7abc
+  data/media/comics/inv/inv_p08_6.jpg
+      体积 143,950 字节  SHA256 f8d6ff4131b06fcd1634187525616a157c35b0453e375166b2cf1b90863de19f
+  data/media/databases.json
+      体积 4,513 字节  SHA256 e8ae6e53dfa69dd14a09e65ce3274f3042e4009d6242c7171d0a973a077e8c04
+  data/media/graphs/course_graph_corporate_finance.json
+      体积 1,283,029 字节  SHA256 0338dab231ca8bc444a81e0d9072ae871f79613a1e1338b364f0e4df63605791
+  data/media/graphs/course_graph_investment.json
+      体积 2,474,578 字节  SHA256 8086801cc6fde604ae9dc806100ec1b099e00f5de5c3cc0f46c55eeb3f27fff5
+  data/media/graphs/course_graph_mergers.json
+      体积 551,035 字节  SHA256 a93020080f3f3dac27ff020251bf67f6f5b36e933c03feb98551db5374576c52
+  前端/SUFE-Knowledge-Galaxy/css/comic-reader.css
+      体积 6,610 字节  SHA256 06e53b6e2e95294fd98460430e4959275e837a4abe6dc3d7c4650440850aa560
+  前端/SUFE-Knowledge-Galaxy/css/database-board.css
+      体积 17,779 字节  SHA256 7a3190985869c24022465f27528d1e821c2d7a4ee7bc868a23b918a6ae63f957
+  前端/SUFE-Knowledge-Galaxy/js/comic-reader.js
+      体积 15,133 字节  SHA256 7d1ef4ed4d1538cdac225b4dd7e72224f7d6a0ac5ee6e821057d15d89bdbbbc4
+  前端/SUFE-Knowledge-Galaxy/js/database-board.js
+      体积 27,022 字节  SHA256 8faaac81fc7426847059704b8234223b98e813c839a7201dad82770ee7be605d
 
 【新增（可选）】 2 个
 ------------------------------------------------------------------------------
-  scripts/import_textbook_covers.py
-      体积 8,765 字节  SHA256 db07649d95406dd7c19b1f8b8b6143187f4e35d8f24962ea53a33a8a3d07ce02
-  scripts/import_textbooks.py
-      体积 17,483 字节  SHA256 68d9dff193d632a5b99e82ad36c06896a4ac80b879268373b29653fbdce577af
+  scripts/import_comics.py
+      体积 14,984 字节  SHA256 4cd6f0e3d19f1c378bc267753e02121e8384fa61fcc39a72ae81ec722bae73c6
+  scripts/link_comics.py
+      体积 10,605 字节  SHA256 53d59c0773820eacd892814dd87eae21fcf3309ae051c945fd14f1c7030f5e3f
 
 【说明】 1 个
 ------------------------------------------------------------------------------
   更新说明.md
-      体积 23,159 字节  SHA256 e8526ec62e5c9e1698d2abbb4aba361c956d6e650fde2f06ec998523562e84fb
+      体积 30,771 字节  SHA256 3dcc5bba6e3a56df4c403cbdab6952eb1246933776fd0890f2e2cd9939ca4a46
 
 ==============================================================================
-包内不含（无需更新，也不用重传）：.git/  .workbuddy/  书/(约495MB，与包内 data/media/textbooks/ 逐字节相同)
+包内不含（无需更新，也不用重传）：.git/  .workbuddy/  书/(约495MB，与 data/media/textbooks/ 逐字节相同)
+  知识点小漫画/(约28MB，漫画源素材目录；抽出的图已在包内 data/media/comics/)  数据/(4.8GB)
+  data/media/textbooks/ 及其清单 textbooks.json、data/media/books/tb-*.jpg（上一版已交付，逐字节未改）
   data/media/{videos,papers}/  data/media/videos.json  data/media/books/01-35.png
-  前端/SUFE-Knowledge-Galaxy/data/galaxy_v12.json  数据/(4.8GB)
-  backend/cache/  前端/proxy-server/node_modules/  文档/交接/（本说明文档除外，已作为 更新说明.md 置于包内）
+  data/layered/{invest,corp_fin,ma}_layered.json（这三个 id 已改读新版课程图）
+  前端/SUFE-Knowledge-Galaxy/data/galaxy_v12.json  backend/cache/  前端/proxy-server/node_modules/
+  文档/交接/（本说明文档除外，已作为 更新说明.md 置于包内）
 
 本次不需要 pip install：requirements.txt 与上一版逐字节相同。
-本次不需要清 backend/cache/：图谱数据一个没动，教材是静态文件不参与 embedding。
-注意：data/media/textbooks/ 必须完整落位（32 个文件 / 494.2 MiB / 518,188,679 字节），缺一个该书的「阅读原文」即 404。
+⚠️ 本次必须清 backend/cache/{invest,corp_fin,ma}_all-MiniLM-L6-v2/（图谱数据已整体换掉，旧向量会错配），再启动。
+注意：data/media/comics/ 必须完整落位（144 个文件 / 22,418,451 字节 / 21.38 MiB），少一个那一页漫画即 404。
 
 更新后自检：
-  curl -s http://127.0.0.1:8000/health
-  curl -s http://127.0.0.1:8000/data/textbooks.json | head -c 120      # 期望 count=32 totalMB=494.1
-  curl -s -o /dev/null -D - -H 'Range: bytes=0-1023' http://127.0.0.1:8000/assets/textbooks/nelson-winter-1982.pdf | grep -iE 'HTTP/|content-range'   # 期望 206
-  curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8000/js/epub.min.js    # 期望 200
-  cd backend && python -m pytest -q                                    # 期望 123 passed
+  curl -s http://127.0.0.1:8000/health                                            # 期望 {"status":"ok","agent":true}
+  curl -s http://127.0.0.1:8000/data/comics.json | grep -E '"total_albums"|"total_pages"'   # 期望 24 / 144
+  curl -s -o /dev/null -w '%{http_code} %{size_download}
+' http://127.0.0.1:8000/assets/comics/inv/inv_p01_2.jpg          # 期望 200 176776
+  curl -s -X POST http://127.0.0.1:8000/api/graph/load -H 'Content-Type: application/json' -d '{"graph_id":"invest"}'   # 期望 code=0，nodes 2583 / edges 4175
+  curl -s http://127.0.0.1:8000/api/graph/book/1 | grep -c '"id"'               # 期望 >= 28（书详情小图取章层）
+  cd backend && python -m pytest -q                                              # 期望 135 passed
